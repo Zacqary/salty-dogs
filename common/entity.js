@@ -6,12 +6,14 @@ Entity.create = function(params){
 	e.x = params.x || 0.0;
 	e.y = params.y || 0.0;
 	e.z = params.z || 0.0;
+	e.zIndex = 0;
 	e.visible = params.visible || true;
 	e.speed = params.speed || 0;
 	e.speedMult = params.speedMult || 1;
 	e.sprite = params.sprite;
 	e.hitbox = params.hitbox;
-	e.effectRadius = params.effectRadius; 
+	e.effectRadius = params.effectRadius;
+	e.waypoints = [];
 	return e;
 };
 
@@ -28,6 +30,14 @@ Entity.prototype.setPosition = function(x,y,z){
 Entity.prototype.getPosition = function(){
 	return [this.x,this.y,this.z];
 };
+
+Entity.prototype.setZIndex = function(index){
+	this.zIndex = index;
+}
+
+Entity.prototype.getZIndex = function(){
+	return this.zIndex;
+}
 
 Entity.prototype.createSprite = function(spriteParams, x0ffset, yOffset){
 	this.sprite = Graphics.createEntitySprite(spriteParams, x0ffset, yOffset);
@@ -108,6 +118,30 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 
 Entity.prototype.isInRadius = function(entity){
 	return Physics.collisionUtils.intersects(this.hitbox.shapes[0], entity.effectRadius.shapes[0]);
+};
+
+Entity.prototype.addWaypoint = function(x, y){
+	this.waypoints.push([x,y]);
+};
+
+Entity.prototype.overwriteWaypoint = function(index, x, y){
+	this.waypoints.splice(0,1,[x,y]);
+}
+
+Entity.prototype.nextWaypoint = function(){
+	this.waypoints.splice(0,1);
+};
+
+Entity.prototype.approachCurrentWaypoint = function(range, override){
+	override = override || this.speedMult;
+	range = range || 10;
+	w = this.waypoints[0];
+	this.approach(w[0],w[1], range, override);
+	pos = this.getPosition();
+	speed = this.speed * this.speedMult;
+	if (override) speed = this.speed * override;
+	if ( (Math.abs(pos[0]-w[0]) < speed) && (Math.abs(pos[1]-w[1]) < speed) )
+		this.nextWaypoint();
 }
 
 // =============
@@ -143,6 +177,14 @@ var EntityManager = function(){
 			else return 0;
 		});
 		
+		orderedEnts.sort(function(a,b){
+			if (a.zIndex < b.zIndex)
+				return -1;
+			else if (a.zIndex > b.zIndex)
+				return 1;
+			else return 0;
+		});
+		
 		Graphics.draw2D.end();
 		Graphics.debugDraw.end();
 		
@@ -159,6 +201,14 @@ var EntityManager = function(){
 		}
 		Graphics.debugDraw.end();
 		
+	};
+	
+	this.allToCurrentWaypoint = function(){
+		for (var i in entities) {
+			if (entities[i].waypoints.length > 0){
+				entities[i].approachCurrentWaypoint(10,1);
+			}
+		}
 	};
 	
 	this.getEntities = function(){

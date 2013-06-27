@@ -22,79 +22,15 @@ var CameraTest = {
 			};
 			Graphics.device.createTexture(circleTex);
 			
-			CameraTest.bodyTextures = [];
-			var bodyTex = {
-				src: "textures/body.png",
-				mipmaps: true,
-				onload: function(texture){
-					CameraTest.bodyTextures["body"] = texture;
-				}
-			};
-			Graphics.device.createTexture(bodyTex);
-			var hatTex = {
-				src: "textures/hat.png",
-				mipmaps: true,
-				onload: function(texture){
-					CameraTest.bodyTextures["hat"] = texture;
-				}
-			};
-			Graphics.device.createTexture(hatTex);
-			var shirtTex = {
-				src: "textures/shirt.png",
-				mipmaps: true,
-				onload: function(texture){
-					CameraTest.bodyTextures["shirt"] = texture;
-				}
-			};
-			Graphics.device.createTexture(shirtTex);
-			var tankTex = {
-				src: "textures/tank.png",
-				mipmaps: true,
-				onload: function(texture){
-					CameraTest.bodyTextures["tank"] = texture;
-				}
-			};
-			Graphics.device.createTexture(tankTex);
-			var pantsTex = {
-				src: "textures/pants.png",
-				mipmaps: true,
-				onload: function(texture){
-					CameraTest.bodyTextures["pants"] = texture;
-				}
-			};
-			Graphics.device.createTexture(pantsTex);
-			var lsbladeTex = {
-				src: "textures/lsblade.png",
-				mipmaps: true,
-				onload: function(texture){
-					CameraTest.bodyTextures["lsblade"] = texture;
-				}
-			};
-			Graphics.device.createTexture(lsbladeTex);
-			var lshiltTex = {
-				src: "textures/lshilt.png",
-				mipmaps: true,
-				onload: function(texture){
-					CameraTest.bodyTextures["lshilt"] = texture;
-				}
-			};
-			Graphics.device.createTexture(lshiltTex);
-			var clbladeTex = {
-				src: "textures/clblade.png",
-				mipmaps: true,
-				onload: function(texture){
-					CameraTest.bodyTextures["clblade"] = texture;
-				}
-			};
-			Graphics.device.createTexture(clbladeTex);
-			var clhiltTex = {
-				src: "textures/clhilt.png",
-				mipmaps: true,
-				onload: function(texture){
-					CameraTest.bodyTextures["clhilt"] = texture;
-				}
-			};
-			Graphics.device.createTexture(clhiltTex);
+			Graphics.textureManager.load("textures/body.png");
+			Graphics.textureManager.load("textures/hat.png");
+			Graphics.textureManager.load("textures/shirt.png");
+			Graphics.textureManager.load("textures/tank.png");
+			Graphics.textureManager.load("textures/pants.png");
+			Graphics.textureManager.load("textures/lsblade.png");
+			Graphics.textureManager.load("textures/lshilt.png");
+			Graphics.textureManager.load("textures/clblade.png");
+			Graphics.textureManager.load("textures/clhilt.png");
 			
 			CameraTest.em = new EntityManager();
 			
@@ -268,15 +204,6 @@ var CameraTest = {
 
 			Graphics.device.clear([1,1,1,1]);
 			CameraTest.floor.render(Graphics.device, CameraTest.camera);
-			Graphics.draw2D.begin("alpha");
-			Graphics.draw2D.drawSprite(Draw2DSprite.create({
-				texture: CameraTest.bodyTextures["body"],
-				textureRectangle: [0, 0, 48, 64],
-				width: 36,
-				height: 48,
-				color: [1,0.83,0.51,1]
-			}));
-			Graphics.draw2D.end();
 			
 			if(CameraTest.avatarBodyTex) {
 				if (Input.mouseDown.left) CameraTest.cursor.sprite.setTextureRectangle([64,0,128,48]);
@@ -284,117 +211,61 @@ var CameraTest = {
 				CameraTest.cursor.zIndex = CameraTest.avatar.zIndex - 1;
 				CameraTest.em.drawAll();
 			}
-			else if(objSize(CameraTest.bodyTextures) == 9){
-				var avTarget = Graphics.draw2D.createRenderTarget({
-					name: "avatarBody",
-					backBuffer: true
+			else if(!Graphics.textureManager.getNumPendingTextures()){
+				
+				var avLayers = [];
+				avLayers.push({
+					path: "textures/body.png",
+					color: [0.76,0.5,0,1]
 				});
-				Graphics.draw2D.setRenderTarget(avTarget);
-				Graphics.draw2D.begin("alpha");
-				Graphics.draw2D.drawSprite(Draw2DSprite.create({
-					texture: CameraTest.bodyTextures["body"],
-					textureRectangle: [0, 0, 48, 64],
-					width: 36,
-					height: 48,
-					color: [0.76,0.5,0,1],
-					origin: [0,0],
-				}));
-				Graphics.draw2D.drawSprite(Draw2DSprite.create({
-					texture: CameraTest.bodyTextures["hat"],
-					textureRectangle: [0, 0, 48, 64],
-					width: 36,
-					height: 48,
-					color: [0.666,0.03,0.305,1],
-					origin: [0,0],
-				}));
-				Graphics.draw2D.drawSprite(Draw2DSprite.create({
-					texture: CameraTest.bodyTextures["shirt"],
-					textureRectangle: [0, 0, 48, 64],
-					width: 36,
-					height: 48,
-					color: [0.6,0.6,0.5,1],
-					origin: [0,0],
-				}));
-				Graphics.draw2D.drawSprite(Draw2DSprite.create({
-					texture: CameraTest.bodyTextures["pants"],
-					textureRectangle: [0, 0, 48, 64],
-					width: 36,
-					height: 48,
-					color: [0.45,0.4,0.7,1],
-					origin: [0,0],
-				}));
-				Graphics.draw2D.drawSprite(Draw2DSprite.create({
-					texture: CameraTest.bodyTextures["lshilt"],
-					textureRectangle: [0, 0, 48, 64],
-					width: 36,
-					height: 48,
-					color: [0.85,0.737,0.09,1],
-					origin: [0,0],
-				}));
-				Graphics.draw2D.drawSprite(Draw2DSprite.create({
-					texture: CameraTest.bodyTextures["lsblade"],
-					textureRectangle: [0, 0, 48, 64],
-					width: 36,
-					height: 48,
-					color: [0.8,0.8,0.8,1],
-					origin: [0,0],
-				}));
-				Graphics.draw2D.end();
-				CameraTest.avatarBodyTex = Graphics.draw2D.getRenderTargetTexture(avTarget);
+				avLayers.push({
+					path: "textures/hat.png",
+					color: [0.666,0.03,0.305,1]
+				});
+				avLayers.push({
+					path: "textures/shirt.png",
+					color: [0.6,0.6,0.5,1]
+				});
+				avLayers.push({
+					path: "textures/pants.png",
+					color: [0.45,0.4,0.7,1]
+				});
+				avLayers.push({
+					path: "textures/lshilt.png",
+					color: [0.85,0.737,0.09,1]
+				});
+				avLayers.push({
+					path: "textures/lsblade.png",
+					color: [0.8,0.8,0.8,1]
+				});
+				CameraTest.avatarBodyTex = Graphics.makeCompositeTexture(avLayers);
 				CameraTest.avatar.sprite.setTexture(CameraTest.avatarBodyTex);
-				CameraTest.avatar.sprite.setTextureRectangle([0,0,36,48]);
+				CameraTest.avatar.sprite.setTextureRectangle([0,0,48,64]);
 			
-				var NPCTarget = Graphics.draw2D.createRenderTarget({
-					name: "NPCBody",
-					backBuffer: true
+				var NPCLayers = [];
+				NPCLayers.push({
+					path: "textures/body.png",
+					color: [0.6,0.6,0.65,1]
 				});
-				Graphics.draw2D.setRenderTarget(NPCTarget);
-				Graphics.draw2D.begin("alpha");
-				Graphics.draw2D.drawSprite(Draw2DSprite.create({
-					texture: CameraTest.bodyTextures["body"],
-					textureRectangle: [0, 0, 48, 64],
-					width: 36,
-					height: 48,
-					color: [0.6,0.6,0.65,1],
-					origin: [0,0],
-				}));
-				Graphics.draw2D.drawSprite(Draw2DSprite.create({
-					texture: CameraTest.bodyTextures["tank"],
-					textureRectangle: [0, 0, 48, 64],
-					width: 36,
-					height: 48,
-					color: [0.8,0.7,0.7,1],
-					origin: [0,0],
-				}));
-				Graphics.draw2D.drawSprite(Draw2DSprite.create({
-					texture: CameraTest.bodyTextures["pants"],
-					textureRectangle: [0, 0, 48, 64],
-					width: 36,
-					height: 48,
-					color: [0.7,0.4,0.4,1],
-					origin: [0,0],
-				}));
-				Graphics.draw2D.drawSprite(Draw2DSprite.create({
-					texture: CameraTest.bodyTextures["clhilt"],
-					textureRectangle: [0, 0, 48, 64],
-					width: 36,
-					height: 48,
-					color: [0.85,0.737,0.09,1],
-					origin: [0,0],
-				}));
-				Graphics.draw2D.drawSprite(Draw2DSprite.create({
-					texture: CameraTest.bodyTextures["clblade"],
-					textureRectangle: [0, 0, 48, 64],
-					width: 36,
-					height: 48,
-					color: [0.8,0.8,0.8,1],
-					origin: [0,0],
-				}));
-				Graphics.draw2D.end();
-				CameraTest.NPCBodyTex = Graphics.draw2D.getRenderTargetTexture(NPCTarget);
+				NPCLayers.push({
+					path: "textures/tank.png",
+					color: [0.8,0.7,0.7,1]
+				});
+				NPCLayers.push({
+					path: "textures/pants.png",
+					color: [0.7,0.4,0.4,1]
+				});
+				NPCLayers.push({
+					path: "textures/clhilt.png",
+					color: [0.85,0.737,0.09,1]
+				});
+				NPCLayers.push({
+					path: "textures/clblade.png",
+					color: [0.8,0.8,0.8,1]
+				});
+				CameraTest.NPCBodyTex = Graphics.makeCompositeTexture(NPCLayers);
 				CameraTest.NPC.sprite.setTexture(CameraTest.NPCBodyTex);
-				CameraTest.NPC.sprite.setTextureRectangle([0,0,36,48]);
-				Graphics.draw2D.setBackBuffer();
+				CameraTest.NPC.sprite.setTextureRectangle([0,0,48,64]);
 				
 			}
 			

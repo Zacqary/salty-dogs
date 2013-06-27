@@ -37,6 +37,29 @@ var Graphics = {
 		camera.updateViewMatrix();
 	},
 	
+	makeCompositeTexture: function makeCompositeTexture(layers){
+		var pixels = Graphics.textureManager.get(layers[0].path).width;
+		var target = Graphics.draw2D.createRenderTarget({
+			name: "newTarget",
+			backBuffer: true,
+		});
+		Graphics.draw2D.setRenderTarget(target);
+		Graphics.draw2D.begin("alpha");
+		for (var i in layers){
+			Graphics.draw2D.drawSprite(Draw2DSprite.create({
+				texture: Graphics.textureManager.get(layers[i].path),
+				textureRectangle: [0, 0, pixels, pixels],
+				width: pixels,
+				height: pixels,
+				color: layers[i].color,
+				origin: [0,0],
+			}));
+		}
+		Graphics.draw2D.end();
+		Graphics.draw2D.setBackBuffer();
+		var tex = Graphics.draw2D.getRenderTargetTexture(target);
+		return tex;
+	},
 	
 }
 

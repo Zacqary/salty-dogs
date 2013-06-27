@@ -9,18 +9,8 @@ var CameraTest = {
 			CameraTest.camera.lookAt([0,0,0], Graphics.WORLD_UP, [0,70,240]);
 			GameState.setCamera(CameraTest.camera2D);
 			
-			var circleTex = {
-				src: "textures/circles.png",
-				mipmaps: true,
-				onload: function(texture){
-					CameraTest.circleTex = texture;
-					CameraTest.avatar.sprite.setTexture(CameraTest.circleTex);
-					CameraTest.cursor.sprite.setTexture(CameraTest.circleTex);
-					CameraTest.NPC.sprite.setTexture(CameraTest.circleTex);
-					CameraTest.loaded = true;
-				}
-			};
-			Graphics.device.createTexture(circleTex);
+			
+			Graphics.textureManager.load("textures/circle.png");
 			
 			Graphics.textureManager.load("textures/body.png");
 			Graphics.textureManager.load("textures/hat.png");
@@ -37,26 +27,22 @@ var CameraTest = {
 			CameraTest.avatar = Entity.create({x: 0, y: 170});
 			CameraTest.avatar.speed = 8;
 			CameraTest.avatar.createSprite({
-					texture: CameraTest.circleTex,
-					width: 36,
-					height: 48,
-					textureRectangle: [0,48,48,112]
+					width: 48,
+					height: 64,
 			});
 			CameraTest.avatar.setSpriteOffset(0,-16);
-			CameraTest.avatar.createHitbox(36,28,0,10);
+			CameraTest.avatar.createHitbox(48,28,0,18);
 			CameraTest.em.add(CameraTest.avatar);
 			
 			CameraTest.NPC = Entity.create({x: 640, y: 170});
 			CameraTest.NPC.speed = 8;
 			CameraTest.NPC.createSprite({
-					texture: CameraTest.circleTex,
-					width: 36,
-					height: 48,
-					textureRectangle: [0,48,48,112]
+					width: 48,
+					height: 64,
 			});
 			CameraTest.NPC.setSpriteOffset(0,-16);
-			CameraTest.NPC.createHitbox(36,28,0,10);
-			CameraTest.NPC.createEffectRadius(60);
+			CameraTest.NPC.createHitbox(48,28,0,18);
+			CameraTest.NPC.createEffectRadius(80);
 			CameraTest.em.add(CameraTest.NPC);
 			
 			CameraTest.cursor = Entity.create({});
@@ -64,12 +50,13 @@ var CameraTest = {
 			CameraTest.cursor.upperBound = 40;
 			CameraTest.cursor.lowerBound = 280;
 			CameraTest.cursor.createSprite({
-				texture: CameraTest.circleTex,
+				texture: Graphics.textureManager.get("textures/circle.png"),
 				width: 64,
 				height: 48,
-				textureRectangle: [0,0,64,48]
+				textureRectangle: [0,0,64,48],
+				color: [0,0,1,1]
 			});
-			CameraTest.cursor.createHitbox(8,8,0,0);
+			CameraTest.cursor.createHitbox(8,24,0,0);
 			CameraTest.em.add(CameraTest.cursor);
 		
 			CameraTest.struck = false;
@@ -95,17 +82,21 @@ var CameraTest = {
 			if (CameraTest.cursor.y < CameraTest.cursor.upperBound) CameraTest.cursor.y = CameraTest.cursor.upperBound;
 			else if (CameraTest.cursor.y > CameraTest.cursor.lowerBound) CameraTest.cursor.y = CameraTest.cursor.lowerBound;
 			
+			
+			if (Physics.collisionUtils.intersects(CameraTest.NPC.hitbox.shapes[0], CameraTest.cursor.hitbox.shapes[0]) )
+				CameraTest.cursorOnNPC = true;
+			else CameraTest.cursorOnNPC = false;
+			
 			if (Input.mouseDown.left) {
-				
 				if (CameraTest.avatar.isInRadius(CameraTest.NPC)) {
 					CameraTest.avatar.speedMult = 0.1;
 					CameraTest.cursor.range = 52;
-					CameraTest.NPC.effectRadius.shapes[0].setRadius(96);
+					CameraTest.NPC.effectRadius.shapes[0].setRadius(120);
 				}
 				else {
 					CameraTest.avatar.speedMult = 1;
 					CameraTest.cursor.range = 128;
-					CameraTest.NPC.effectRadius.shapes[0].setRadius(64);
+					CameraTest.NPC.effectRadius.shapes[0].setRadius(80);
 				}
 			
 				CameraTest.avatar.approach(CameraTest.cursor.x, CameraTest.cursor.y, CameraTest.cursor.range);
@@ -159,9 +150,8 @@ var CameraTest = {
 						var hitboxWidth = 36;
 						var hitboxHeight = 28;
 						
-						var push = 24;
-						var pushMin = 8;
-						var pushRadius = 48;
+						var push = 30;
+						var pushRadius = 64;
 						var avPos = [CameraTest.avatar.x, CameraTest.avatar.y + CameraTest.avatar.sprite.yOffset];
 						var NPCPos =  [CameraTest.NPC.x, CameraTest.NPC.y + CameraTest.NPC.sprite.yOffset];
 						var xDiff = Math.abs(NPCPos[0] - avPos[0]);
@@ -172,12 +162,10 @@ var CameraTest = {
 						if(yDiff < 0) yDiff = 0;
 						var distance = Math.sqrt( Math.pow(xDiff,2) + Math.pow(yDiff,2) );
 						
-						
-						//push = push * (1 - ( (distance - pushRadius)/pushRadius) );
-						if ( (Input.mouseDown.left) && (Physics.collisionUtils.intersects(CameraTest.NPC.hitbox.shapes[0], CameraTest.cursor.hitbox.shapes[0]) ) ){
+						if ( (Input.mouseDown.left) && (CameraTest.cursorOnNPC) ){
 							push *= 2;
-						}
-						if (push < pushMin) push = pushMin;
+							pushRadius *= 1.25;
+						};
 						console.log(push);
 						
 						var NPCWaypoint = [];
@@ -206,10 +194,17 @@ var CameraTest = {
 			CameraTest.floor.render(Graphics.device, CameraTest.camera);
 			
 			if(CameraTest.avatarBodyTex) {
-				if (Input.mouseDown.left) CameraTest.cursor.sprite.setTextureRectangle([64,0,128,48]);
-				else CameraTest.cursor.sprite.setTextureRectangle([0,0,64,48]);
+				if (Input.mouseDown.left) {
+					if (CameraTest.cursorOnNPC) CameraTest.cursor.sprite.setColor([1,0,0,1]);
+					else CameraTest.cursor.sprite.setColor([0,0,1,1]);
+				}
+				else {
+					if (CameraTest.cursorOnNPC) CameraTest.cursor.sprite.setColor([0.4,0,1,0.7]);
+					else CameraTest.cursor.sprite.setColor([0,0.4,1,0.5]);
+				}
+				CameraTest.cursor.sprite.setTexture(Graphics.textureManager.get("textures/circle.png"));
 				CameraTest.cursor.zIndex = CameraTest.avatar.zIndex - 1;
-				CameraTest.em.drawAll();
+				CameraTest.em.drawAll(true);
 			}
 			else if(!Graphics.textureManager.getNumPendingTextures()){
 				

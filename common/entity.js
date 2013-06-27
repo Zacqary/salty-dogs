@@ -166,7 +166,7 @@ var EntityManager = function(){
 		}
 	};
 	
-	this.drawAll = function(){
+	this.drawAll = function(debug){
 		var orderedEnts = [];
 		for (var i in entities) orderedEnts.push(entities[i]);
 		orderedEnts.sort(function(a,b){
@@ -194,13 +194,14 @@ var EntityManager = function(){
 		}
 		Graphics.draw2D.end();
 		
-		Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
-		Graphics.debugDraw.begin();
-		for (var i in orderedEnts){
-			orderedEnts[i].drawPhysDebug();
+		if(debug) {
+			Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
+			Graphics.debugDraw.begin();
+			for (var i in orderedEnts){
+				orderedEnts[i].drawPhysDebug();
+			}
+			Graphics.debugDraw.end();
 		}
-		Graphics.debugDraw.end();
-		
 	};
 	
 	this.allToCurrentWaypoint = function(){

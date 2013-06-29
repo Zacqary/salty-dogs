@@ -43,7 +43,7 @@ var Graphics = {
 		r = parseInt(r.toUpperCase(), 16);
 		g = parseInt(g.toUpperCase(), 16);
 		b = parseInt(b.toUpperCase(), 16);
-		return [r/255, g/255, b/255, a/255];
+		return Math.device.v4Build(r/255, g/255, b/255, a/255);
 	},
 	
 	updateCameraMatrices: function updateCameraMatrices(camera){
@@ -77,11 +77,11 @@ var Graphics = {
 			
 			Graphics.draw2D.drawSprite(Draw2DSprite.create({
 				texture: Graphics.textureManager.get(layers[i].path),
-				textureRectangle: [0, 0, pixels, pixels],
+				textureRectangle: Math.device.v4Build(0, 0, pixels, pixels),
 				width: pixels,
 				height: pixels,
 				color: color,
-				origin: [0,0],
+				origin: Math.device.v2BuildZero(),
 			}));
 		}
 		Graphics.draw2D.end();
@@ -107,13 +107,13 @@ Graphics.Camera2D.create = function(){
 Graphics.Camera2D.prototype.getViewCenter = function(){
 	var x = (this.width/2) - this.x;
 	var y = (this.height/2) - this.y;
-	return [x,y];
+	return Math.device.v2Build(x,y);
 }
 Graphics.Camera2D.prototype.xyViewToWorld = function(x, y){
 	var center = this.getViewCenter();
 	x = x - center[0];
 	y = y - center[1];
-	return [x,y];
+	return Math.device.v2Build(x,y);
 };
 Graphics.Camera2D.prototype.mouseToWorld = function(){
 	return this.xyViewToWorld(Input.mousePosition.x, Input.mousePosition.y);

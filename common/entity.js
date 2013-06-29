@@ -10,16 +10,24 @@ Entity.create = function(params){
 	e.visible = params.visible || true;
 	e.speed = params.speed || 0;
 	e.speedMult = params.speedMult || 1;
-	e.sprite = params.sprite;
 	e.hitbox = params.hitbox;
 	e.effectRadius = params.effectRadius;
 	e.waypoints = [];
+	
+	e.sprite = params.sprite;
+	Graphics.textureManager.add(e.name, null);
+	e.textureInstance = Graphics.textureManager.getInstance(e.name);
+	e.textureInstance.subscribeTextureChanged(function(instance){
+		e.sprite.setTexture(instance.getTexture());
+		e.sprite.setTextureRectangle([0, 0, e.sprite.getWidth(), e.sprite.getHeight()]);
+	});
+	
 	return e;
 };
 
 Entity.prototype.update = function(){
 	this.updatePosition();
-}
+};
 
 Entity.prototype.setPosition = function(x,y,z){
 	this.x = x;
@@ -33,14 +41,26 @@ Entity.prototype.getPosition = function(){
 
 Entity.prototype.setZIndex = function(index){
 	this.zIndex = index;
-}
+};
 
 Entity.prototype.getZIndex = function(){
 	return this.zIndex;
-}
+};
 
 Entity.prototype.createSprite = function(spriteParams, x0ffset, yOffset){
-	this.sprite = Graphics.createEntitySprite(spriteParams, x0ffset, yOffset);
+	this.sprite = Graphics.EntitySprite.create(spriteParams, this, x0ffset, yOffset);
+};
+
+Entity.prototype.getTexture = function(){
+	this.textureInstance.getTexture();
+};
+
+Entity.prototype.setTexture = function(texture){
+	this.textureInstance.setTexture(texture);
+};
+
+Entity.prototype.composeTexture = function(layers){
+	this.setTexture(Graphics.makeCompositeTexture(layers));
 };
 
 Entity.prototype.setSpriteOffset = function(x,y) {
@@ -51,7 +71,7 @@ Entity.prototype.setSpriteOffset = function(x,y) {
 Entity.prototype.draw = function draw(){
 	this.movement = null;
 	this.updatePosition(this, this.sprite, GameState.getCamera());
-	Graphics.drawEntitySprite(this.sprite);
+	this.sprite.draw();
 };
 
 Entity.prototype.drawPhysDebug = function drawPhysDebug(){
@@ -64,7 +84,7 @@ Entity.prototype.drawPhysDebug = function drawPhysDebug(){
 };
 
 Entity.prototype.updatePosition = function updatePosition(){
-	Graphics.updateEntitySprite(this, this.sprite, GameState.getCamera());
+	this.sprite.update(GameState.getCamera());
 	if (this.hitbox) {
 		this.hitbox.setPosition([this.sprite.x + this.hitbox.xOffset, this.sprite.y + this.hitbox.yOffset]);
 	}
@@ -142,7 +162,7 @@ Entity.prototype.approachCurrentWaypoint = function(range, override){
 	if (override) speed = this.speed * override;
 	if ( (Math.abs(pos[0]-w[0]) < speed) && (Math.abs(pos[1]-w[1]) < speed) )
 		this.nextWaypoint();
-}
+};
 
 // =============
 // EntityManager

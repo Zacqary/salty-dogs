@@ -8,10 +8,13 @@ var GameState = new function() {
 		currentLoop.initialize();
 	}
 	this.loop = function(){
-		currentLoop.run();
+		if (currentLoop.loaded)
+			currentLoop.run();
+		else currentLoop.loadingLoop();
 	}
 	this.draw = function(){
-		currentLoop.draw();
+		if (currentLoop.loaded) currentLoop.draw();
+		else currentLoop.loadingScreen();
 	}
 	
 	this.setCamera = function(newCamera){

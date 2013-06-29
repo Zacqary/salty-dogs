@@ -60,6 +60,41 @@ var CameraTest = {
 			CameraTest.em.add(CameraTest.cursor);
 		
 			CameraTest.struck = false;
+			
+		},
+		
+		loadingLoop: function(){
+			if (!Graphics.textureManager.getNumPendingTextures()) {
+				CameraTest.loop.loaded = true;
+			}
+			
+			if (CameraTest.loop.loaded){
+				
+					var avLayers = [
+						{ name: "body", color: "bf8000" },
+						{ name: "hat", color: "992370" },
+						{ name: "shirt", color: "cccc99"},
+						{ name: "pants", color: "77709a"},
+						{ name: "lshilt", color: "c7aa09"},
+						{ name: "lsblade", color: "aaaaaa"},
+					];
+					CameraTest.avatar.composeTexture(avLayers);
+
+					var NPCLayers = [
+						{ name: "body", color: "909099" },
+						{ name: "tank", color: "cc9999" },
+						{ name: "pants", color: "aa5555"},
+						{ name: "clhilt", color: "c7aa09"},
+						{ name: "clblade", color: "aaaaaa"},
+					];
+					CameraTest.NPC.composeTexture(NPCLayers);
+				
+			}
+			
+		},
+		
+		loadingScreen: function(){
+			
 		},
 		
 		run: function() {
@@ -193,78 +228,19 @@ var CameraTest = {
 			Graphics.device.clear([1,1,1,1]);
 			CameraTest.floor.render(Graphics.device, CameraTest.camera);
 			
-			if(CameraTest.avatarBodyTex) {
-				if (Input.mouseDown.left) {
-					if (CameraTest.cursorOnNPC) CameraTest.cursor.sprite.setColor([1,0,0,1]);
-					else CameraTest.cursor.sprite.setColor([0,0,1,1]);
-				}
-				else {
-					if (CameraTest.cursorOnNPC) CameraTest.cursor.sprite.setColor([0.4,0,1,0.7]);
-					else CameraTest.cursor.sprite.setColor([0,0.4,1,0.5]);
-				}
-				CameraTest.cursor.sprite.setTexture(Graphics.textureManager.get("textures/circle.png"));
-				CameraTest.cursor.zIndex = CameraTest.avatar.zIndex - 1;
-				CameraTest.em.drawAll(true);
+			if (Input.mouseDown.left) {
+				if (CameraTest.cursorOnNPC) CameraTest.cursor.sprite.setColor([1,0,0,1]);
+				else CameraTest.cursor.sprite.setColor([0,0,1,1]);
 			}
-			else if(!Graphics.textureManager.getNumPendingTextures()){
-				
-				var avLayers = [];
-				avLayers.push({
-					path: "textures/body.png",
-					color: [0.76,0.5,0,1]
-				});
-				avLayers.push({
-					path: "textures/hat.png",
-					color: [0.666,0.03,0.305,1]
-				});
-				avLayers.push({
-					path: "textures/shirt.png",
-					color: [0.6,0.6,0.5,1]
-				});
-				avLayers.push({
-					path: "textures/pants.png",
-					color: [0.45,0.4,0.7,1]
-				});
-				avLayers.push({
-					path: "textures/lshilt.png",
-					color: [0.85,0.737,0.09,1]
-				});
-				avLayers.push({
-					path: "textures/lsblade.png",
-					color: [0.8,0.8,0.8,1]
-				});
-				CameraTest.avatarBodyTex = Graphics.makeCompositeTexture(avLayers);
-				CameraTest.avatar.sprite.setTexture(CameraTest.avatarBodyTex);
-				CameraTest.avatar.sprite.setTextureRectangle([0,0,48,64]);
-			
-				var NPCLayers = [];
-				NPCLayers.push({
-					path: "textures/body.png",
-					color: [0.6,0.6,0.65,1]
-				});
-				NPCLayers.push({
-					path: "textures/tank.png",
-					color: [0.8,0.7,0.7,1]
-				});
-				NPCLayers.push({
-					path: "textures/pants.png",
-					color: [0.7,0.4,0.4,1]
-				});
-				NPCLayers.push({
-					path: "textures/clhilt.png",
-					color: [0.85,0.737,0.09,1]
-				});
-				NPCLayers.push({
-					path: "textures/clblade.png",
-					color: [0.8,0.8,0.8,1]
-				});
-				CameraTest.NPCBodyTex = Graphics.makeCompositeTexture(NPCLayers);
-				CameraTest.NPC.sprite.setTexture(CameraTest.NPCBodyTex);
-				CameraTest.NPC.sprite.setTextureRectangle([0,0,48,64]);
-				
+			else {
+				if (CameraTest.cursorOnNPC) CameraTest.cursor.sprite.setColor([0.4,0,1,0.7]);
+				else CameraTest.cursor.sprite.setColor([0,0.4,1,0.5]);
 			}
+			CameraTest.cursor.sprite.setTexture(Graphics.textureManager.get("textures/circle.png"));
+			CameraTest.cursor.zIndex = CameraTest.avatar.zIndex - 1;
+			CameraTest.em.drawAll(true);
 			
-		}
+		},
 		
 	},
 	

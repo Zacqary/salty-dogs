@@ -21,10 +21,12 @@ var CameraTest = {
 			Graphics.textureManager.load("textures/lshilt.png");
 			Graphics.textureManager.load("textures/clblade.png");
 			Graphics.textureManager.load("textures/clhilt.png");
+			Graphics.textureManager.load("textures/patch.png");
+			Graphics.textureManager.load("textures/patchleft.png");
 			
-			CameraTest.em = new EntityManager();
+			CameraTest.em = EntityManager.create();
 			
-			CameraTest.avatar = Entity.create({x: 0, y: 170});
+			CameraTest.avatar = Character.create({x: 0, y: 170});
 			CameraTest.avatar.speed = 8;
 			CameraTest.avatar.createSprite({
 					width: 48,
@@ -34,7 +36,7 @@ var CameraTest = {
 			CameraTest.avatar.createHitbox(48,28,0,18);
 			CameraTest.em.add(CameraTest.avatar);
 			
-			CameraTest.NPC = Entity.create({x: 640, y: 170});
+			CameraTest.NPC = Character.create({x: 640, y: 170});
 			CameraTest.NPC.speed = 8;
 			CameraTest.NPC.createSprite({
 					width: 48,
@@ -45,7 +47,7 @@ var CameraTest = {
 			CameraTest.NPC.createEffectRadius(80);
 			CameraTest.em.add(CameraTest.NPC);
 			
-			CameraTest.cursor = Entity.create({});
+			CameraTest.cursor = CameraTest.em.createEntity({});
 			CameraTest.cursor.range = 128;
 			CameraTest.cursor.upperBound = 40;
 			CameraTest.cursor.lowerBound = 280;
@@ -57,7 +59,6 @@ var CameraTest = {
 				color: [0,0,1,1]
 			});
 			CameraTest.cursor.createHitbox(8,24,0,0);
-			CameraTest.em.add(CameraTest.cursor);
 		
 			CameraTest.struck = false;
 			
@@ -69,25 +70,21 @@ var CameraTest = {
 			}
 			
 			if (CameraTest.loop.loaded){
-				
-					var avLayers = [
-						{ name: "body", color: "bf8000" },
-						{ name: "hat", color: "992370" },
-						{ name: "shirt", color: "cccc99"},
-						{ name: "pants", color: "77709a"},
-						{ name: "lshilt", color: "c7aa09"},
-						{ name: "lsblade", color: "aaaaaa"},
-					];
-					CameraTest.avatar.composeTexture(avLayers);
+					
+					CameraTest.avatar.setBodyColor("bf8000");
+					CameraTest.avatar.setHead("hat","992370");
+					CameraTest.avatar.setTorso("shirt","cccc99");
+					CameraTest.avatar.setLegs("pants","77709a");
+					CameraTest.avatar.setSword("ls","aaaaaa");
+					CameraTest.avatar.addMisc("patch","000033",2);
+					CameraTest.avatar.composeDoll();
 
-					var NPCLayers = [
-						{ name: "body", color: "909099" },
-						{ name: "tank", color: "cc9999" },
-						{ name: "pants", color: "aa5555"},
-						{ name: "clhilt", color: "c7aa09"},
-						{ name: "clblade", color: "aaaaaa"},
-					];
-					CameraTest.NPC.composeTexture(NPCLayers);
+					CameraTest.NPC.setBodyColor("909099");
+					CameraTest.NPC.setTorso("tank","cccc99");
+					CameraTest.NPC.setLegs("pants","aa5555");
+					CameraTest.NPC.setSword("cl","aaaaaa");
+					CameraTest.NPC.addMisc("patchleft","000033",2);
+					CameraTest.NPC.composeDoll();
 				
 			}
 			
@@ -200,7 +197,7 @@ var CameraTest = {
 						if ( (Input.mouseDown.left) && (CameraTest.cursorOnNPC) ){
 							push *= 2;
 							pushRadius *= 1.25;
-						};
+						}
 						console.log(push);
 						
 						var NPCWaypoint = [];
@@ -245,3 +242,4 @@ var CameraTest = {
 	},
 	
 }
+

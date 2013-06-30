@@ -1,4 +1,4 @@
-var Entity = function(){ };
+var Entity = function(){ }
 
 Entity.create = function(params){
 	var e = new Entity();
@@ -23,56 +23,56 @@ Entity.create = function(params){
 	});
 	
 	return e;
-};
+}
 
 Entity.prototype.update = function(){
 	this.updatePosition();
-};
+}
 
 Entity.prototype.setPosition = function(x,y,z){
 	this.x = x;
 	this.y = y;
 	this.z = z;
-};
+}
 
 Entity.prototype.getPosition = function(){
 	return [this.x,this.y,this.z];
-};
+}
 
 Entity.prototype.setZIndex = function(index){
 	this.zIndex = index;
-};
+}
 
 Entity.prototype.getZIndex = function(){
 	return this.zIndex;
-};
+}
 
 Entity.prototype.createSprite = function(spriteParams, x0ffset, yOffset){
 	this.sprite = Graphics.EntitySprite.create(spriteParams, this, x0ffset, yOffset);
-};
+}
 
 Entity.prototype.getTexture = function(){
 	this.textureInstance.getTexture();
-};
+}
 
 Entity.prototype.setTexture = function(texture){
 	this.textureInstance.setTexture(texture);
-};
+}
 
 Entity.prototype.composeTexture = function(layers){
 	this.setTexture(Graphics.makeCompositeTexture(layers));
-};
+}
 
 Entity.prototype.setSpriteOffset = function(x,y) {
 	this.sprite.xOffset = x;
 	this.sprite.yOffset = y;
-};
+}
 
 Entity.prototype.draw = function draw(){
 	this.movement = null;
 	this.updatePosition(this, this.sprite, GameState.getCamera());
 	this.sprite.draw();
-};
+}
 
 Entity.prototype.drawPhysDebug = function drawPhysDebug(){
 	if (this.hitbox){
@@ -81,7 +81,7 @@ Entity.prototype.drawPhysDebug = function drawPhysDebug(){
 	if (this.effectRadius){
 		Graphics.drawEntityPhysics(this.effectRadius);
 	}
-};
+}
 
 Entity.prototype.updatePosition = function updatePosition(){
 	this.sprite.update(GameState.getCamera());
@@ -100,7 +100,7 @@ Entity.prototype.createHitbox = function(width,height,xOffset,yOffset){
 	this.hitbox = Physics.createBasicBody(shape);
 	this.hitbox.xOffset = xOffset || 0;
 	this.hitbox.yOffset = yOffset || 0;
-};
+}
 
 Entity.prototype.createEffectRadius = function(radius){
 	var shape = Physics.device.createCircleShape({
@@ -108,7 +108,7 @@ Entity.prototype.createEffectRadius = function(radius){
 		origin: [0,0]
 	});
 	this.effectRadius = Physics.createBasicBody(shape, 'dynamic');
-};
+}
 
 Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 	var xSpeed = speedOverride || this.speed * this.speedMult;
@@ -133,16 +133,16 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 	this.movement = {
 		x: xSpeed,
 		y: ySpeed,
-	};
-};
+	}
+}
 
 Entity.prototype.isInRadius = function(entity){
 	return Physics.collisionUtils.intersects(this.hitbox.shapes[0], entity.effectRadius.shapes[0]);
-};
+}
 
 Entity.prototype.addWaypoint = function(x, y){
 	this.waypoints.push([x,y]);
-};
+}
 
 Entity.prototype.overwriteWaypoint = function(index, x, y){
 	this.waypoints.splice(0,1,[x,y]);
@@ -150,7 +150,7 @@ Entity.prototype.overwriteWaypoint = function(index, x, y){
 
 Entity.prototype.nextWaypoint = function(){
 	this.waypoints.splice(0,1);
-};
+}
 
 Entity.prototype.approachCurrentWaypoint = function(range, override){
 	override = override || this.speedMult;
@@ -162,7 +162,7 @@ Entity.prototype.approachCurrentWaypoint = function(range, override){
 	if (override) speed = this.speed * override;
 	if ( (Math.abs(pos[0]-w[0]) < speed) && (Math.abs(pos[1]-w[1]) < speed) )
 		this.nextWaypoint();
-};
+}
 
 // =============
 // EntityManager
@@ -173,18 +173,23 @@ var EntityManager = function(){
 	
 	this.add = function(e){
 		entities[e.name] = e;
-	};
+	}
+	
+	this.get = function(name){
+		return entities[name];
+	}
 	
 	this.createEntity = function(params){
 		var e = Entity.create(params);
 		entities[e.name] = e;
-	};
+		return e;
+	}
 	
 	this.updateAll = function(){
 		for (var i in entities){
 			entities[i].update();
 		}
-	};
+	}
 	
 	this.drawAll = function(debug){
 		var orderedEnts = [];
@@ -222,7 +227,7 @@ var EntityManager = function(){
 			}
 			Graphics.debugDraw.end();
 		}
-	};
+	}
 	
 	this.allToCurrentWaypoint = function(){
 		for (var i in entities) {
@@ -230,9 +235,13 @@ var EntityManager = function(){
 				entities[i].approachCurrentWaypoint(10,1);
 			}
 		}
-	};
+	}
 	
 	this.getEntities = function(){
 		return entities;
 	}
-};
+}
+
+EntityManager.create = function(){
+	return new EntityManager();
+}

@@ -114,10 +114,10 @@ Graphics.Camera2D.prototype.xyViewToWorld = function(x, y){
 	x = x - center[0];
 	y = y - center[1];
 	return Math.device.v2Build(x,y);
-};
+}
 Graphics.Camera2D.prototype.mouseToWorld = function(){
 	return this.xyViewToWorld(Input.mousePosition.x, Input.mousePosition.y);
-};
+}
 
 // ============
 // EntitySprite

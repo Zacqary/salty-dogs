@@ -47,7 +47,11 @@ var CameraTest = {
 			CameraTest.NPC.createEffectRadius(80);
 			CameraTest.NPC.createEffect({
 				types: [ENT_CHARACTER],
-				
+				doThis: function(it, me){
+					it.affect("speedMult",0.1);
+					it.cursor.affect("range",52);
+					me.affectRadius(120);
+				}
 				
 			});
 			CameraTest.em.add(CameraTest.NPC);
@@ -64,6 +68,7 @@ var CameraTest = {
 				color: [0,0,1,1]
 			});
 			CameraTest.cursor.createHitbox(8,24,0,0);
+			CameraTest.avatar.cursor = CameraTest.cursor;
 		
 			CameraTest.struck = false;
 			
@@ -100,13 +105,16 @@ var CameraTest = {
 		},
 		
 		run: function() {
+			CameraTest.em.resetAll();
+			
+			CameraTest.em.applyAllEffects();
 			
 			Graphics.updateCameraMatrices(CameraTest.camera);
 			
 			var mouseToWorld = CameraTest.camera2D.mouseToWorld();
 			CameraTest.cursor.x = mouseToWorld[0];
 			CameraTest.cursor.y = mouseToWorld[1];
-
+			
 			if ( Math.abs(CameraTest.cursor.x - CameraTest.avatar.x) > CameraTest.cursor.range ) {
 				if (CameraTest.cursor.x < CameraTest.avatar.x) CameraTest.cursor.x = CameraTest.avatar.x - CameraTest.cursor.range;
 				else CameraTest.cursor.x = CameraTest.avatar.x + CameraTest.cursor.range;	
@@ -125,15 +133,6 @@ var CameraTest = {
 			else CameraTest.cursorOnNPC = false;
 			
 			if (Input.mouseDown.left) {
-				if (CameraTest.avatar.isInRadius(CameraTest.NPC)) {
-					CameraTest.avatar.affect("speedMult",0.1);
-					CameraTest.cursor.range = 52;
-					CameraTest.NPC.effect.radius.shapes[0].setRadius(120);
-				}
-				else {
-					CameraTest.cursor.range = 128;
-					CameraTest.NPC.effect.radius.shapes[0].setRadius(80);
-				}
 			
 				CameraTest.avatar.approach(CameraTest.cursor.x, CameraTest.cursor.y, CameraTest.cursor.range);
 					
@@ -175,8 +174,8 @@ var CameraTest = {
 			if (Input.mouseDown.right) {
 				if (!CameraTest.struck) {
 					CameraTest.struck = true;
-				
-					if (Physics.collisionUtils.intersects(CameraTest.avatar.hitbox.shapes[0], CameraTest.NPC.effect.radius.shapes[0])) {
+					
+					if (CameraTest.avatar.isInRadius(CameraTest.NPC)) {
 						var avBox = CameraTest.avatar.hitbox.getPosition();
 						var NPCBox = CameraTest.NPC.hitbox.getPosition();
 						var avNPC = [(NPCBox[0] - avBox[0]), (NPCBox[1] - avBox[1])];
@@ -222,7 +221,6 @@ var CameraTest = {
 			
 			CameraTest.em.allToCurrentWaypoint();
 			
-			CameraTest.em.updateAll();
 			
 		},
 		
@@ -242,7 +240,6 @@ var CameraTest = {
 			CameraTest.cursor.sprite.setTexture(Graphics.textureManager.get("textures/circle.png"));
 			CameraTest.cursor.zIndex = CameraTest.avatar.zIndex - 1;
 			CameraTest.em.drawAll(true);
-			
 		},
 		
 	},

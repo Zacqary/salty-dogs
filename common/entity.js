@@ -30,7 +30,6 @@ Entity.create = function(params){
 }
 
 Entity.prototype.update = function(){
-	this.resetState();
 	this.updatePosition();
 }
 
@@ -68,12 +67,29 @@ Entity.prototype.resetState = function(){
 			this[i] = this.savedState[i];
 		}
 		this.savedState = null;
+		if (this.radStore) {
+			this.effect.radius.shapes[0].setRadius(this.radStore);
+			this.radStore = null;
+		}
 	}
 }
 
 Entity.prototype.affect = function(property, value){
 	this.saveState(property);
 	this[property] = value;
+}
+
+Entity.prototype.affectRadius = function(radius){
+	this.radStore = this.effect.radius.shapes[0].getRadius();
+	this.saveState("radStore");
+	this.effect.radius.shapes[0].setRadius(radius);
+}
+
+Entity.prototype.applyMyEffect = function(it){
+	for (var i in this.effect.types){
+		if (it.entType === this.effect.types[i])
+			this.effect.doThis(it, this);
+	} 
 }
 
 // Graphics
@@ -124,13 +140,31 @@ Entity.prototype.updatePosition = function updatePosition(){
 	}
 }
 
-Entity.prototype.createHitbox = function(width,height,xOffset,yOffset){
+
+Entity.createHitbox = function(width,height,xOffset,yOffset){
 	var shape = Physics.device.createPolygonShape({
 		vertices: Physics.device.createBoxVertices(width,height) 
 	});
-	this.hitbox = Physics.createBasicBody(shape);
-	this.hitbox.xOffset = xOffset || 0;
-	this.hitbox.yOffset = yOffset || 0;
+ 	var hitbox = Physics.createBasicBody(shape);
+	hitbox.xOffset = xOffset || 0;
+	hitbox.yOffset = yOffset || 0;
+	return hitbox;
+}
+Entity.prototype.createHitbox = function(width,height,xOffset,yOffset){
+	xOffset = xOffset || 0;
+	yOffset = yOffset || 0;
+	this.hitbox = Entity.createHitbox(width,height,xOffset,yOffset);
+}
+
+Entity.createEffectRadius = function(radius){
+	var shape = Physics.device.createCircleShape({
+		radius: radius,
+		origin: [0,0]
+	});
+	return Physics.createBasicBody(shape, 'dynamic');
+}
+Entity.prototype.createEffectRadius = function(radius){
+	this.effect.radius = Entity.createEffectRadius(radius);
 }
 
 Entity.prototype.createEffect = function(effect){
@@ -139,14 +173,6 @@ Entity.prototype.createEffect = function(effect){
 		radius = this.effect.radius;
 	this.effect = effect;
 	this.effect.radius = radius;
-}
-
-Entity.prototype.createEffectRadius = function(radius){
-	var shape = Physics.device.createCircleShape({
-		radius: radius,
-		origin: [0,0]
-	});
-	this.effect.radius = Physics.createBasicBody(shape, 'dynamic');
 }
 
 Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
@@ -176,7 +202,9 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 }
 
 Entity.prototype.isInRadius = function(entity){
-	return Physics.collisionUtils.intersects(this.hitbox.shapes[0], entity.effect.radius.shapes[0]);
+	if ( (entity.effect.radius) && (this.hitbox) )
+		return Physics.collisionUtils.intersects(this.hitbox.shapes[0], entity.effect.radius.shapes[0]);
+	else return false;
 }
 
 Entity.prototype.addWaypoint = function(x, y){
@@ -218,6 +246,10 @@ var EntityManager = function(){
 		return entities[name];
 	}
 	
+	this.getEntities = function(){
+		return entities;
+	}
+	
 	this.createEntity = function(params){
 		var e = Entity.create(params);
 		entities[e.name] = e;
@@ -227,6 +259,12 @@ var EntityManager = function(){
 	this.updateAll = function(){
 		for (var i in entities){
 			entities[i].update();
+		}
+	}
+	
+	this.resetAll = function(){
+		for (var i in entities){
+			entities[i].resetState();
 		}
 	}
 	
@@ -276,8 +314,15 @@ var EntityManager = function(){
 		}
 	}
 	
-	this.getEntities = function(){
-		return entities;
+	this.applyAllEffects = function(){
+		for (var i in entities) {
+			var me = entities[i];
+			for (var j in entities) {
+				var it = entities[j];
+				if ( (me.isInRadius(it)) && (me != it) )
+					it.applyMyEffect(me);
+			}
+		}
 	}
 }
 

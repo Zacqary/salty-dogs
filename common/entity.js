@@ -8,8 +8,10 @@ Entity.create = function(params){
 	e.x = params.x || 0.0;
 	e.y = params.y || 0.0;
 	e.z = params.z || 0.0;
-	e.zIndex = 0;
+	e.zIndex = params.zIndex || 0;
+	
 	e.visible = params.visible || true;
+	e.permeable = params.permeable || false;
 
 	e.hitbox = params.hitbox;
 	e.effect = params.effect || {};
@@ -29,6 +31,24 @@ Entity.create = function(params){
 	return e;
 }
 
+Entity.prototype.clone = function(){
+	var e = Entity.create({
+		x: this.x, 
+		y: this.y,
+		z: this.z,
+		zIndex: this.zIndex,
+		visible: this.visible,
+		permeable: this.permeable,
+		speed: this.speed,
+		speedMult: this.speedMult,
+	});
+	e.createEffectRadius(this.effect.radius.shapes[0].getRadius());
+	var effect = {types: this.effect.types, doThis: this.effect.doThis};
+	e.createEffect(effect);
+	
+	return e;
+}
+
 Entity.prototype.update = function(){
 	this.updatePosition();
 }
@@ -36,7 +56,7 @@ Entity.prototype.update = function(){
 Entity.prototype.setPosition = function(x,y,z){
 	this.x = x;
 	this.y = y;
-	this.z = z;
+	this.z = z || this.z;
 }
 
 Entity.prototype.getPosition = function(){
@@ -53,6 +73,14 @@ Entity.prototype.getZIndex = function(){
 
 
 // Effects
+Entity.prototype.createEffect = function(effect){
+	var radius;
+	if(this.effect.radius)
+		radius = this.effect.radius;
+	this.effect = effect;
+	this.effect.radius = radius;
+}
+
 Entity.prototype.saveState = function(property, overwrite){
 	if (!this.savedState)
 		this.savedState = {};
@@ -165,14 +193,6 @@ Entity.createEffectRadius = function(radius){
 }
 Entity.prototype.createEffectRadius = function(radius){
 	this.effect.radius = Entity.createEffectRadius(radius);
-}
-
-Entity.prototype.createEffect = function(effect){
-	var radius;
-	if(this.effect.radius)
-		radius = this.effect.radius;
-	this.effect = effect;
-	this.effect.radius = radius;
 }
 
 Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
@@ -310,6 +330,12 @@ var EntityManager = function(){
 		for (var i in entities) {
 			if (entities[i].waypoints.length > 0){
 				entities[i].approachCurrentWaypoint(10,1);
+			}
+			if (entities[i].movement){
+				for (var j in entities) {
+					if ( (!entities[j].permeable) && (entities[j] != entities[i]) )
+						Physics.entityBounce(entities[i],entities[j]);
+				}
 			}
 		}
 	}

@@ -27,36 +27,26 @@ var CameraTest = {
 			CameraTest.em = EntityManager.create();
 			
 			CameraTest.avatar = Character.create({x: 0, y: 170});
+			CameraTest.avatar.makePlayer();
 			CameraTest.avatar.speed = 8;
-			CameraTest.avatar.createSprite({
-					width: 48,
-					height: 64,
-			});
-			CameraTest.avatar.setSpriteOffset(0,-16);
-			CameraTest.avatar.createHitbox(48,28,0,18);
 			CameraTest.em.add(CameraTest.avatar);
 			
 			CameraTest.NPC = Character.create({x: 640, y: 170});
+			CameraTest.NPC.makeHostile();
 			CameraTest.NPC.speed = 8;
-			CameraTest.NPC.createSprite({
-					width: 48,
-					height: 64,
-			});
-			CameraTest.NPC.setSpriteOffset(0,-16);
-			CameraTest.NPC.createHitbox(48,28,0,18);
 			CameraTest.NPC.createEffectRadius(80);
 			CameraTest.NPC.createEffect({
 				types: [ENT_CHARACTER],
 				doThis: function(it, me){
 					it.affect("speedMult",0.1);
-					it.cursor.affect("range",52);
+					if (it.cursor) it.cursor.affect("range",52);
 					me.affectRadius(120);
 				}
 				
 			});
 			CameraTest.em.add(CameraTest.NPC);
 			
-			CameraTest.cursor = CameraTest.em.createEntity({});
+			CameraTest.cursor = CameraTest.em.createEntity({permeable: true});
 			CameraTest.cursor.range = 128;
 			CameraTest.cursor.upperBound = 40;
 			CameraTest.cursor.lowerBound = 280;
@@ -95,6 +85,14 @@ var CameraTest = {
 					CameraTest.NPC.setSword("cl","aaaaaa");
 					CameraTest.NPC.addMisc("patchleft","000033",2);
 					CameraTest.NPC.composeDoll();
+					
+					CameraTest.NPC2 = CameraTest.NPC.clone();
+					CameraTest.NPC2.setPosition(200, 120);
+					CameraTest.NPC2.setBodyColor("dedefe");
+					CameraTest.NPC2.setHead("hat","992370");
+					CameraTest.NPC2.removeMisc("patchleft");
+					CameraTest.NPC2.composeDoll();
+					CameraTest.em.add(CameraTest.NPC2);
 				
 			}
 			

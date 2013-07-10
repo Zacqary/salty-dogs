@@ -1,8 +1,14 @@
 var ENT_CHARACTER = "ENT_CHARACTER";
+var CHAR_PLAYER = "CHAR_PLAYER";
+var CHAR_HOSTILE = "CHAR_HOSTILE";
+var CHAR_NEUTRAL = "CHAR_NEUTRAL";
+var CHAR_FRIENDLY = "CHAR_FRIENDLY";
+
 var Character = function(params){
 	
 	var c = Entity.create(params);
 	c.entType = ENT_CHARACTER;
+	c.charType = CHAR_NEUTRAL;
 	c.createSprite({width: 48, height: 64}, 0, -16);
 	c.createHitbox(48,28,0,18);
 	c.paperDoll = {
@@ -61,6 +67,42 @@ Character.create = function(params){
 	return new Character(params);
 }
 
+Character.prototype.clone = function(){
+	var c = new Character({
+		x: this.x, 
+		y: this.y,
+		z: this.z,
+		zIndex: this.zIndex,
+		visible: this.visible,
+		permeable: this.permeable,
+		speed: this.speed,
+		speedMult: this.speedMult,
+		sprite: this.sprite
+	});
+	c.createEffectRadius(this.effect.radius.shapes[0].getRadius());
+	var effect = {types: this.effect.types, doThis: this.effect.doThis};
+	c.createEffect(effect);
+	
+	c.setPaperDoll(this.paperDoll);
+	c.charType = this.charType;
+	return c;
+}
+
+Character.prototype.setPaperDoll = function(doll) {
+	this.paperDoll.body.color = doll.body.color;
+	this.paperDoll.torso.type = doll.torso.type;
+	this.paperDoll.torso.color = doll.torso.color;
+	this.paperDoll.legs.type = doll.legs.type;
+	this.paperDoll.legs.color = doll.legs.color;
+	this.paperDoll.head.type = doll.head.type;
+	this.paperDoll.head.color = doll.head.color;
+	this.paperDoll.sword.type = doll.sword.type;
+	this.paperDoll.sword.color = doll.sword.color;
+	for (var i in doll.misc){
+		this.addMisc(doll.misc[i].type,doll.misc[i].color,doll.misc[i].zIndex);
+	}
+}
+
 Character.prototype.setBodyColor = function(color) {
 	this.paperDoll.body.color = color;
 }
@@ -102,6 +144,22 @@ Character.prototype.removeSword = function(){
 }
 
 Character.prototype.addMisc = function(type, color, zIndex){
-	this.paperDoll.misc[type] = {type: type, color: color, zIndex: zIndex}
-	
+	this.paperDoll.misc[type] = {type: type, color: color, zIndex: zIndex}	
+}
+Character.prototype.removeMisc = function(type){
+	delete this.paperDoll.misc[type];
+}
+
+
+Character.prototype.makePlayer = function(){
+	this.charType = CHAR_PLAYER;
+}
+Character.prototype.makeNeutral = function(){
+	this.charType = CHAR_NEUTRAL;
+}
+Character.prototype.makeHostile = function(){
+	this.charType = CHAR_HOSTILE;
+}
+Character.prototype.makeFriendly = function(){
+	this.charType = CHAR_FRIENDLY;
 }

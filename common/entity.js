@@ -1,17 +1,21 @@
 var Entity = function(){ }
+var ENT_DEFAULT = "ENT_DEFAULT";
 
 Entity.create = function(params){
 	var e = new Entity();
 	e.name = params.name || makeid();
+	e.entType = ENT_DEFAULT;
 	e.x = params.x || 0.0;
 	e.y = params.y || 0.0;
 	e.z = params.z || 0.0;
 	e.zIndex = 0;
 	e.visible = params.visible || true;
+
+	e.hitbox = params.hitbox;
+	e.effect = params.effect || {};
+	
 	e.speed = params.speed || 0;
 	e.speedMult = params.speedMult || 1;
-	e.hitbox = params.hitbox;
-	e.effectRadius = params.effectRadius;
 	e.waypoints = [];
 	
 	e.sprite = params.sprite;
@@ -26,6 +30,7 @@ Entity.create = function(params){
 }
 
 Entity.prototype.update = function(){
+	this.resetState();
 	this.updatePosition();
 }
 
@@ -47,6 +52,31 @@ Entity.prototype.getZIndex = function(){
 	return this.zIndex;
 }
 
+
+// Effects
+Entity.prototype.saveState = function(property, overwrite){
+	if (!this.savedState)
+		this.savedState = {};
+	if ( (!this.savedState[property]) || (overwrite) ) {
+		this.savedState[property] = this[property];
+	}
+}
+
+Entity.prototype.resetState = function(){
+	if (this.savedState) {
+		for (var i in this.savedState) {
+			this[i] = this.savedState[i];
+		}
+		this.savedState = null;
+	}
+}
+
+Entity.prototype.affect = function(property, value){
+	this.saveState(property);
+	this[property] = value;
+}
+
+// Graphics
 Entity.prototype.createSprite = function(spriteParams, x0ffset, yOffset){
 	this.sprite = Graphics.EntitySprite.create(spriteParams, this, x0ffset, yOffset);
 }
@@ -78,18 +108,19 @@ Entity.prototype.drawPhysDebug = function drawPhysDebug(){
 	if (this.hitbox){
 		Graphics.drawEntityPhysics(this.hitbox);
 	}
-	if (this.effectRadius){
-		Graphics.drawEntityPhysics(this.effectRadius);
+	if (this.effect.radius){
+		Graphics.drawEntityPhysics(this.effect.radius);
 	}
 }
 
+// Physics and Movement
 Entity.prototype.updatePosition = function updatePosition(){
 	this.sprite.update(GameState.getCamera());
 	if (this.hitbox) {
 		this.hitbox.setPosition([this.sprite.x + this.hitbox.xOffset, this.sprite.y + this.hitbox.yOffset]);
 	}
-	if (this.effectRadius) {
-		this.effectRadius.setPosition([this.sprite.x, this.sprite.y]);
+	if (this.effect.radius) {
+		this.effect.radius.setPosition([this.sprite.x, this.sprite.y]);
 	}
 }
 
@@ -102,12 +133,20 @@ Entity.prototype.createHitbox = function(width,height,xOffset,yOffset){
 	this.hitbox.yOffset = yOffset || 0;
 }
 
+Entity.prototype.createEffect = function(effect){
+	var radius;
+	if(this.effect.radius)
+		radius = this.effect.radius;
+	this.effect = effect;
+	this.effect.radius = radius;
+}
+
 Entity.prototype.createEffectRadius = function(radius){
 	var shape = Physics.device.createCircleShape({
 		radius: radius,
 		origin: [0,0]
 	});
-	this.effectRadius = Physics.createBasicBody(shape, 'dynamic');
+	this.effect.radius = Physics.createBasicBody(shape, 'dynamic');
 }
 
 Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
@@ -137,7 +176,7 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 }
 
 Entity.prototype.isInRadius = function(entity){
-	return Physics.collisionUtils.intersects(this.hitbox.shapes[0], entity.effectRadius.shapes[0]);
+	return Physics.collisionUtils.intersects(this.hitbox.shapes[0], entity.effect.radius.shapes[0]);
 }
 
 Entity.prototype.addWaypoint = function(x, y){

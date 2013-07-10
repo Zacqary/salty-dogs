@@ -45,6 +45,11 @@ var CameraTest = {
 			CameraTest.NPC.setSpriteOffset(0,-16);
 			CameraTest.NPC.createHitbox(48,28,0,18);
 			CameraTest.NPC.createEffectRadius(80);
+			CameraTest.NPC.createEffect({
+				types: [ENT_CHARACTER],
+				
+				
+			});
 			CameraTest.em.add(CameraTest.NPC);
 			
 			CameraTest.cursor = CameraTest.em.createEntity({});
@@ -121,14 +126,13 @@ var CameraTest = {
 			
 			if (Input.mouseDown.left) {
 				if (CameraTest.avatar.isInRadius(CameraTest.NPC)) {
-					CameraTest.avatar.speedMult = 0.1;
+					CameraTest.avatar.affect("speedMult",0.1);
 					CameraTest.cursor.range = 52;
-					CameraTest.NPC.effectRadius.shapes[0].setRadius(120);
+					CameraTest.NPC.effect.radius.shapes[0].setRadius(120);
 				}
 				else {
-					CameraTest.avatar.speedMult = 1;
 					CameraTest.cursor.range = 128;
-					CameraTest.NPC.effectRadius.shapes[0].setRadius(80);
+					CameraTest.NPC.effect.radius.shapes[0].setRadius(80);
 				}
 			
 				CameraTest.avatar.approach(CameraTest.cursor.x, CameraTest.cursor.y, CameraTest.cursor.range);
@@ -172,7 +176,7 @@ var CameraTest = {
 				if (!CameraTest.struck) {
 					CameraTest.struck = true;
 				
-					if (Physics.collisionUtils.intersects(CameraTest.avatar.hitbox.shapes[0], CameraTest.NPC.effectRadius.shapes[0])) {
+					if (Physics.collisionUtils.intersects(CameraTest.avatar.hitbox.shapes[0], CameraTest.NPC.effect.radius.shapes[0])) {
 						var avBox = CameraTest.avatar.hitbox.getPosition();
 						var NPCBox = CameraTest.NPC.hitbox.getPosition();
 						var avNPC = [(NPCBox[0] - avBox[0]), (NPCBox[1] - avBox[1])];
@@ -217,6 +221,8 @@ var CameraTest = {
 			else CameraTest.struck = false;
 			
 			CameraTest.em.allToCurrentWaypoint();
+			
+			CameraTest.em.updateAll();
 			
 		},
 		

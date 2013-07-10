@@ -1,6 +1,8 @@
+var ENT_CHARACTER = "ENT_CHARACTER";
 var Character = function(params){
 	
 	var c = Entity.create(params);
+	c.entType = ENT_CHARACTER;
 	c.createSprite({width: 48, height: 64}, 0, -16);
 	c.createHitbox(48,28,0,18);
 	c.paperDoll = {

@@ -1,3 +1,19 @@
+/* 
+	================================================
+	=====================LOOP=======================
+	================================================
+	
+	Includes:
+	- Loop
+	
+	At some point Loop should probably be changed into a class, and this
+	interface can be renamed to something else or folded into Protocol
+	
+*/
+
+/*	Loop Interface
+		Runs the current GameState Loop
+*/
 var Loop = {
 
 	game: function(){

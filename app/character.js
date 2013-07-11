@@ -1,3 +1,16 @@
+/* 
+	================================================
+	==================CHARACTER=====================
+	================================================
+	
+	Includes:
+	- Character
+	
+*/
+
+/*	Character Class - extends Entity
+		An Entity with specific Character properties and functions
+*/
 var ENT_CHARACTER = "ENT_CHARACTER";
 var CHAR_PLAYER = "CHAR_PLAYER";
 var CHAR_HOSTILE = "CHAR_HOSTILE";

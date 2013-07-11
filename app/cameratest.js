@@ -218,6 +218,7 @@ var CameraTest = {
 			else CameraTest.struck = false;
 			
 			CameraTest.em.allToCurrentWaypoint();
+			CameraTest.em.updateAll();
 			
 			
 		},

@@ -1,6 +1,20 @@
+/* 
+	================================================
+	=====================INPUT======================
+	================================================
+	
+	Includes:
+	- Input
+	
+*/
+
+/*	Input Interface
+		Handles keyboard and mouse input (eventually controller and touch)
+*/
 var Input = {
 
 	device: null,
+	//	These objects determine mouse position, and whether either button is clicked
 	mousePosition: {
 		x: null,
 		y: null
@@ -25,11 +39,12 @@ var Input = {
 		Input.device = null;	
 	},
 
-	// ==========================
+	//	###############################################################
 
 	onMouseOver: function onMouseOver(x, y){
 		Input.mousePosition.x = x;
 		Input.mousePosition.y = y;
+		//	Firefox herp derp derp herp de derp
 		if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1)
 		{
 			Input.mousePosition.x -= document.getElementById('turbulenz_game_engine_canvas').offsetLeft;
@@ -37,7 +52,7 @@ var Input = {
 		}
 	},
 	
-	onMouseDown: function onMouseDownFn(mouseCode, x, y)
+	onMouseDown: function onMouseDown(mouseCode, x, y)
 	{
 	    Input.clickPosition.x = x;
 	    Input.clickPosition.y = y;
@@ -57,7 +72,7 @@ var Input = {
 	    }
 	},
 	
-	onMouseUp: function onMouseDownFn(mouseCode, x, y)
+	onMouseUp: function onMouseUp(mouseCode, x, y)
 	{
 	    Input.clickPosition.x = x;
 	    Input.clickPosition.y = y;

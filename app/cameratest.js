@@ -133,19 +133,6 @@ var CameraTest = {
 			if (Input.mouseDown.left) {
 			
 				CameraTest.avatar.approach(CameraTest.cursor.x, CameraTest.cursor.y, CameraTest.cursor.range);
-					
-				var normal = [];
-				var point = [];
-				if( Physics.collisionUtils.sweepTest(CameraTest.avatar.hitbox.shapes[0], CameraTest.NPC.hitbox.shapes[0], 1/60, point, normal) !== undefined){
-				
-					var boxPos = CameraTest.NPC.hitbox.computeWorldBounds();
-			
-					if (normal[0] == 1) CameraTest.avatar.x -= CameraTest.avatar.movement.x + (point[0] - boxPos[0]);
-					else if (normal[0] == -1) CameraTest.avatar.x += CameraTest.avatar.movement.x + (boxPos[2] - point[0]);
-					else if (normal[1] == 1) CameraTest.avatar.y -= CameraTest.avatar.movement.y + (point[1] - boxPos[1]);
-					else if (normal[1] == -1) CameraTest.avatar.y += CameraTest.avatar.movement.y + (boxPos[3] - point[1]);
-					
-				}
 				
 				if (CameraTest.avatar.sprite.x < 512) {
 					CameraTest.camera.matrix[9] -= CameraTest.avatar.movement.x/3;
@@ -174,44 +161,10 @@ var CameraTest = {
 					CameraTest.struck = true;
 					
 					if (CameraTest.avatar.isInRadius(CameraTest.NPC)) {
-						var avBox = CameraTest.avatar.hitbox.getPosition();
-						var NPCBox = CameraTest.NPC.hitbox.getPosition();
-						var avNPC = [(NPCBox[0] - avBox[0]), (NPCBox[1] - avBox[1])];
-						var theta = Math.atan2(-avNPC[1],avNPC[0]);
-						if (theta < 0) theta += 2 * Math.PI;
-						
-						var hitboxWidth = 36;
-						var hitboxHeight = 28;
-						
-						var push = 30;
-						var pushRadius = 64;
-						var avPos = [CameraTest.avatar.x, CameraTest.avatar.y + CameraTest.avatar.sprite.yOffset];
-						var NPCPos =  [CameraTest.NPC.x, CameraTest.NPC.y + CameraTest.NPC.sprite.yOffset];
-						var xDiff = Math.abs(NPCPos[0] - avPos[0]);
-						var yDiff = Math.abs(NPCPos[1] - avPos[1]);
-						xDiff -= hitboxWidth;
-						yDiff -= hitboxHeight;
-						if(xDiff < 0) xDiff = 0;
-						if(yDiff < 0) yDiff = 0;
-						var distance = Math.sqrt( Math.pow(xDiff,2) + Math.pow(yDiff,2) );
-						
-						if ( (Input.mouseDown.left) && (CameraTest.cursorOnNPC) ){
-							push *= 2;
-							pushRadius *= 1.25;
-						}
-						console.log(push);
-						
-						var NPCWaypoint = [];
-						var avatarWaypoint = [];
-					
-						NPCWaypoint[0] = CameraTest.NPC.x - push*-Math.cos(theta);
-						NPCWaypoint[1] = CameraTest.NPC.y - push*Math.sin(theta);
-						NPCWaypoint[0] = Math.floor(NPCWaypoint[0]);
-						NPCWaypoint[1] = Math.floor(NPCWaypoint[1]);
-						avatarWaypoint[0] = Math.floor(NPCWaypoint[0]+(pushRadius*-Math.cos(theta) ) );
-						avatarWaypoint[1] = Math.floor(NPCWaypoint[1]+(pushRadius*Math.sin(theta) ) );
-						CameraTest.NPC.overwriteWaypoint(0, NPCWaypoint[0],NPCWaypoint[1]);
-						CameraTest.avatar.overwriteWaypoint(0, avatarWaypoint[0],avatarWaypoint[1]);
+						CameraTest.avatar.strikeCharacter(CameraTest.NPC);
+					}
+					else if (CameraTest.avatar.isInRadius(CameraTest.NPC2)) {
+						CameraTest.avatar.strikeCharacter(CameraTest.NPC2);
 					}
 				}
 			}

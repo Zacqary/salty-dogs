@@ -176,3 +176,50 @@ Character.prototype.makeHostile = function(){
 Character.prototype.makeFriendly = function(){
 	this.charType = CHAR_FRIENDLY;
 }
+
+Character.prototype.strikeCharacter = function(other){
+	var myBoxPos = this.hitbox.getPosition();
+	var oBoxPos = other.hitbox.getPosition();
+	var boxPosDiff = [(oBoxPos[0] - myBoxPos[0]), (oBoxPos[1] - myBoxPos[1])];
+	var theta = Math.atan2(-boxPosDiff[1],boxPosDiff[0]);
+	if (theta < 0) theta += 2 * Math.PI;
+	
+	var hitboxWidth = 48;
+	var hitboxHeight = 28;
+	
+	var push = 30;
+	var pushRadius = 64;
+	var myPos = [this.x, this.y + this.sprite.yOffset];
+	var oPos =  [other.x, other.y + other.sprite.yOffset];
+	var xDiff = Math.abs(oPos[0] - myPos[0]);
+	var yDiff = Math.abs(oPos[1] - myPos[1]);
+	xDiff -= hitboxWidth;
+	yDiff -= hitboxHeight;
+	if(xDiff < 0) xDiff = 0;
+	if(yDiff < 0) yDiff = 0;
+	var distance = Math.sqrt( Math.pow(xDiff,2) + Math.pow(yDiff,2) );
+	
+	var pushForward = false;
+	if ( (this.charType == CHAR_PLAYER) && (Input.mouseDown.left) ){
+		if (Physics.collisionUtils.intersects(this.cursor.hitbox.shapes[0],other.hitbox.shapes[0]) )
+			pushForward = true;
+	}
+	
+	if (pushForward === true){
+		push *= 2;
+		pushRadius *= 1.25;
+	}
+	
+	var oWaypoint = [];
+	var myWaypoint = [];
+
+	oWaypoint[0] = other.x - push*-Math.cos(theta);
+	oWaypoint[1] = other.y - push*Math.sin(theta);
+	oWaypoint[0] = Math.floor(oWaypoint[0]);
+	oWaypoint[1] = Math.floor(oWaypoint[1]);
+	myWaypoint[0] = Math.floor(oWaypoint[0]+(pushRadius*-Math.cos(theta) ) );
+	myWaypoint[1] = Math.floor(oWaypoint[1]+(pushRadius*Math.sin(theta) ) );
+	
+	other.overwriteWaypoint(0, oWaypoint[0],oWaypoint[1]);
+	this.overwriteWaypoint(0, myWaypoint[0],myWaypoint[1]);
+}

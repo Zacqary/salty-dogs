@@ -58,6 +58,17 @@ var CameraTest = {
 				color: [0,0,1,1]
 			});
 			CameraTest.cursor.createHitbox(8,24,0,0);
+			CameraTest.cursor.useHitboxAsEffectRadius();
+			
+			CameraTest.cursor.createEffect({
+				types: [ENT_CHARACTER],
+				doThis: function(it, me){
+					if (it.charType == CHAR_HOSTILE){
+						CameraTest.cursorOnNPC = true;
+					}
+				}
+			});
+			
 			CameraTest.avatar.cursor = CameraTest.cursor;
 		
 			CameraTest.struck = false;
@@ -104,6 +115,7 @@ var CameraTest = {
 		
 		run: function() {
 			CameraTest.em.resetAll();
+			CameraTest.cursorOnNPC = false;
 			
 			CameraTest.em.applyAllEffects();
 			
@@ -126,10 +138,6 @@ var CameraTest = {
 			if (CameraTest.cursor.y < CameraTest.cursor.upperBound) CameraTest.cursor.y = CameraTest.cursor.upperBound;
 			else if (CameraTest.cursor.y > CameraTest.cursor.lowerBound) CameraTest.cursor.y = CameraTest.cursor.lowerBound;
 			
-			
-			if (Physics.collisionUtils.intersects(CameraTest.NPC.hitbox.shapes[0], CameraTest.cursor.hitbox.shapes[0]) )
-				CameraTest.cursorOnNPC = true;
-			else CameraTest.cursorOnNPC = false;
 			
 			if (Input.mouseDown.left) {
 				CameraTest.avatar.approach(CameraTest.cursor.x, CameraTest.cursor.y, CameraTest.cursor.range);

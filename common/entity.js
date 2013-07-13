@@ -302,6 +302,11 @@ Entity.prototype.createEffectRadius = function(radius){
 	this.effect.radius = Entity.createEffectRadius(radius);
 }
 
+Entity.prototype.useHitboxAsEffectRadius = function(hitbox){
+	hitbox = hitbox || this.hitbox;
+	this.effect.radius = hitbox;
+}
+
 /*	approach
 		Makes this Entity approach a point. It moves slower the closer it is.
 */

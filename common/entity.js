@@ -101,6 +101,14 @@ Entity.prototype.getPosition = function(){
 	return [this.x,this.y,this.z];
 }
 
+Entity.prototype.getSpriteOffsetPosition = function(){
+	return[this.x+this.sprite.xOffset, this.y+this.sprite.yOffset];
+}
+
+Entity.prototype.getHitboxOffsetPosition = function(){
+	return[this.x+this.hitbox.xOffset, this.y+this.hitbox.yOffset];
+}
+
 /*	setZIndex and getZIndex
 		Set and get the value which determines which entities get drawn first
 		and layered on top of one another.
@@ -369,8 +377,9 @@ Entity.prototype.approachCurrentWaypoint = function(range, override){
 	if (override) speed = this.speed * override;
 	//	If the Entity's speed value is greater than its distance from the waypoint,
 	//	move to the next waypoint.
-	if ( (Math.abs(pos[0]-w[0]) < speed) && (Math.abs(pos[1]-w[1]) < speed) )
+	if ( (Math.abs(pos[0]-w[0]) < speed) && (Math.abs(pos[1]-w[1]) < speed) ) {
 		this.nextWaypoint();
+	}
 }
 
 //	===================

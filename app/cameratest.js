@@ -113,14 +113,15 @@ var CameraTest = {
 			CameraTest.cursor.x = mouseToWorld[0];
 			CameraTest.cursor.y = mouseToWorld[1];
 			
-			if ( Math.abs(CameraTest.cursor.x - CameraTest.avatar.x) > CameraTest.cursor.range ) {
-				if (CameraTest.cursor.x < CameraTest.avatar.x) CameraTest.cursor.x = CameraTest.avatar.x - CameraTest.cursor.range;
-				else CameraTest.cursor.x = CameraTest.avatar.x + CameraTest.cursor.range;	
+			var avOffsetPos = CameraTest.avatar.getHitboxOffsetPosition();
+			if ( Math.abs(CameraTest.cursor.x - avOffsetPos[0]) > CameraTest.cursor.range) {
+				if (CameraTest.cursor.x < avOffsetPos[0]) CameraTest.cursor.x = avOffsetPos[0] - CameraTest.cursor.range;
+				else CameraTest.cursor.x = avOffsetPos[0] + CameraTest.cursor.range;	
 			}
 			
-			if ( Math.abs(CameraTest.cursor.y - CameraTest.avatar.y) > CameraTest.cursor.range ) {
-				if (CameraTest.cursor.y < CameraTest.avatar.y) CameraTest.cursor.y = CameraTest.avatar.y - CameraTest.cursor.range;
-				else CameraTest.cursor.y = CameraTest.avatar.y + CameraTest.cursor.range;	
+			if ( Math.abs(CameraTest.cursor.y - avOffsetPos[1]) > CameraTest.cursor.range ) {
+				if (CameraTest.cursor.y < avOffsetPos[1]) CameraTest.cursor.y = avOffsetPos[1] - CameraTest.cursor.range;
+				else CameraTest.cursor.y = avOffsetPos[1] + CameraTest.cursor.range;	
 			}
 			if (CameraTest.cursor.y < CameraTest.cursor.upperBound) CameraTest.cursor.y = CameraTest.cursor.upperBound;
 			else if (CameraTest.cursor.y > CameraTest.cursor.lowerBound) CameraTest.cursor.y = CameraTest.cursor.lowerBound;
@@ -131,7 +132,6 @@ var CameraTest = {
 			else CameraTest.cursorOnNPC = false;
 			
 			if (Input.mouseDown.left) {
-			
 				CameraTest.avatar.approach(CameraTest.cursor.x, CameraTest.cursor.y, CameraTest.cursor.range);
 				
 				if (CameraTest.avatar.sprite.x < 512) {

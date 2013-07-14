@@ -35,6 +35,7 @@ var Protocol = {
 		Physics.clearEngineReferences();
 
 		Protocol.intervalID = null;
+		delete UUIDs;
 	},
 
 }
@@ -51,17 +52,24 @@ var randomBool = function randomBool(){
 	if (num >= 3) return true;
 	else return false;
 }
-//	makeid - Creates a random string of gibberish in order to name something
-var makeid = function makeid()
-{
-    var text = "";
-    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-    for( var i=0; i < 12; i++ )
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-    return text;
+//	makeid - Creates a UUID
+var UUIDs = [];
+var makeid = function makeid(){
+	var id = guid();
+	while(id in UUIDs) id = guid();
+	UUIDs.push(id);
+	return id;
 }
+var s4 = function s4() {
+  return Math.floor((1 + Math.random()) * 0x10000)
+             .toString(16)
+             .substring(1);
+};
+var guid = function guid() {
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+         s4() + '-' + s4() + s4() + s4();
+}
+
 // objSize - Gets the number of properties in an object
 var objSize = function objSize(obj) {
     var size = 0, key;

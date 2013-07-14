@@ -38,9 +38,11 @@ var CameraTest = {
 			CameraTest.NPC.createEffect({
 				types: [ENT_CHARACTER],
 				doThis: function(it, me){
-					it.affect("speedMult",0.1);
-					if (it.cursor) it.cursor.affect("range",52);
-					me.affectRadius(120);
+					if (it.charType == CHAR_PLAYER) {
+						it.affect("speedMult",0.1);
+						if (it.cursor) it.cursor.affect("range",40);
+						me.affectRadius(120);
+					}
 				}
 				
 			});

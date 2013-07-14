@@ -51,10 +51,15 @@ var Character = function(params){
 	
 	var paperDollZIndex = [c.paperDoll.body, c.paperDoll.torso, c.paperDoll.legs, c.paperDoll.head, c.paperDoll.sword];
 	
+	/*	composeDoll
+			Parse the paperDoll objects, and convert them to layers for composeTexture
+	*/
 	c.composeDoll = function(){
 		var layers = [];
+		//	Go through all the basic paperDoll components and make them into layers
 		for(var i in paperDollZIndex){
 			if (paperDollZIndex[i].type !== null) {
+				//	If the current component is a sword, create two layers
 				if (paperDollZIndex[i].isSword) {
 					layers.push({name: paperDollZIndex[i].type+'hilt', color: "c7aa09"});
 					layers.push({name: paperDollZIndex[i].type+'blade', color: paperDollZIndex[i].color});
@@ -62,6 +67,7 @@ var Character = function(params){
 				else {
 					layers.push({name: paperDollZIndex[i].type, color: paperDollZIndex[i].color});
 				}
+				//	See if there are any miscellaneous objects to layer on top of the current component
 				for (var j in this.paperDoll.misc){
 					me = this.paperDoll.misc[j];
 					if (me.zIndex == i)
@@ -101,6 +107,8 @@ Character.prototype.clone = function(){
 	return c;
 }
 
+//	paperDoll manipulation functions
+//	================================
 Character.prototype.setPaperDoll = function(doll) {
 	this.paperDoll.body.color = doll.body.color;
 	this.paperDoll.torso.type = doll.torso.type;
@@ -163,7 +171,8 @@ Character.prototype.removeMisc = function(type){
 	delete this.paperDoll.misc[type];
 }
 
-
+//	Character type functions
+//	========================
 Character.prototype.makePlayer = function(){
 	this.charType = CHAR_PLAYER;
 }
@@ -177,7 +186,14 @@ Character.prototype.makeFriendly = function(){
 	this.charType = CHAR_FRIENDLY;
 }
 
+//	Character actions
+//	=================
+
+/*	strikeCharacter
+		Attack another Character, pushing them away from this Character
+*/
 Character.prototype.strikeCharacter = function(other){
+	//	Get the angle between this character's hitbox and the other character's hitbox
 	var myBoxPos = this.hitbox.getPosition();
 	var oBoxPos = other.hitbox.getPosition();
 	var boxPosDiff = [(oBoxPos[0] - myBoxPos[0]), (oBoxPos[1] - myBoxPos[1])];
@@ -187,10 +203,13 @@ Character.prototype.strikeCharacter = function(other){
 	var hitboxWidth = 48;
 	var hitboxHeight = 28;
 	
+	//	Default values for how far to push the other character, and how far this character should stand away
 	var push = 30;
 	var pushRadius = 64;
-	var myPos = [this.x, this.y + this.sprite.yOffset];
-	var oPos =  [other.x, other.y + other.sprite.yOffset];
+	
+	//	Calculate the distance between the two characters' sprites
+	var myPos = this.getSpriteOffsetPosition();
+	var oPos =  other.getSpriteOffsetPosition();
 	var xDiff = Math.abs(oPos[0] - myPos[0]);
 	var yDiff = Math.abs(oPos[1] - myPos[1]);
 	xDiff -= hitboxWidth;
@@ -199,27 +218,28 @@ Character.prototype.strikeCharacter = function(other){
 	if(yDiff < 0) yDiff = 0;
 	var distance = Math.sqrt( Math.pow(xDiff,2) + Math.pow(yDiff,2) );
 	
+	//	If this character is pushing forward, increase the push distance
 	var pushForward = false;
 	if ( (this.charType == CHAR_PLAYER) && (Input.mouseDown.left) ){
 		if (Physics.collisionUtils.intersects(this.cursor.hitbox.shapes[0],other.hitbox.shapes[0]) )
 			pushForward = true;
 	}
-	
 	if (pushForward === true){
 		push *= 2;
 		pushRadius *= 1.25;
 	}
 	
+	//	Generate the waypoints towards which to push both characters
 	var oWaypoint = [];
 	var myWaypoint = [];
-
-	oWaypoint[0] = other.x - push*-Math.cos(theta);
-	oWaypoint[1] = other.y - push*Math.sin(theta);
-	oWaypoint[0] = Math.floor(oWaypoint[0]);
-	oWaypoint[1] = Math.floor(oWaypoint[1]);
+	//	Push the other character along the angle between the two characters' hitboxes
+	oWaypoint[0] = Math.floor(other.x - push*-Math.cos(theta) );
+	oWaypoint[1] = Math.floor(other.y - push*Math.sin(theta) );
+	//	Push this character along the same angle, but pushRadius pixels away from the other character
 	myWaypoint[0] = Math.floor(oWaypoint[0]+(pushRadius*-Math.cos(theta) ) );
 	myWaypoint[1] = Math.floor(oWaypoint[1]+(pushRadius*Math.sin(theta) ) );
 	
+	//	Apply the waypoints
 	other.overwriteWaypoint(0, oWaypoint[0],oWaypoint[1]);
 	this.overwriteWaypoint(0, myWaypoint[0],myWaypoint[1]);
 }

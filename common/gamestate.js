@@ -13,8 +13,7 @@
 var GameState = new function() {
 	
 	var currentLoop = function() { };
-	var currentCamera;
-	
+
 	//	set - Set a Loop and initialize it
 	this.set = function(newLoop){
 		currentLoop = newLoop;
@@ -25,6 +24,8 @@ var GameState = new function() {
 		if (currentLoop.loaded)
 			currentLoop.run();
 		else currentLoop.loadingLoop();
+		previousFrameTime = currentTime;
+		currentTime = TurbulenzEngine.time;
 	}
 	//	draw - Draw the frame for the current Loop, or its loading screen
 	this.draw = function(){
@@ -32,12 +33,26 @@ var GameState = new function() {
 		else currentLoop.loadingScreen();
 	}
 	
+	//	Timing
+	//	======
+	var previousFrameTime;
+	var currentTime = TurbulenzEngine.time;
+	
+	this.getTime = function(){
+		return currentTime;
+	}
+	this.getTimeDelta = function(){
+		return currentTime - previousFrameTime;
+	}
+	
 	//	Camera
 	//	======
+	var currentCamera;
 	this.setCamera = function(newCamera){
 		currentCamera = newCamera;
 	}
 	this.getCamera = function(){
 		return currentCamera;
 	}
+	
 }

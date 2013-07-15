@@ -39,7 +39,7 @@ var CameraTest = {
 				types: [ENT_CHARACTER],
 				doThis: function(it, me){
 					if (it.charType == CHAR_PLAYER) {
-						it.affect("speedMult",0.1);
+						it.affect("speedMult",0.2);
 						if (it.cursor) it.cursor.affect("range",40);
 						me.affectRadius(120);
 					}
@@ -106,6 +106,12 @@ var CameraTest = {
 					CameraTest.NPC2.removeMisc("patchleft");
 					CameraTest.NPC2.composeDoll();
 					CameraTest.em.add(CameraTest.NPC2);
+					
+					CameraTest.NPC3 = CameraTest.NPC.clone();
+					CameraTest.NPC3.setPosition(320, 160);
+					CameraTest.NPC3.setTorso("shirt","dedefe");
+					CameraTest.NPC3.composeDoll();
+					CameraTest.em.add(CameraTest.NPC3);
 				
 			}
 			

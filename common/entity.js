@@ -357,12 +357,12 @@ Entity.prototype.isInRadius = function(entity){
 /*	addWaypoint, overwriteWaypoint, and nextWaypoint
 		Manipulates this Entity's array of waypoints
 */
-Entity.prototype.addWaypoint = function(x, y){
-	this.waypoints.push([x,y]);
+Entity.prototype.addWaypoint = function(x, y, timer){
+	this.waypoints.push([x,y,timer]);
 }
 
-Entity.prototype.overwriteWaypoint = function(index, x, y){
-	this.waypoints.splice(0,1,[x,y]);
+Entity.prototype.overwriteWaypoint = function(index, x, y, timer){
+	this.waypoints.splice(0,1,[x,y,timer]);
 }
 
 Entity.prototype.nextWaypoint = function(){
@@ -387,6 +387,16 @@ Entity.prototype.approachCurrentWaypoint = function(range, override){
 	if ( (Math.abs(pos[0]-w[0]) < speed) && (Math.abs(pos[1]-w[1]) < speed) ) {
 		this.nextWaypoint();
 	}
+	//	If the waypoint has a timer, lower it (used mostly for collision handling)
+	if (typeof w[2] != "undefined") {
+		w[2] -= GameState.getTimeDelta();
+		//	If the timer has expired, move to the next waypoint
+		if (w[2] <= 0) {
+			console.log(this.name+" timer expired");
+			this.nextWaypoint();
+		}
+	}
+	
 }
 
 //	===================

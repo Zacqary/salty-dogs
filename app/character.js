@@ -239,7 +239,7 @@ Character.prototype.strikeCharacter = function(other){
 	myWaypoint[0] = Math.floor(oWaypoint[0]+(pushRadius*-Math.cos(theta) ) );
 	myWaypoint[1] = Math.floor(oWaypoint[1]+(pushRadius*Math.sin(theta) ) );
 	
-	//	Apply the waypoints
-	other.overwriteWaypoint(0, oWaypoint[0],oWaypoint[1]);
-	this.overwriteWaypoint(0, myWaypoint[0],myWaypoint[1]);
+	//	Apply the waypoints 
+	other.overwriteWaypoint(0, oWaypoint[0],oWaypoint[1],0.3);
+	this.overwriteWaypoint(0, myWaypoint[0],myWaypoint[1],0.3);
 }

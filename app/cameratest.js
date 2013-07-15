@@ -170,12 +170,28 @@ var CameraTest = {
 				if (!CameraTest.struck) {
 					CameraTest.struck = true;
 					
-					if (CameraTest.avatar.isInRadius(CameraTest.NPC)) {
-						CameraTest.avatar.strikeCharacter(CameraTest.NPC);
+					var imIn = CameraTest.em.radiusSweepTest(CameraTest.avatar);
+					for (var i in imIn){
+						if (imIn[i].charType != CHAR_HOSTILE)
+							imIn.splice(i,1);
 					}
-					else if (CameraTest.avatar.isInRadius(CameraTest.NPC2)) {
-						CameraTest.avatar.strikeCharacter(CameraTest.NPC2);
-					}
+					
+					if (imIn.length > 0) {
+						var distances = [];
+						for (var i in imIn){
+							var me = imIn[i];
+							var xs = me.x - CameraTest.cursor.x;
+							xs = xs * xs;
+							var ys = me.y - CameraTest.cursor.y;
+							ys = ys * ys;
+							distances.push({distance: Math.sqrt(xs + ys), name: me.name} );
+						}
+					
+						distances.sort(function(a, b){
+							return a.distance - b.distance;
+						});
+						CameraTest.avatar.strikeCharacter( CameraTest.em.get(distances[0].name) );
+					}	
 				}
 			}
 			else CameraTest.struck = false;

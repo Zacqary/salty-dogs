@@ -347,6 +347,8 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 		Determines if an Entity is within the effect radius of another Entity.
 */
 Entity.prototype.isInRadius = function(entity){
+	if (entity == this) return false;
+	
 	// Only perform this check if this Entity has a hitbox and the other Entity has a radius
 	if ( (entity.effect.radius) && (this.hitbox) )
 		return Physics.collisionUtils.intersects(this.hitbox.shapes[0], entity.effect.radius.shapes[0]);
@@ -511,6 +513,18 @@ var EntityManager = function(){
 					it.applyMyEffect(me);
 			}
 		}
+	}
+	
+	/*	radiusSweepTest
+			Return all the effect radii that an Entity intersects
+	*/
+	this.radiusSweepTest = function(entity){
+		var intersects = [];
+		for (var i in entities){
+			if (entity.isInRadius(entities[i]))
+				intersects.push(entities[i]);
+		}
+		return intersects;
 	}
 }
 

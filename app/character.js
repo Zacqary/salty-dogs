@@ -24,6 +24,7 @@ var Character = function(params){
 	c.charType = CHAR_NEUTRAL;
 	c.createSprite({width: 48, height: 64}, 0, -18);
 	c.createHitbox(48,28);
+	c.speed = 8;
 	c.paperDoll = {
 		body: {
 			type: "body",

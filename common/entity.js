@@ -332,11 +332,11 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 	xSpeed *= (xDiff/range);
 	ySpeed *= (yDiff/range);
 	
+	//	Get the current position to formulate a destination
 	var x = this.x;
 	var y = this.y;
-	
 	//	Determine if the entity is above or below, left or right of its target,
-	//	and then move it closer
+	//	and then set a destination that's a bit closer
 	if (x < targetX) {
 		x += xSpeed;
 	}
@@ -350,7 +350,7 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 		y -= ySpeed;
 	}
 	
-	this.hitbox.setLinearDrag(0);
+	//	Push the Entity towards the destination
 	this.hitbox.setVelocityFromPosition([x,y],0,1/60);
 	
 	//	Mark the Entity as moving, and at what speed. This gets reset at the end of the frame.
@@ -409,7 +409,6 @@ Entity.prototype.approachCurrentWaypoint = function(range, override){
 		w[2] -= GameState.getTimeDelta();
 		//	If the timer has expired, move to the next waypoint
 		if (w[2] <= 0) {
-			console.log(this.name+" timer expired");
 			this.nextWaypoint();
 		}
 	}

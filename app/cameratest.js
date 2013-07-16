@@ -28,13 +28,11 @@ var CameraTest = {
 			CameraTest.avatar = Character.create({});
 			CameraTest.avatar.setPosition(0,170);
 			CameraTest.avatar.makePlayer();
-			CameraTest.avatar.speed = 8;
 			CameraTest.em.add(CameraTest.avatar);
 			
 			CameraTest.NPC = Character.create({});
 			CameraTest.NPC.setPosition(640,170);
 			CameraTest.NPC.makeHostile();
-			CameraTest.NPC.speed = 8;
 			CameraTest.NPC.createEffectRadius(80);
 			CameraTest.NPC.createEffect({
 				types: [ENT_CHARACTER],
@@ -130,23 +128,22 @@ var CameraTest = {
 			
 			Graphics.updateCameraMatrices(CameraTest.camera);
 			
-			var mouseToWorld = CameraTest.camera2D.mouseToWorld();
-			CameraTest.cursor.setPosition(mouseToWorld[0],mouseToWorld[1]);
-			
-			var avOffsetPos = CameraTest.avatar.getHitboxOffsetPosition();
-			var curPos = [CameraTest.cursor.getPosition()];
-			if ( Math.abs(CameraTest.cursor.x - avOffsetPos[0]) > CameraTest.cursor.range) {
-				if (CameraTest.cursor.x < avOffsetPos[0]) curPos[0] = avOffsetPos[0] - CameraTest.cursor.range;
+			var curPos = CameraTest.camera2D.mouseToWorld();
+			var avOffsetPos = CameraTest.avatar.getPosition();
+
+			if ( Math.abs(curPos[0] - avOffsetPos[0]) > CameraTest.cursor.range) {
+				if (curPos[0] < avOffsetPos[0]) curPos[0] = avOffsetPos[0] - CameraTest.cursor.range;
 				else curPos[0] = avOffsetPos[0] + CameraTest.cursor.range;	
 			}
 			
-			if ( Math.abs(CameraTest.cursor.y - avOffsetPos[1]) > CameraTest.cursor.range ) {
-				if (CameraTest.cursor.y < avOffsetPos[1]) curPos[1] = avOffsetPos[1] - CameraTest.cursor.range;
+			if ( Math.abs(curPos[1] - avOffsetPos[1]) > CameraTest.cursor.range ) {
+				if (curPos[1] < avOffsetPos[1]) curPos[1] = avOffsetPos[1] - CameraTest.cursor.range;
 				else curPos[1] = avOffsetPos[1] + CameraTest.cursor.range;	
 			}
-			if (CameraTest.cursor.y < CameraTest.cursor.upperBound) curPos[1] = CameraTest.cursor.upperBound;
-			else if (CameraTest.cursor.y > CameraTest.cursor.lowerBound) curPos[1] = CameraTest.cursor.lowerBound;
-			//CameraTest.cursor.setPosition(curPos);
+			if (curPos[1] < CameraTest.cursor.upperBound) curPos[1] = CameraTest.cursor.upperBound;
+			else if (curPos[1] > CameraTest.cursor.lowerBound) curPos[1] = CameraTest.cursor.lowerBound;
+			
+			CameraTest.cursor.setPosition(curPos[0],curPos[1]);
 			
 			if (Input.mouseDown.left) {
 				CameraTest.avatar.approach(CameraTest.cursor.x, CameraTest.cursor.y, CameraTest.cursor.range);

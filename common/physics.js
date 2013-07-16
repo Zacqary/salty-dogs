@@ -24,7 +24,7 @@ var Physics = {
 	},
 	
 	createBasicBody: function createBasicBody(shape, type){
-		type = type || 'kinematic';
+		type = type || 'dynamic';
 		return Physics.device.createRigidBody({
 			shapes: [shape],
 			position: [0, 0],
@@ -37,7 +37,7 @@ var Physics = {
 		var normal = [];
 		var point = [];
 		if (Physics.collisionUtils.sweepTest(a.hitbox.shapes[0], b.hitbox.shapes[0], 1/60, point, normal) !== undefined) {
-			//a.nextWaypoint();
+			//if (!b.movement) a.nextWaypoint();
 			var boxPos = b.hitbox.computeWorldBounds(); //	Get Entity b's hitbox boundaries
 			if (normal[0] == 1) a.x -= a.movement.x + (point[0] - boxPos[0]);		//	Hits from the left
 			else if (normal[0] == -1) a.x += a.movement.x + (boxPos[2] - point[0]);	//	Right

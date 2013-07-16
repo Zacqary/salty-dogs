@@ -9,7 +9,6 @@ var CameraTest = {
 			CameraTest.camera.lookAt([0,0,0], Graphics.WORLD_UP, [0,70,240]);
 			GameState.setCamera(CameraTest.camera2D);
 			
-			
 			Graphics.textureManager.load("textures/circle.png");
 			
 			Graphics.textureManager.load("textures/body.png");
@@ -26,12 +25,14 @@ var CameraTest = {
 			
 			CameraTest.em = EntityManager.create();
 			
-			CameraTest.avatar = Character.create({x: 0, y: 170});
+			CameraTest.avatar = Character.create({});
+			CameraTest.avatar.setPosition(0,170);
 			CameraTest.avatar.makePlayer();
 			CameraTest.avatar.speed = 8;
 			CameraTest.em.add(CameraTest.avatar);
 			
-			CameraTest.NPC = Character.create({x: 640, y: 170});
+			CameraTest.NPC = Character.create({});
+			CameraTest.NPC.setPosition(640,170);
 			CameraTest.NPC.makeHostile();
 			CameraTest.NPC.speed = 8;
 			CameraTest.NPC.createEffectRadius(80);
@@ -130,46 +131,60 @@ var CameraTest = {
 			Graphics.updateCameraMatrices(CameraTest.camera);
 			
 			var mouseToWorld = CameraTest.camera2D.mouseToWorld();
-			CameraTest.cursor.x = mouseToWorld[0];
-			CameraTest.cursor.y = mouseToWorld[1];
+			CameraTest.cursor.setPosition(mouseToWorld[0],mouseToWorld[1]);
 			
 			var avOffsetPos = CameraTest.avatar.getHitboxOffsetPosition();
+			var curPos = [CameraTest.cursor.getPosition()];
 			if ( Math.abs(CameraTest.cursor.x - avOffsetPos[0]) > CameraTest.cursor.range) {
-				if (CameraTest.cursor.x < avOffsetPos[0]) CameraTest.cursor.x = avOffsetPos[0] - CameraTest.cursor.range;
-				else CameraTest.cursor.x = avOffsetPos[0] + CameraTest.cursor.range;	
+				if (CameraTest.cursor.x < avOffsetPos[0]) curPos[0] = avOffsetPos[0] - CameraTest.cursor.range;
+				else curPos[0] = avOffsetPos[0] + CameraTest.cursor.range;	
 			}
 			
 			if ( Math.abs(CameraTest.cursor.y - avOffsetPos[1]) > CameraTest.cursor.range ) {
-				if (CameraTest.cursor.y < avOffsetPos[1]) CameraTest.cursor.y = avOffsetPos[1] - CameraTest.cursor.range;
-				else CameraTest.cursor.y = avOffsetPos[1] + CameraTest.cursor.range;	
+				if (CameraTest.cursor.y < avOffsetPos[1]) curPos[1] = avOffsetPos[1] - CameraTest.cursor.range;
+				else curPos[1] = avOffsetPos[1] + CameraTest.cursor.range;	
 			}
-			if (CameraTest.cursor.y < CameraTest.cursor.upperBound) CameraTest.cursor.y = CameraTest.cursor.upperBound;
-			else if (CameraTest.cursor.y > CameraTest.cursor.lowerBound) CameraTest.cursor.y = CameraTest.cursor.lowerBound;
-			
+			if (CameraTest.cursor.y < CameraTest.cursor.upperBound) curPos[1] = CameraTest.cursor.upperBound;
+			else if (CameraTest.cursor.y > CameraTest.cursor.lowerBound) curPos[1] = CameraTest.cursor.lowerBound;
+			//CameraTest.cursor.setPosition(curPos);
 			
 			if (Input.mouseDown.left) {
 				CameraTest.avatar.approach(CameraTest.cursor.x, CameraTest.cursor.y, CameraTest.cursor.range);
 				
-				if (CameraTest.avatar.sprite.x < 512) {
-					CameraTest.camera.matrix[9] -= CameraTest.avatar.movement.x/3;
-					CameraTest.camera2D.x -= CameraTest.avatar.movement.x;
+				
+				
+				if ( Math.abs(CameraTest.avatar.x - CameraTest.camera2D.x) > 128) {
+					if (CameraTest.camera2D.x > CameraTest.avatar.x) {
+						CameraTest.camera.matrix[9] -= CameraTest.avatar.movement.x/3;
+						CameraTest.camera2D.x -= CameraTest.avatar.movement.x;
+					}
+					else {
+						CameraTest.camera.matrix[9] += CameraTest.avatar.movement.x/3;
+						CameraTest.camera2D.x += CameraTest.avatar.movement.x;
+					}
 				}
-				if (CameraTest.avatar.sprite.x > 768) {
-					CameraTest.camera.matrix[9] += CameraTest.avatar.movement.x/3;
-					CameraTest.camera2D.x += CameraTest.avatar.movement.x;
-				}
+		
 			
 			}
 			else {
-				
-				if (CameraTest.avatar.sprite.x < 636) {
+				if ( Math.abs(CameraTest.avatar.x - CameraTest.camera2D.x) > 4) {
+					if (CameraTest.camera2D.x > CameraTest.avatar.x) {
+						CameraTest.camera.matrix[9] -= 1;
+						CameraTest.camera2D.x -= 4;
+					}
+					else {
+						CameraTest.camera.matrix[9] += 1;
+						CameraTest.camera2D.x += 4;
+					}
+				}
+				/* if (CameraTest.avatar.sprite.x < 636) {
 					CameraTest.camera.matrix[9] -= 1;
 					CameraTest.camera2D.x -= 4;
 				}
 				else if (CameraTest.avatar.sprite.x > 644) {
 					CameraTest.camera.matrix[9] += 1;
 					CameraTest.camera2D.x += 4;
-				}
+				} */
 				
 			}
 			if (Input.mouseDown.right) {
@@ -203,6 +218,7 @@ var CameraTest = {
 			else CameraTest.struck = false;
 			
 			CameraTest.em.allToCurrentWaypoint();
+			CameraTest.em.runPhysics();
 			CameraTest.em.updateAll();
 			
 			

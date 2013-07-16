@@ -89,6 +89,12 @@ var Graphics = {
 			be drawn in order.
 	*/
 	makeCompositeTexture: function makeCompositeTexture(layers){
+		
+		Graphics.draw2D.configure({
+			scaleMode: 'scale',
+			viewportRectangle: undefined
+		});
+		
 		//	Check if the layers specify explicit path or just a texture name.
 		//	If it's just a name, turn this into a path.
 		for (var i in layers){
@@ -129,6 +135,7 @@ var Graphics = {
 		
 		//	Grab what we just drew, and return it as hot, fresh, delicious texture data
 		var tex = Graphics.draw2D.getRenderTargetTexture(target);
+		
 		return tex;
 	},
 	
@@ -148,6 +155,13 @@ Graphics.Camera2D = function Camera2D() {
 Graphics.Camera2D.create = function(){
 	return new Graphics.Camera2D();
 }
+
+Graphics.Camera2D.prototype.getViewport = function(){
+	var x =  this.x - (this.width/2);
+	var y =  this.y - (this.height/2);
+	return Math.device.v4Build(x,y,x+this.width,y+this.height);
+}
+
 /*	getViewCenter
 		Get the center of the Camera2D's view by finding the center of the screen,
 		then offsetting it by the camera's position in the world.
@@ -192,10 +206,9 @@ Graphics.EntitySprite.create = function(params, xOffset, yOffset){
 		Update this EntitySprite's position by getting the Entity's position,
 		then determining where that corresponds to in the Camera2D's view.
 */
-Graphics.EntitySprite.prototype.update = function(camera){
-	var camCenter = camera.getViewCenter();
-	this.x = this.parent.x + this.xOffset + camCenter[0];
-	this.y = this.parent.y + this.yOffset + camCenter[1];
+Graphics.EntitySprite.prototype.update = function(){
+	this.x = this.parent.x + this.xOffset;
+	this.y = this.parent.y + this.yOffset;
 }
 //	draw - Draws the EntitySprite
 Graphics.EntitySprite.prototype.draw = function(){

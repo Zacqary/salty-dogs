@@ -22,8 +22,8 @@ var Character = function(params){
 	var c = Entity.create(params);
 	c.entType = ENT_CHARACTER;
 	c.charType = CHAR_NEUTRAL;
-	c.createSprite({width: 48, height: 64}, 0, -16);
-	c.createHitbox(48,28,0,18);
+	c.createSprite({width: 48, height: 64}, 0, -18);
+	c.createHitbox(48,28);
 	c.paperDoll = {
 		body: {
 			type: "body",

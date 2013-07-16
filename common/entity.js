@@ -48,6 +48,10 @@ Entity.create = function(params){
 		e.sprite.setTexture(instance.getTexture());
 		e.sprite.setTextureRectangle([0, 0, e.sprite.getWidth(), e.sprite.getHeight()]);
 	});
+
+	if (e.hitbox) {
+		e.hitbox.setPosition([e.x, e.y]);
+	}
 	
 	return e;
 }
@@ -83,7 +87,7 @@ Entity.prototype.clone = function(){
 Entity.prototype.update = function(){
 	//	Mark the Entity as no longer moving (which may be reset next frame if it's still moving)
 	this.movement = null; 
-	
+	this.hitbox.setRotation(0);
 	this.updatePosition();
 }
 
@@ -95,6 +99,10 @@ Entity.prototype.setPosition = function(x,y,z){
 	this.x = x;
 	this.y = y;
 	this.z = z || this.z;
+	
+	if (this.hitbox) {
+		this.hitbox.setPosition([this.x, this.y]);
+	}
 }
 
 Entity.prototype.getPosition = function(){
@@ -126,12 +134,12 @@ Entity.prototype.getZIndex = function(){
 		Also updates the hitbox and effect radius.
 */
 Entity.prototype.updatePosition = function updatePosition(){
-	this.sprite.update(GameState.getCamera());
-	if (this.hitbox) {
-		this.hitbox.setPosition([this.sprite.x + this.hitbox.xOffset, this.sprite.y + this.hitbox.yOffset]);
-	}
+	var hbp = this.hitbox.getPosition();
+	this.x = hbp[0];
+	this.y = hbp[1];
+	this.sprite.update();
 	if (this.effect.radius) {
-		this.effect.radius.setPosition([this.sprite.x, this.sprite.y]);
+		this.effect.radius.setPosition([this.x, this.y]);
 	}
 }
 
@@ -217,8 +225,11 @@ Entity.prototype.applyMyEffect = function(it){
 /*	createSprite
 		Creates an EntitySprite for this entity.
 */
-Entity.prototype.createSprite = function(spriteParams, x0ffset, yOffset){
-	this.sprite = Graphics.EntitySprite.create(spriteParams, this, x0ffset, yOffset);
+Entity.prototype.createSprite = function(spriteParams, xOffset, yOffset){
+	xOffset = xOffset || 0;
+	yOffset = yOffset || 0;
+	this.sprite = Graphics.EntitySprite.create(spriteParams, this, xOffset, yOffset);
+	this.setSpriteOffset(xOffset,yOffset);
 }
 
 /*	getTexture and setTexture
@@ -274,13 +285,11 @@ Entity.prototype.drawPhysDebug = function drawPhysDebug(){
 		Creates a rectangle to serve as this Entity's hitbox.
 		Also provides a generic function to create a hitbox independent of an Entity.
 */
-Entity.createHitbox = function(width,height,xOffset,yOffset){
+Entity.createHitbox = function(width,height){
 	var shape = Physics.device.createPolygonShape({
 		vertices: Physics.device.createBoxVertices(width,height) 
 	});
  	var hitbox = Physics.createBasicBody(shape);
-	hitbox.xOffset = xOffset || 0;
-	hitbox.yOffset = yOffset || 0;
 	return hitbox;
 }
 Entity.prototype.createHitbox = function(width,height,xOffset,yOffset){
@@ -296,7 +305,7 @@ Entity.createEffectRadius = function(radius){
 		radius: radius,
 		origin: [0,0]
 	});
-	return Physics.createBasicBody(shape, 'dynamic');
+	return Physics.createBasicBody(shape, 'kinematic');
 }
 Entity.prototype.createEffectRadius = function(radius){
 	this.effect.radius = Entity.createEffectRadius(radius);
@@ -322,20 +331,28 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 	//	The range value determines when to start slowing it down.
 	xSpeed *= (xDiff/range);
 	ySpeed *= (yDiff/range);
+	
+	var x = this.x;
+	var y = this.y;
+	
 	//	Determine if the entity is above or below, left or right of its target,
 	//	and then move it closer
-	if (this.x < targetX) {
-		this.x += xSpeed;
+	if (x < targetX) {
+		x += xSpeed;
 	}
 	else if (this.x > targetX) {
-		this.x -= xSpeed;
+		x -= xSpeed;
 	}
-	if (this.y < targetY) {
-		this.y += ySpeed;
+	if (y < targetY) {
+		y += ySpeed;
 	}
-	else if (this.y > targetY) {
-		this.y -= ySpeed;
+	else if (y > targetY) {
+		y -= ySpeed;
 	}
+	
+	this.hitbox.setLinearDrag(0);
+	this.hitbox.setVelocityFromPosition([x,y],0,1/60);
+	
 	//	Mark the Entity as moving, and at what speed. This gets reset at the end of the frame.
 	this.movement = {
 		x: xSpeed,
@@ -407,9 +424,13 @@ Entity.prototype.approachCurrentWaypoint = function(range, override){
 var EntityManager = function(){
 	
 	var entities = [];
+	var world = Physics.device.createWorld({ 
+			gravity: [0, 0]
+		});
 	
 	this.add = function(e){
 		entities[e.name] = e;
+		if (e.hitbox) world.addRigidBody(e.hitbox);
 	}
 	
 	this.get = function(name){
@@ -422,8 +443,14 @@ var EntityManager = function(){
 	
 	this.createEntity = function(params){
 		var e = Entity.create(params);
-		entities[e.name] = e;
+		this.add(e);
 		return e;
+	}
+	
+	this.runPhysics = function(){
+		while(world.simulatedTime < GameState.getTime()){
+			world.step(1/60);
+		}
 	}
 	
 	/*	updateAll
@@ -473,7 +500,11 @@ var EntityManager = function(){
 		//	Make sure we're not drawing anything
 		Graphics.draw2D.end();
 		Graphics.debugDraw.end();
-
+		
+		Graphics.draw2D.configure({
+			scaleMode: 'scale',
+			viewportRectangle: GameState.getCamera().getViewport()
+		});
 		Graphics.draw2D.begin("alpha");
 		//	Draw each entity in order
 		for (var i in orderedEnts){
@@ -483,6 +514,7 @@ var EntityManager = function(){
 		
 		//	If debug drawing is enabled, draw all the Entities' physics objects
 		if(debug) {
+			Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
 			Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
 			Graphics.debugDraw.begin();
 			for (var i in orderedEnts){
@@ -501,12 +533,14 @@ var EntityManager = function(){
 			if (entities[i].waypoints.length > 0){
 				entities[i].approachCurrentWaypoint(10,1);
 			}
-			//	Bounce this Entity off of any hitboxes it collides with
+			//	Allow the physics simulation to move moving entities, and to hold static ones in place
 			if (entities[i].movement){
-				for (var j in entities) {
-					if ( (!entities[j].permeable) && (entities[j] != entities[i]) )
-						Physics.entityBounce(entities[i],entities[j]);
-				}
+				entities[i].hitbox.setLinearDrag(0);
+				entities[i].hitbox.setMass(1);
+			}
+			else {
+				entities[i].hitbox.setLinearDrag(1);
+				entities[i].hitbox.setMass(9999);
 			}
 		}
 	}

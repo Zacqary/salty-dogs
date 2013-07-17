@@ -200,18 +200,7 @@ var CameraTest = {
 						});
 						while (1){
 							var other = CameraTest.em.get(distances[0].name);
-							var ray = {
-								origin: [CameraTest.avatar.x,CameraTest.avatar.y],
-								direction: [other.x - CameraTest.avatar.x, other.y - CameraTest.avatar.y],
-								maxFactor: 2
-							}
-							var result = CameraTest.em.getWorld().rayCast(ray, true, function(ray, result){
-								if (result.shape === CameraTest.avatar.hitbox.shapes[0]){
-									return false;
-								}
-								return true;
-							});
-							if(result.shape === other.hitbox.shapes[0]) {
+							if(CameraTest.em.rayCastTest(CameraTest.avatar, other)) {
 								CameraTest.avatar.strikeCharacter(other);
 								break;
 							}

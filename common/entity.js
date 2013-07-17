@@ -278,8 +278,8 @@ Entity.prototype.drawPhysDebug = function drawPhysDebug(){
 	}
 }
 
-//	Physics and Movement
-//	====================
+//	Physics
+//	=======
 
 /*	createHitbox
 		Creates a rectangle to serve as this Entity's hitbox.
@@ -316,6 +316,24 @@ Entity.prototype.useHitboxAsEffectRadius = function(hitbox){
 	this.effect.radius = hitbox;
 }
 
+//	Positioning
+//	===========
+	
+/*	isInRadius
+		Determines if an Entity is within the effect radius of another Entity.
+*/
+Entity.prototype.isInRadius = function(entity){
+	if (entity == this) return false;
+	
+	// Only perform this check if this Entity has a hitbox and the other Entity has a radius
+	if ( (entity.effect.radius) && (this.hitbox) )
+		return Physics.collisionUtils.intersects(this.hitbox.shapes[0], entity.effect.radius.shapes[0]);
+	else return false;
+}
+
+//	Movement
+//	====================
+
 /*	approach
 		Makes this Entity approach a point. It moves slower the closer it is.
 */
@@ -344,17 +362,6 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 	}
 }
 
-/*	isInRadius
-		Determines if an Entity is within the effect radius of another Entity.
-*/
-Entity.prototype.isInRadius = function(entity){
-	if (entity == this) return false;
-	
-	// Only perform this check if this Entity has a hitbox and the other Entity has a radius
-	if ( (entity.effect.radius) && (this.hitbox) )
-		return Physics.collisionUtils.intersects(this.hitbox.shapes[0], entity.effect.radius.shapes[0]);
-	else return false;
-}
 /*	addWaypoint, overwriteWaypoint, and nextWaypoint
 		Manipulates this Entity's array of waypoints
 */
@@ -551,6 +558,25 @@ var EntityManager = function(){
 		}
 		return intersects;
 	}
+	
+	/*	rayCastTest
+			Determines if two Entities have a clear line to one another
+	*/
+	this.rayCastTest = function(a, b){
+		var ray = {
+			origin: [a.x,a.y],
+			direction: [b.x - a.x, b.y - a.y],
+			maxFactor: 2
+		}
+		var result = world.rayCast(ray, true, function(ray, result){
+			if (result.shape === a.hitbox.shapes[0]){
+				return false;
+			}
+			return true;
+		});
+		return (result.shape === b.hitbox.shapes[0]);
+	}
+	
 }
 
 EntityManager.create = function(){

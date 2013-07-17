@@ -78,9 +78,3 @@ var objSize = function objSize(obj) {
     }
     return size;
 };
-
-Math.distanceXY = function (a,b){
-	var xDiff = Math.abs(b[0] - a[0]);
-	var yDiff = Math.abs(b[1] - a[1]);
-	return Math.sqrt( Math.pow(xDiff,2) + Math.pow(yDiff,2) );
-}

@@ -195,11 +195,7 @@ Character.prototype.makeFriendly = function(){
 */
 Character.prototype.strikeCharacter = function(other){
 	//	Get the angle between this character's hitbox and the other character's hitbox
-	var myBoxPos = this.hitbox.getPosition();
-	var oBoxPos = other.hitbox.getPosition();
-	var boxPosDiff = [(oBoxPos[0] - myBoxPos[0]), (oBoxPos[1] - myBoxPos[1])];
-	var theta = Math.atan2(-boxPosDiff[1],boxPosDiff[0]);
-	if (theta < 0) theta += 2 * Math.PI;
+	var theta = Math.angleXY(this.hitbox.getPosition(), other.hitbox.getPosition());
 	
 	var hitboxWidth = 48;
 	var hitboxHeight = 28;
@@ -238,11 +234,10 @@ Character.prototype.strikeCharacter = function(other){
 	var oWaypoint = [];
 	var myWaypoint = [];
 	//	Push the other character along the angle between the two characters' hitboxes
-	oWaypoint[0] = Math.floor(other.x - push*-Math.cos(theta) );
-	oWaypoint[1] = Math.floor(other.y - push*Math.sin(theta) );
+	oWaypoint = Math.lineFromXYAtAngle([other.x,other.y],push,theta);
 	//	Push this character along the same angle, but pushRadius pixels away from the other character
-	myWaypoint[0] = Math.floor(oWaypoint[0]+(pushRadius*-Math.cos(theta) ) );
-	myWaypoint[1] = Math.floor(oWaypoint[1]+(pushRadius*Math.sin(theta) ) );
+	myWaypoint = Math.lineFromXYAtAngle(Math.vNeg(oWaypoint), pushRadius, theta);
+	myWaypoint = Math.vNeg(myWaypoint);
 	
 	//	Apply the waypoints 
 	other.overwriteWaypoint(0, oWaypoint[0],oWaypoint[1], slowRange, speed, 0.3);

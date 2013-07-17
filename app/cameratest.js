@@ -192,17 +192,35 @@ var CameraTest = {
 						var distances = [];
 						for (var i in imIn){
 							var me = imIn[i];
-							var xs = me.x - CameraTest.cursor.x;
-							xs = xs * xs;
-							var ys = me.y - CameraTest.cursor.y;
-							ys = ys * ys;
-							distances.push({distance: Math.sqrt(xs + ys), name: me.name} );
+							distances.push({distance: Math.distanceXY([me.x,me.y],[CameraTest.cursor.x,CameraTest.cursor.y]), name: me.name} );
 						}
 					
 						distances.sort(function(a, b){
 							return a.distance - b.distance;
 						});
-						CameraTest.avatar.strikeCharacter( CameraTest.em.get(distances[0].name) );
+						while (1){
+							var other = CameraTest.em.get(distances[0].name);
+							var ray = {
+								origin: [CameraTest.avatar.x,CameraTest.avatar.y],
+								direction: [other.x - CameraTest.avatar.x, other.y - CameraTest.avatar.y],
+								maxFactor: 2
+							}
+							var result = CameraTest.em.getWorld().rayCast(ray, true, function(ray, result){
+								if (result.shape === CameraTest.avatar.hitbox.shapes[0]){
+									return false;
+								}
+								return true;
+							});
+							if(result.shape === other.hitbox.shapes[0]) {
+								CameraTest.avatar.strikeCharacter(other);
+								break;
+							}
+							else {
+								distances.splice(0,1);
+								if (!distances.length) break;
+							}
+						}
+			
 					}	
 				}
 			}

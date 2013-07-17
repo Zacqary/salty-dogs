@@ -418,6 +418,10 @@ var EntityManager = function(){
 		return entities;
 	}
 	
+	this.getWorld = function(){
+		return world;
+	}
+	
 	this.createEntity = function(params){
 		var e = Entity.create(params);
 		this.add(e);

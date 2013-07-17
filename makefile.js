@@ -20,6 +20,7 @@
 /*{{ javascript('jslib/vmath.js') }}*/
 
 /*{{ javascript("common/protocol.js") }}*/
+/*{{ javascript("common/math.js") }}*/
 /*{{ javascript("common/graphics.js") }}*/
 /*{{ javascript("common/input.js") }}*/
 /*{{ javascript("common/physics.js") }}*/

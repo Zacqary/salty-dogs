@@ -35,7 +35,7 @@ Entity.create = function(params){
 	e.hitbox = params.hitbox;
 	e.effect = params.effect || {};
 	
-	e.speed = params.speed || 0;
+	e.speed = params.speed || 1;
 	e.speedMult = params.speedMult || 1; //Multiplier for the speed value
 	e.waypoints = [];
 	
@@ -324,34 +324,18 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 	//	unless overridden with a specific speed
 	var xSpeed = speedOverride || this.speed * this.speedMult;
 	var ySpeed = xSpeed;
-	//	Determine how close the Entity is to its target point
-	var xDiff = (Math.abs(this.x - targetX) );
-	var yDiff = (Math.abs(this.y - targetY) );
-	//	Slow the Entity down the closer it is to the target.
-	//	The range value determines when to start slowing it down.
-	xSpeed *= (xDiff/range);
-	ySpeed *= (yDiff/range);
+
+	var distance = Math.distanceXY([targetX,targetY],[this.x,this.y]);
+	var speed = speedOverride || this.speed * this.speedMult;
+	var slowdown = (distance/range);
+	if (slowdown < 1) {
+		speed *= slowdown;
+	}
 	
-	//	Get the current position to formulate a destination
-	var x = this.x;
-	var y = this.y;
-	//	Determine if the entity is above or below, left or right of its target,
-	//	and then set a destination that's a bit closer
-	if (x < targetX) {
-		x += xSpeed;
-	}
-	else if (this.x > targetX) {
-		x -= xSpeed;
-	}
-	if (y < targetY) {
-		y += ySpeed;
-	}
-	else if (y > targetY) {
-		y -= ySpeed;
-	}
+	var tick = 60/(distance/speed);
 	
 	//	Push the Entity towards the destination
-	this.hitbox.setVelocityFromPosition([x,y],0,1/60);
+	this.hitbox.setVelocityFromPosition([targetX,targetY],0,1/tick);
 	
 	//	Mark the Entity as moving, and at what speed. This gets reset at the end of the frame.
 	this.movement = {
@@ -374,12 +358,12 @@ Entity.prototype.isInRadius = function(entity){
 /*	addWaypoint, overwriteWaypoint, and nextWaypoint
 		Manipulates this Entity's array of waypoints
 */
-Entity.prototype.addWaypoint = function(x, y, timer){
-	this.waypoints.push([x,y,timer]);
+Entity.prototype.addWaypoint = function(x, y, range, override, timer){
+	this.waypoints.push([x,y,range, override, timer]);
 }
 
-Entity.prototype.overwriteWaypoint = function(index, x, y, timer){
-	this.waypoints.splice(0,1,[x,y,timer]);
+Entity.prototype.overwriteWaypoint = function(index, x, y, range, override, timer){
+	this.waypoints.splice(0,1,[x,y,range, override, timer]);
 }
 
 Entity.prototype.nextWaypoint = function(){
@@ -389,30 +373,24 @@ Entity.prototype.nextWaypoint = function(){
 		Makes the Entity approach its current waypoint. This is usually called by the EntityManager
 		each frame.
 */
-Entity.prototype.approachCurrentWaypoint = function(range, override){
-	override = override || this.speedMult;
-	range = range || 10;
+Entity.prototype.approachCurrentWaypoint = function(){
 	w = this.waypoints[0];
 	//	Approach the current waypoint's x and y
-	this.approach(w[0],w[1], range, override);
+	this.approach(w[0],w[1], w[2], w[3]);
+	
 	//	Determine if the Entity has reached its waypoint
 	var pos = this.getPosition();
-	var speed = this.speed * this.speedMult;
-	if (override) speed = this.speed * override;
-	//	If the Entity's speed value is greater than its distance from the waypoint,
-	//	move to the next waypoint.
-	if ( (Math.abs(pos[0]-w[0]) < speed) && (Math.abs(pos[1]-w[1]) < speed) ) {
+	if ( Math.distanceXY(pos,w) < 1){
 		this.nextWaypoint();
 	}
-	//	If the waypoint has a timer, lower it (used mostly for collision handling)
-	if (typeof w[2] != "undefined") {
-		w[2] -= GameState.getTimeDelta();
-		//	If the timer has expired, move to the next waypoint
-		if (w[2] <= 0) {
+	// If the waypoint has a timer, lower it (used mostly for collision handling)
+	if (typeof w[4] != "undefined") {
+		w[4] -= GameState.getTimeDelta();
+		// If the timer has expired, move to the next waypoint
+		if (w[4] <= 0) {
 			this.nextWaypoint();
 		}
 	}
-	
 }
 
 //	===================
@@ -530,7 +508,7 @@ var EntityManager = function(){
 		for (var i in entities) {
 			//	If an Entity has a waypoint, make it approach it
 			if (entities[i].waypoints.length > 0){
-				entities[i].approachCurrentWaypoint(10,1);
+				entities[i].approachCurrentWaypoint();
 			}
 			//	Allow the physics simulation to move moving entities, and to hold static ones in place
 			if (entities[i].movement){

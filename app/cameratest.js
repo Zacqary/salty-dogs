@@ -38,8 +38,8 @@ var CameraTest = {
 				types: [ENT_CHARACTER],
 				doThis: function(it, me){
 					if (it.charType == CHAR_PLAYER) {
-						it.affect("speedMult",0.2);
-						if (it.cursor) it.cursor.affect("range",40);
+						it.affect("speedMult",0.1);
+						if (it.cursor) it.cursor.affect("range",48);
 						me.affectRadius(120);
 					}
 				}
@@ -160,10 +160,11 @@ var CameraTest = {
 						CameraTest.camera2D.x += CameraTest.avatar.movement.x;
 					}
 				}
-		
+				
 			
 			}
 			else {
+				
 				if ( Math.abs(CameraTest.avatar.x - CameraTest.camera2D.x) > 4) {
 					if (CameraTest.camera2D.x > CameraTest.avatar.x) {
 						CameraTest.camera.matrix[9] -= 1;
@@ -173,15 +174,8 @@ var CameraTest = {
 						CameraTest.camera.matrix[9] += 1;
 						CameraTest.camera2D.x += 4;
 					}
+				
 				}
-				/* if (CameraTest.avatar.sprite.x < 636) {
-					CameraTest.camera.matrix[9] -= 1;
-					CameraTest.camera2D.x -= 4;
-				}
-				else if (CameraTest.avatar.sprite.x > 644) {
-					CameraTest.camera.matrix[9] += 1;
-					CameraTest.camera2D.x += 4;
-				} */
 				
 			}
 			if (Input.mouseDown.right) {

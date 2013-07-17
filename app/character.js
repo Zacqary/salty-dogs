@@ -23,8 +23,8 @@ var Character = function(params){
 	c.entType = ENT_CHARACTER;
 	c.charType = CHAR_NEUTRAL;
 	c.createSprite({width: 48, height: 64}, 0, -18);
-	c.createHitbox(48,28);
 	c.speed = 8;
+	c.createHitbox(48,28);
 	c.paperDoll = {
 		body: {
 			type: "body",
@@ -207,6 +207,8 @@ Character.prototype.strikeCharacter = function(other){
 	//	Default values for how far to push the other character, and how far this character should stand away
 	var push = 30;
 	var pushRadius = 64;
+	var speed = 2;
+	var slowRange = 10;
 	
 	//	Calculate the distance between the two characters' sprites
 	var myPos = this.getSpriteOffsetPosition();
@@ -228,6 +230,8 @@ Character.prototype.strikeCharacter = function(other){
 	if (pushForward === true){
 		push *= 2;
 		pushRadius *= 1.25;
+		speed *= 2;
+		slowRange * 2;
 	}
 	
 	//	Generate the waypoints towards which to push both characters
@@ -241,6 +245,6 @@ Character.prototype.strikeCharacter = function(other){
 	myWaypoint[1] = Math.floor(oWaypoint[1]+(pushRadius*Math.sin(theta) ) );
 	
 	//	Apply the waypoints 
-	other.overwriteWaypoint(0, oWaypoint[0],oWaypoint[1],0.3);
-	this.overwriteWaypoint(0, myWaypoint[0],myWaypoint[1],0.3);
+	other.overwriteWaypoint(0, oWaypoint[0],oWaypoint[1], slowRange, speed, 0.3);
+	this.overwriteWaypoint(0, myWaypoint[0],myWaypoint[1], slowRange, speed, 0.3);
 }

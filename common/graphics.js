@@ -181,6 +181,7 @@ Graphics.Camera2D.prototype.xyViewToWorld = function(x, y){
 	y = y - center[1];
 	return Math.device.v2Build(x,y);
 }
+
 //	mouseToWorld - A quick way of getting the mouse's xyViewToWorld
 Graphics.Camera2D.prototype.mouseToWorld = function(){
 	return this.xyViewToWorld(Input.mousePosition.x, Input.mousePosition.y);

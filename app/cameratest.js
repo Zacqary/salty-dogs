@@ -25,6 +25,11 @@ var CameraTest = {
 			
 			CameraTest.em = EntityManager.create();
 			
+			CameraTest.wall1 = CameraTest.em.createEntity({});
+			CameraTest.wall1.setPosition(0,-100);
+			CameraTest.wall1.createHitbox(1000,8,0,0);
+			
+			
 			CameraTest.avatar = Character.create({});
 			CameraTest.avatar.setPosition(0,170);
 			CameraTest.avatar.makePlayer();
@@ -69,7 +74,7 @@ var CameraTest = {
 					}
 				}
 			});
-			
+
 			CameraTest.avatar.cursor = CameraTest.cursor;
 		
 			CameraTest.struck = false;
@@ -140,8 +145,8 @@ var CameraTest = {
 				if (curPos[1] < avOffsetPos[1]) curPos[1] = avOffsetPos[1] - CameraTest.cursor.range;
 				else curPos[1] = avOffsetPos[1] + CameraTest.cursor.range;	
 			}
-			if (curPos[1] < CameraTest.cursor.upperBound) curPos[1] = CameraTest.cursor.upperBound;
-			else if (curPos[1] > CameraTest.cursor.lowerBound) curPos[1] = CameraTest.cursor.lowerBound;
+			//if (curPos[1] < CameraTest.cursor.upperBound) curPos[1] = CameraTest.cursor.upperBound;
+			//else if (curPos[1] > CameraTest.cursor.lowerBound) curPos[1] = CameraTest.cursor.lowerBound;
 			
 			CameraTest.cursor.setPosition(curPos[0],curPos[1]);
 			
@@ -152,12 +157,12 @@ var CameraTest = {
 				
 				if ( Math.abs(CameraTest.avatar.x - CameraTest.camera2D.x) > 128) {
 					if (CameraTest.camera2D.x > CameraTest.avatar.x) {
-						CameraTest.camera.matrix[9] -= CameraTest.avatar.movement.x/3;
-						CameraTest.camera2D.x -= CameraTest.avatar.movement.x;
+						//CameraTest.camera.matrix[9] -= CameraTest.avatar.movement.x/3;
+						CameraTest.camera2D.x = CameraTest.avatar.x + 128;
 					}
 					else {
-						CameraTest.camera.matrix[9] += CameraTest.avatar.movement.x/3;
-						CameraTest.camera2D.x += CameraTest.avatar.movement.x;
+						//CameraTest.camera.matrix[9] += CameraTest.avatar.movement.x/3;
+						CameraTest.camera2D.x = CameraTest.avatar.x - 128;
 					}
 				}
 				
@@ -165,14 +170,14 @@ var CameraTest = {
 			}
 			else {
 				
-				if ( Math.abs(CameraTest.avatar.x - CameraTest.camera2D.x) > 4) {
+				if ( Math.abs(CameraTest.avatar.x - CameraTest.camera2D.x) > 2) {
 					if (CameraTest.camera2D.x > CameraTest.avatar.x) {
-						CameraTest.camera.matrix[9] -= 1;
-						CameraTest.camera2D.x -= 4;
+						//CameraTest.camera.matrix[9] -= 1;
+						CameraTest.camera2D.x -= 2;
 					}
 					else {
-						CameraTest.camera.matrix[9] += 1;
-						CameraTest.camera2D.x += 4;
+						//CameraTest.camera.matrix[9] += 1;
+						CameraTest.camera2D.x += 2;
 					}
 				
 				}
@@ -225,7 +230,7 @@ var CameraTest = {
 		draw: function(){
 
 			Graphics.device.clear([1,1,1,1]);
-			CameraTest.floor.render(Graphics.device, CameraTest.camera);
+			//CameraTest.floor.render(Graphics.device, CameraTest.camera);
 			
 			if (Input.mouseDown.left) {
 				if (CameraTest.cursorOnNPC) CameraTest.cursor.sprite.setColor([1,0,0,1]);

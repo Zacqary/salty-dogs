@@ -39,7 +39,8 @@ Entity.create = function(params){
 	e.speedMult = params.speedMult || 1; //Multiplier for the speed value
 	e.waypoints = [];
 	
-	e.sprite = params.sprite;
+	e.sprite = Graphics.EntitySprite.create({texture: null, width:1, height:1, textureRectangle: [0,0,0,0], color: [0,0,0,0]},e,0,0);
+	
 	//	Create a textureInstance for this entity
 	Graphics.textureManager.add(e.name, null);
 	e.textureInstance = Graphics.textureManager.getInstance(e.name);
@@ -52,7 +53,7 @@ Entity.create = function(params){
 	if (e.hitbox) {
 		e.hitbox.setPosition([e.x, e.y]);
 	}
-	
+
 	return e;
 }
 
@@ -137,7 +138,7 @@ Entity.prototype.updatePosition = function updatePosition(){
 	var hbp = this.hitbox.getPosition();
 	this.x = hbp[0];
 	this.y = hbp[1];
-	this.sprite.update();
+	if (this.sprite) this.sprite.update();
 	if (this.effect.radius) {
 		this.effect.radius.setPosition([this.x, this.y]);
 	}
@@ -229,7 +230,6 @@ Entity.prototype.createSprite = function(spriteParams, xOffset, yOffset){
 	xOffset = xOffset || 0;
 	yOffset = yOffset || 0;
 	this.sprite = Graphics.EntitySprite.create(spriteParams, this, xOffset, yOffset);
-	this.setSpriteOffset(xOffset,yOffset);
 }
 
 /*	getTexture and setTexture
@@ -414,7 +414,7 @@ var EntityManager = function(){
 	
 	this.add = function(e){
 		entities[e.name] = e;
-		if (e.hitbox) world.addRigidBody(e.hitbox);
+		if (e.hitbox && !e.permeable) world.addRigidBody(e.hitbox);
 	}
 	
 	this.get = function(name){
@@ -446,6 +446,8 @@ var EntityManager = function(){
 	*/
 	this.updateAll = function(){
 		for (var i in entities){
+			if(entities[i].permeable) world.removeRigidBody(entities[i].hitbox);
+			else world.addRigidBody(entities[i].hitbox);
 			entities[i].update();
 		}
 	}
@@ -464,7 +466,10 @@ var EntityManager = function(){
 	this.drawAll = function(debug){
 		//	Copy the entities array into a new one so we can reorder them
 		var orderedEnts = [];
-		for (var i in entities) orderedEnts.push(entities[i]);
+		for (var i in entities) {
+			if (entities[i].sprite)
+				orderedEnts.push(entities[i]);
+		}
 		
 		//	Layer the Entities on top of each other based on their y value.
 		//	Things further down the screen get drawn on top of things further up.

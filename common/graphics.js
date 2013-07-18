@@ -199,8 +199,8 @@ Graphics.EntitySprite = function(params, parent, xOffset, yOffset){
 }
 Graphics.EntitySprite.prototype = Draw2DSprite.prototype;
 
-Graphics.EntitySprite.create = function(params, xOffset, yOffset){
-	return new Graphics.EntitySprite(params, xOffset, yOffset);
+Graphics.EntitySprite.create = function(params, parent, xOffset, yOffset){
+	return new Graphics.EntitySprite(params, parent, xOffset, yOffset);
 }
 
 /*	update

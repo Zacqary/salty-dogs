@@ -26,9 +26,19 @@ var CameraTest = {
 			CameraTest.em = EntityManager.create();
 			
 			CameraTest.wall1 = CameraTest.em.createEntity({});
-			CameraTest.wall1.setPosition(0,-100);
-			CameraTest.wall1.createHitbox(1000,8,0,0);
+			CameraTest.wall1.setPosition(500,-300);
+			CameraTest.wall1.createHitbox(1400,1,0,0);
 			
+			CameraTest.wall2 = CameraTest.em.createEntity({});
+			CameraTest.wall2.setPosition(500,320);
+			CameraTest.wall2.createHitbox(1400,1,0,0);
+			
+			CameraTest.wall3 = CameraTest.em.createEntity({});
+			CameraTest.wall3.setPosition(-200,10);
+			CameraTest.wall3.createHitbox(1,620,0,0);
+			CameraTest.wall4 = CameraTest.em.createEntity({});
+			CameraTest.wall4.setPosition(1200,10);
+			CameraTest.wall4.createHitbox(1,620,0,0);
 			
 			CameraTest.avatar = Character.create({});
 			CameraTest.avatar.setPosition(0,170);

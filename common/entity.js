@@ -33,6 +33,7 @@ Entity.create = function(params){
 	//	If permeable, this entity doesn't trigger collision detection
 
 	e.hitbox = params.hitbox;
+
 	e.effect = params.effect || {};
 	
 	e.speed = params.speed || 1;
@@ -296,6 +297,7 @@ Entity.prototype.createHitbox = function(width,height,xOffset,yOffset){
 	xOffset = xOffset || 0;
 	yOffset = yOffset || 0;
 	this.hitbox = Entity.createHitbox(width,height,xOffset,yOffset);
+	this.hitbox.setPosition([this.x,this.y]);
 }
 /*	createEffectRadius
 		It's like createHitbox, but for a radius.
@@ -414,7 +416,7 @@ var EntityManager = function(){
 	
 	this.add = function(e){
 		entities[e.name] = e;
-		if (e.hitbox && !e.permeable) world.addRigidBody(e.hitbox);
+		//if (e.hitbox && !e.permeable) world.addRigidBody(e.hitbox);
 	}
 	
 	this.get = function(name){
@@ -446,8 +448,10 @@ var EntityManager = function(){
 	*/
 	this.updateAll = function(){
 		for (var i in entities){
-			if(entities[i].permeable) world.removeRigidBody(entities[i].hitbox);
-			else world.addRigidBody(entities[i].hitbox);
+			if(entities[i].hitbox) {
+				if(entities[i].permeable) world.removeRigidBody(entities[i].hitbox);
+				else world.addRigidBody(entities[i].hitbox);
+			}
 			entities[i].update();
 		}
 	}
@@ -527,13 +531,15 @@ var EntityManager = function(){
 				entities[i].approachCurrentWaypoint();
 			}
 			//	Allow the physics simulation to move moving entities, and to hold static ones in place
-			if (entities[i].movement){
-				entities[i].hitbox.setLinearDrag(0);
-				entities[i].hitbox.setMass(1);
-			}
-			else {
-				entities[i].hitbox.setLinearDrag(1);
-				entities[i].hitbox.setMass(9999);
+			if (entities[i].hitbox) {
+				if (entities[i].movement){
+					entities[i].hitbox.setLinearDrag(0);
+					entities[i].hitbox.setMass(1);
+				}
+				else {
+					entities[i].hitbox.setLinearDrag(1);
+					entities[i].hitbox.setMass(9999);
+				}
 			}
 		}
 	}

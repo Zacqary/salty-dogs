@@ -9,6 +9,8 @@ var CameraTest = {
 			CameraTest.camera.lookAt([0,0,0], Graphics.WORLD_UP, [0,70,240]);
 			GameState.setCamera(CameraTest.camera2D);
 			
+			CameraTest.keyboardMovement = 0;
+			
 			Graphics.textureManager.load("textures/circle.png");
 			
 			Graphics.textureManager.load("textures/body.png");
@@ -143,28 +145,49 @@ var CameraTest = {
 			
 			Graphics.updateCameraMatrices(CameraTest.camera);
 			
-			var curPos = CameraTest.camera2D.mouseToWorld();
-			var avOffsetPos = CameraTest.avatar.getPosition();
+			if(!CameraTest.keyboardMovement) {
+				var curPos = CameraTest.camera2D.mouseToWorld();
+				var avOffsetPos = CameraTest.avatar.getPosition();
 
-			if ( Math.abs(curPos[0] - avOffsetPos[0]) > CameraTest.cursor.range) {
-				if (curPos[0] < avOffsetPos[0]) curPos[0] = avOffsetPos[0] - CameraTest.cursor.range;
-				else curPos[0] = avOffsetPos[0] + CameraTest.cursor.range;	
+				if ( Math.abs(curPos[0] - avOffsetPos[0]) > CameraTest.cursor.range) {
+					if (curPos[0] < avOffsetPos[0]) curPos[0] = avOffsetPos[0] - CameraTest.cursor.range;
+					else curPos[0] = avOffsetPos[0] + CameraTest.cursor.range;	
+				}
+			
+				if ( Math.abs(curPos[1] - avOffsetPos[1]) > CameraTest.cursor.range ) {
+					if (curPos[1] < avOffsetPos[1]) curPos[1] = avOffsetPos[1] - CameraTest.cursor.range;
+					else curPos[1] = avOffsetPos[1] + CameraTest.cursor.range;	
+				}
+				//if (curPos[1] < CameraTest.cursor.upperBound) curPos[1] = CameraTest.cursor.upperBound;
+				//else if (curPos[1] > CameraTest.cursor.lowerBound) curPos[1] = CameraTest.cursor.lowerBound;
+			
+				CameraTest.cursor.setPosition(curPos[0],curPos[1]);
+			}
+			else {
+				var curPos = CameraTest.avatar.getPosition();
+				var xP = CameraTest.avatar.x;
+				var yP = CameraTest.avatar.y;
+				var range = CameraTest.cursor.range;
+				if (Input.keyDown[Input.keyCodes.W]){
+					yP -= range;
+				}
+				if (Input.keyDown[Input.keyCodes.A]){
+					xP -= range;
+				}
+				if (Input.keyDown[Input.keyCodes.S]){
+					yP += range;
+				}
+				if (Input.keyDown[Input.keyCodes.D]){
+					xP += range;
+				}
+				//console.log(curPos);
+				
+				CameraTest.cursor.setPosition(xP,yP);
 			}
 			
-			if ( Math.abs(curPos[1] - avOffsetPos[1]) > CameraTest.cursor.range ) {
-				if (curPos[1] < avOffsetPos[1]) curPos[1] = avOffsetPos[1] - CameraTest.cursor.range;
-				else curPos[1] = avOffsetPos[1] + CameraTest.cursor.range;	
-			}
-			//if (curPos[1] < CameraTest.cursor.upperBound) curPos[1] = CameraTest.cursor.upperBound;
-			//else if (curPos[1] > CameraTest.cursor.lowerBound) curPos[1] = CameraTest.cursor.lowerBound;
-			
-			CameraTest.cursor.setPosition(curPos[0],curPos[1]);
-			
-			if (Input.mouseDown.left) {
+			if (CameraTest.movePlayer || CameraTest.keyboardMovement) {
 				CameraTest.avatar.approach(CameraTest.cursor.x, CameraTest.cursor.y, CameraTest.cursor.range);
-				
-				
-				
+					
 				if ( Math.abs(CameraTest.avatar.x - CameraTest.camera2D.x) > 128) {
 					if (CameraTest.camera2D.x > CameraTest.avatar.x) {
 						//CameraTest.camera.matrix[9] -= CameraTest.avatar.movement.x/3;
@@ -193,42 +216,7 @@ var CameraTest = {
 				}
 				
 			}
-			if (Input.mouseDown.right) {
-				if (!CameraTest.struck) {
-					CameraTest.struck = true;
-					
-					var imIn = CameraTest.em.radiusSweepTest(CameraTest.avatar);
-					for (var i in imIn){
-						if (imIn[i].charType != CHAR_HOSTILE)
-							imIn.splice(i,1);
-					}
-					
-					if (imIn.length > 0) {
-						var distances = [];
-						for (var i in imIn){
-							var me = imIn[i];
-							distances.push({distance: Math.distanceXY([me.x,me.y],[CameraTest.cursor.x,CameraTest.cursor.y]), name: me.name} );
-						}
-					
-						distances.sort(function(a, b){
-							return a.distance - b.distance;
-						});
-						while (1){
-							var other = CameraTest.em.get(distances[0].name);
-							if(CameraTest.em.rayCastTest(CameraTest.avatar, other)) {
-								CameraTest.avatar.strikeCharacter(other);
-								break;
-							}
-							else {
-								distances.splice(0,1);
-								if (!distances.length) break;
-							}
-						}
-			
-					}	
-				}
-			}
-			else CameraTest.struck = false;
+		
 			
 			CameraTest.em.allToCurrentWaypoint();
 			CameraTest.em.runPhysics();
@@ -237,12 +225,104 @@ var CameraTest = {
 			
 		},
 		
+		attack: function(){
+			var imIn = CameraTest.em.radiusSweepTest(CameraTest.avatar);
+			for (var i in imIn){
+				if (imIn[i].charType != CHAR_HOSTILE)
+					imIn.splice(i,1);
+			}
+			
+			if (imIn.length > 0) {
+				var distances = [];
+				for (var i in imIn){
+					var me = imIn[i];
+					distances.push({distance: Math.distanceXY([me.x,me.y],[CameraTest.cursor.x,CameraTest.cursor.y]), name: me.name} );
+				}
+			
+				distances.sort(function(a, b){
+					return a.distance - b.distance;
+				});
+				while (1){
+					var other = CameraTest.em.get(distances[0].name);
+					if(CameraTest.em.rayCastTest(CameraTest.avatar, other)) {
+						CameraTest.avatar.strikeCharacter(other);
+						break;
+					}
+					else {
+						distances.splice(0,1);
+						if (!distances.length) break;
+					}
+				}
+			}
+		},
+		
+		onMouseDown: function(mouseCode, x, y){
+			if (mouseCode === Input.MOUSE_0)
+		    {
+		        CameraTest.movePlayer = true;
+		    }
+			else if (mouseCode === Input.MOUSE_1)
+		    {
+		        this.attack();
+		    }
+		},
+		
+		onMouseUp: function(mouseCode, x, y){
+			if (mouseCode === Input.MOUSE_0)
+		    {
+		        CameraTest.movePlayer = false;
+		    }
+			else if (mouseCode === Input.MOUSE_1)
+		    {
+		        
+		    }
+		},
+		
+		onKeyDown: function(keyCode){
+			if (keyCode === Input.keyCodes.W) {
+				CameraTest.keyboardMovement += 1;
+			}
+			if (keyCode === Input.keyCodes.A) {
+				CameraTest.keyboardMovement += 2;
+			}
+			if (keyCode === Input.keyCodes.S) {
+				CameraTest.keyboardMovement += 4;
+			}
+			if (keyCode === Input.keyCodes.D) {
+				CameraTest.keyboardMovement += 8;
+			}
+			if (keyCode === Input.keyCodes.K) {
+				this.attack();
+			}
+		},
+		
+		onKeyUp: function(keyCode){
+			if (keyCode === Input.keyCodes.W) {
+				CameraTest.keyboardMovement -= 1;
+			}
+			if (keyCode === Input.keyCodes.A) {
+				CameraTest.keyboardMovement -= 2;
+			}
+			if (keyCode === Input.keyCodes.S) {
+				CameraTest.keyboardMovement -= 4;
+			}
+			if (keyCode === Input.keyCodes.D) {
+				CameraTest.keyboardMovement -= 8;
+			}
+		},
+		
 		draw: function(){
 
 			Graphics.device.clear([1,1,1,1]);
 			//CameraTest.floor.render(Graphics.device, CameraTest.camera);
 			
-			if (Input.mouseDown.left) {
+			if (CameraTest.keyboardMovement) {
+				CameraTest.cursor.visible = false;
+			}
+			else {
+				CameraTest.cursor.visible = true;
+			}
+		 	if (Input.mouseDown.left) {
 				if (CameraTest.cursorOnNPC) CameraTest.cursor.sprite.setColor([1,0,0,1]);
 				else CameraTest.cursor.sprite.setColor([0,0,1,1]);
 			}

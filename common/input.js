@@ -26,12 +26,20 @@ var Input = {
 		left: false,
 		right: false
 	},
+	keyDown: {
+		
+	},
 	
 	initializeEngineReferences: function initializeEngineReferences(){
 		Input.device = TurbulenzEngine.createInputDevice( { } );
+		Input.keyCodes = Input.device.keyCodes;
+		Input.MOUSE_0 =Input.device.mouseCodes.BUTTON_0;
+		Input.MOUSE_1 = Input.device.mouseCodes.BUTTON_1;
 		Input.device.addEventListener('mouseover', Input.onMouseOver);
 		Input.device.addEventListener('mouseup', Input.onMouseUp);
 		Input.device.addEventListener('mousedown', Input.onMouseDown);
+		Input.device.addEventListener('keydown', Input.onKeyDown);
+		Input.device.addEventListener('keyup', Input.onKeyUp);
 	},
 	
 	clearEngineReferences: function clearEngineReferences(){
@@ -69,6 +77,7 @@ var Input = {
 	    {
 	        Input.mouseDown.right = true;
 	    }
+		GameState.onMouseDown(mouseCode, x, y);
 	},
 	
 	onMouseUp: function onMouseUp(mouseCode, x, y)
@@ -89,5 +98,19 @@ var Input = {
 	    {
 	        Input.mouseDown.right = false;
 	    }
+		GameState.onMouseUp(mouseCode, x, y);
 	},
+	
+	onKeyDown: function onKeyDown(keyCode)
+	{
+	    Input.keyDown[keyCode] = true;
+		GameState.onKeyDown(keyCode);
+	},
+	
+	onKeyUp: function onKeyUp(keyCode)
+	{
+	    Input.keyDown[keyCode] = false;
+		GameState.onKeyUp(keyCode);
+	},
+	
 }

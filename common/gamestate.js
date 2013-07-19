@@ -8,7 +8,7 @@
 	
 */
 /*	GameState Interface
-		Manages the active Loop object and Camera2D
+		Manages the active Loop object and Camera2D, and keeps track of time
 */
 var GameState = new function() {
 	
@@ -31,6 +31,25 @@ var GameState = new function() {
 	this.draw = function(){
 		if (currentLoop.loaded) currentLoop.draw();
 		else currentLoop.loadingScreen();
+	}
+	
+	//	Input
+	//	=====
+	this.onMouseDown = function(mouseCode, x, y){
+		if(currentLoop.onMouseDown)
+			currentLoop.onMouseDown(mouseCode, x, y);
+	}
+	this.onMouseUp = function(mouseCode, x, y){
+		if(currentLoop.onMouseUp)
+			currentLoop.onMouseUp(mouseCode, x, y);
+	}
+	this.onKeyDown = function(keyCode){
+		if(currentLoop.onKeyDown)
+			currentLoop.onKeyDown(keyCode);
+	}
+	this.onKeyUp = function(keyCode){
+		if(currentLoop.onKeyUp)
+			currentLoop.onKeyUp(keyCode);
 	}
 	
 	//	Timing

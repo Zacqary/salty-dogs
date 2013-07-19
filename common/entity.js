@@ -98,6 +98,11 @@ Entity.prototype.update = function(){
 	
 //	setPosition and getPosition
 Entity.prototype.setPosition = function(x,y,z){
+	if (x.length) {
+		y = x[1];
+		z = x[2];
+		x = x[0];
+	}
 	this.x = x;
 	this.y = y;
 	this.z = z || this.z;
@@ -264,7 +269,7 @@ Entity.prototype.setSpriteOffset = function(x,y) {
 		Draws this Entity's EntitySprite
 */
 Entity.prototype.draw = function draw(){
-	this.sprite.draw();
+	if (this.visible) this.sprite.draw();
 }
 
 /* 	drawPhysDebug
@@ -355,12 +360,14 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 	var tick = 60/(distance/speed);
 	
 	//	Push the Entity towards the destination
-	this.hitbox.setVelocityFromPosition([targetX,targetY],0,1/tick);
-	
-	//	Mark the Entity as moving, and at what speed. This gets reset at the end of the frame.
-	this.movement = {
-		x: xSpeed,
-		y: ySpeed,
+	var pos = this.hitbox.getPosition();
+	if ( (targetX != pos[0]) || (targetY != pos[1]) ){
+		this.hitbox.setVelocityFromPosition([targetX,targetY],0,1/tick);
+		//	Mark the Entity as moving, and at what speed. This gets reset at the end of the frame.
+		this.movement = {
+			x: xSpeed,
+			y: ySpeed,
+		}
 	}
 }
 

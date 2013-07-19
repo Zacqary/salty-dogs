@@ -28,6 +28,7 @@ var Character = function (params){
 	c.focus = 30;
 	c.stamina = new Spectrum(2.5);
 	c.staminaRegenRate = 1/30;
+	c.staminaDamageTimer = new Spectrum(1);
 	
 	c.paperDoll = {
 		body: {
@@ -82,9 +83,7 @@ var Character = function (params){
 	}
 	
 	c.updateExtension = function(){
-		if (this.stamina.get() < this.stamina.getMax() ){
-				this.regenerateStamina();
-		}
+		this.regenerateStamina();
 	}
 	
 	//	paperDoll manipulation functions
@@ -200,17 +199,41 @@ var Character = function (params){
 
 	//	regenerateStamina
 	c.regenerateStamina = function(){
-		this.stamina.plus(this.staminaRegenRate);
+		if (this.stamina.get() < this.stamina.getMax()) {
+			this.stamina.plus(this.staminaRegenRate);
+		}
+		if (this.staminaDamageTimer.get()) {
+			this.staminaDamageTimer.plus(-1/10);
+		}
 	}
 
 	//	Character actions
 	//	=================
 
+	/*	swingAtCharacter
+			Try to attack another character, fail if there's not enough stamina
+	*/
+	c.swingAtCharacter = function(other){
+		//	Deplete this character's stamina
+		this.stamina.plus(-1);
+		
+		//	If there's still enough stamina for a proper attack...
+		if (this.stamina.get() > 0) {
+			this.strikeCharacter(other);
+		}
+		
+		//	If not, damage the stamina and fail the attack
+		else {
+			this.staminaDamageTimer.set(1);
+		}
+	}
+	
 	/*	strikeCharacter
 			Attack another Character, pushing them away from this Character
 	*/
 	c.strikeCharacter = function(other){
-		//	Get the angle between this character's hitbox and the other character's hitbox
+		
+		//Get the angle between this character's hitbox and the other character's hitbox
 		var theta = Math.angleXY(this.hitbox.getPosition(), other.hitbox.getPosition());
 
 		var hitboxWidth = 48;

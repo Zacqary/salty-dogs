@@ -41,7 +41,6 @@ var CameraTest = {
 				y: 700,
 				color: [0,0,1,1]
 			});
-			CameraTest.staminaDamageTimer = 0;
 			
 			CameraTest.em = EntityManager.create();
 			
@@ -234,49 +233,37 @@ var CameraTest = {
 			CameraTest.em.runPhysics();
 			CameraTest.em.updateAll();
 			
-			if (CameraTest.staminaDamageTimer){
-				CameraTest.staminaDamageTimer -= 1/10;
-				if (CameraTest.staminaDamageTimer < 0)
-					CameraTest.staminaDamageTimer = 0;
-			}
-			
 			
 		},
 		
 		attack: function(){
-			CameraTest.avatar.stamina.plus(-1);
-			if(CameraTest.avatar.stamina.get() > 0) {
-				var imIn = CameraTest.em.radiusSweepTest(CameraTest.avatar);
-				for (var i in imIn){
-					if (imIn[i].charType != CHAR_HOSTILE)
-						imIn.splice(i,1);
-				}
-			
-				if (imIn.length > 0) {
-					var distances = [];
-					for (var i in imIn){
-						var me = imIn[i];
-						distances.push({distance: Math.distanceXY([me.x,me.y],[CameraTest.cursor.x,CameraTest.cursor.y]), name: me.name} );
-					}
-			
-					distances.sort(function(a, b){
-						return a.distance - b.distance;
-					});
-					while (1){
-						var other = CameraTest.em.get(distances[0].name);
-						if(CameraTest.em.rayCastTest(CameraTest.avatar, other)) {
-							CameraTest.avatar.strikeCharacter(other);
-							break;
-						}
-						else {
-							distances.splice(0,1);
-							if (!distances.length) break;
-						}
-					}
-				}
+			var imIn = CameraTest.em.radiusSweepTest(CameraTest.avatar);
+			for (var i in imIn){
+				if (imIn[i].charType != CHAR_HOSTILE)
+					imIn.splice(i,1);
 			}
-			else {
-				CameraTest.staminaDamageTimer = 1;
+		
+			if (imIn.length > 0) {
+				var distances = [];
+				for (var i in imIn){
+					var me = imIn[i];
+					distances.push({distance: Math.distanceXY([me.x,me.y],[CameraTest.cursor.x,CameraTest.cursor.y]), name: me.name} );
+				}
+		
+				distances.sort(function(a, b){
+					return a.distance - b.distance;
+				});
+				while (1){
+					var other = CameraTest.em.get(distances[0].name);
+					if(CameraTest.em.rayCastTest(CameraTest.avatar, other)) {
+						CameraTest.avatar.swingAtCharacter(other);
+						break;
+					}
+					else {
+						distances.splice(0,1);
+						if (!distances.length) break;
+					}
+				}
 			}
 		},
 		
@@ -365,7 +352,7 @@ var CameraTest = {
 			}
 			else CameraTest.staminaFill.setColor([0,0,1,1]);
 			
-			CameraTest.staminaBar.setColor([1-CameraTest.staminaDamageTimer,0,0,1]);
+			CameraTest.staminaBar.setColor([1-CameraTest.avatar.staminaDamageTimer.get(),0,0,1]);
 			
 			CameraTest.staminaBar.x = CameraTest.avatar.sprite.x;
 			CameraTest.staminaBar.y = CameraTest.avatar.sprite.y + 36;

@@ -17,6 +17,8 @@ var CHAR_HOSTILE = "CHAR_HOSTILE";
 var CHAR_NEUTRAL = "CHAR_NEUTRAL";
 var CHAR_FRIENDLY = "CHAR_FRIENDLY";
 
+var MAX_STAM = 2.5;
+
 var Character = function(params){
 	
 	var c = Entity.create(params);
@@ -25,6 +27,9 @@ var Character = function(params){
 	c.createSprite({width: 48, height: 64}, 0, -18);
 	c.speed = 8;
 	c.createHitbox(48,28);
+	c.focus = 30;
+	c.stamina = MAX_STAM;
+	
 	c.paperDoll = {
 		body: {
 			type: "body",

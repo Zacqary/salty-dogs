@@ -25,6 +25,24 @@ var CameraTest = {
 			Graphics.textureManager.load("textures/patch.png");
 			Graphics.textureManager.load("textures/patchleft.png");
 			
+			CameraTest.staminaBar = Draw2DSprite.create({
+				texture: null,
+				width: 48,
+				height: 4,
+				x: 1142,
+				y: 700,
+				color: [1,0,0,1]
+			});
+			CameraTest.staminaFill = Draw2DSprite.create({
+				texture: null,
+				width: 48,
+				height: 4,
+				x: 1142,
+				y: 700,
+				color: [0,0,1,1]
+			});
+			CameraTest.staminaDamageTimer = 0;
+			
 			CameraTest.em = EntityManager.create();
 			
 			CameraTest.wall1 = CameraTest.em.createEntity({});
@@ -216,43 +234,58 @@ var CameraTest = {
 				}
 				
 			}
-		
 			
 			CameraTest.em.allToCurrentWaypoint();
 			CameraTest.em.runPhysics();
 			CameraTest.em.updateAll();
 			
+			if (CameraTest.avatar.stamina < MAX_STAM){
+				CameraTest.avatar.stamina += 1/30;
+			}
+			if (CameraTest.staminaDamageTimer){
+				CameraTest.staminaDamageTimer -= 1/10;
+				if (CameraTest.staminaDamageTimer < 0)
+					CameraTest.staminaDamageTimer = 0;
+			}
+			
 			
 		},
 		
 		attack: function(){
-			var imIn = CameraTest.em.radiusSweepTest(CameraTest.avatar);
-			for (var i in imIn){
-				if (imIn[i].charType != CHAR_HOSTILE)
-					imIn.splice(i,1);
-			}
-			
-			if (imIn.length > 0) {
-				var distances = [];
+			CameraTest.avatar.stamina --;
+			if(CameraTest.avatar.stamina > 0) {
+				var imIn = CameraTest.em.radiusSweepTest(CameraTest.avatar);
 				for (var i in imIn){
-					var me = imIn[i];
-					distances.push({distance: Math.distanceXY([me.x,me.y],[CameraTest.cursor.x,CameraTest.cursor.y]), name: me.name} );
+					if (imIn[i].charType != CHAR_HOSTILE)
+						imIn.splice(i,1);
 				}
 			
-				distances.sort(function(a, b){
-					return a.distance - b.distance;
-				});
-				while (1){
-					var other = CameraTest.em.get(distances[0].name);
-					if(CameraTest.em.rayCastTest(CameraTest.avatar, other)) {
-						CameraTest.avatar.strikeCharacter(other);
-						break;
+				if (imIn.length > 0) {
+					var distances = [];
+					for (var i in imIn){
+						var me = imIn[i];
+						distances.push({distance: Math.distanceXY([me.x,me.y],[CameraTest.cursor.x,CameraTest.cursor.y]), name: me.name} );
 					}
-					else {
-						distances.splice(0,1);
-						if (!distances.length) break;
+			
+					distances.sort(function(a, b){
+						return a.distance - b.distance;
+					});
+					while (1){
+						var other = CameraTest.em.get(distances[0].name);
+						if(CameraTest.em.rayCastTest(CameraTest.avatar, other)) {
+							CameraTest.avatar.strikeCharacter(other);
+							break;
+						}
+						else {
+							distances.splice(0,1);
+							if (!distances.length) break;
+						}
 					}
 				}
+			}
+			else {
+				CameraTest.avatar.stamina = 0;
+				CameraTest.staminaDamageTimer = 1;
 			}
 		},
 		
@@ -333,6 +366,25 @@ var CameraTest = {
 			CameraTest.cursor.sprite.setTexture(Graphics.textureManager.get("textures/circle.png"));
 			CameraTest.cursor.zIndex = CameraTest.avatar.zIndex - 1;
 			CameraTest.em.drawAll(true);
+			
+			var fill = (CameraTest.avatar.stamina / MAX_STAM) * 48;
+			CameraTest.staminaFill.setWidth(fill);
+			if (CameraTest.avatar.stamina < 1) {
+				CameraTest.staminaFill.setColor([0,0,1,0.3]);
+			}
+			else CameraTest.staminaFill.setColor([0,0,1,1]);
+			
+			CameraTest.staminaBar.setColor([1-CameraTest.staminaDamageTimer,0,0,1]);
+			
+			CameraTest.staminaBar.x = CameraTest.avatar.sprite.x;
+			CameraTest.staminaBar.y = CameraTest.avatar.sprite.y + 36;
+			CameraTest.staminaFill.x = CameraTest.staminaBar.x;
+			CameraTest.staminaFill.y = CameraTest.staminaBar.y;
+			
+			Graphics.draw2D.begin("alpha");
+			Graphics.draw2D.drawSprite(CameraTest.staminaBar);
+			Graphics.draw2D.drawSprite(CameraTest.staminaFill);
+			Graphics.draw2D.end();
 		},
 		
 	},

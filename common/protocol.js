@@ -78,3 +78,51 @@ var objSize = function objSize(obj) {
     }
     return size;
 };
+
+var Spectrum = function Spectrum(current, a, b){
+	var min;
+	var max;
+	var current = current;
+	
+	if (typeof b === "undefined"){
+		if (typeof a === "undefined") {
+			min = 0;
+			max = current;
+		}
+		else {
+			min = 0;
+			max = a;
+		}
+	}
+	else {
+		min = a;
+		max = b;
+	}
+	
+	this.getMax = function(){
+		return max;
+	}
+	this.getMin = function(){
+		return min;
+	}
+	this.setMax = function(v){
+		max = v;
+	}
+	this.setMin = function(v){
+		min = v;
+	}
+	
+	this.get = function(){
+		return current;
+	}
+	var set = this.set = function(v){
+		if ( (v <= max) && (v >= min) ) current = v;
+		else if (v > max) current = max;
+		else if (v < min) current = min;
+	}
+	this.plus = function(v){
+		set(current + v);
+	}
+	
+
+}

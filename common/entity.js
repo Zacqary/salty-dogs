@@ -91,6 +91,8 @@ Entity.prototype.update = function(){
 	this.movement = null; 
 	this.hitbox.setRotation(0);
 	this.updatePosition();
+	
+	if (this.updateExtension) this.updateExtension();
 }
 
 //	Position
@@ -360,8 +362,7 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 	var tick = 60/(distance/speed);
 	
 	//	Push the Entity towards the destination
-	var pos = this.hitbox.getPosition();
-	if ( (targetX != pos[0]) || (targetY != pos[1]) ){
+	if ( (targetX != this.x) || (targetY != this.y) ){
 		this.hitbox.setVelocityFromPosition([targetX,targetY],0,1/tick);
 		//	Mark the Entity as moving, and at what speed. This gets reset at the end of the frame.
 		this.movement = {

@@ -195,6 +195,22 @@ Graphics.EntitySprite = function(params, parent, xOffset, yOffset){
 	es.xOffset = xOffset || 0;
 	es.yOffset = yOffset || 0;
 	es.parent = parent;
+	
+	//	============================================================
+	
+	/*	update
+			Update this EntitySprite's position by getting the Entity's position,
+			then determining where that corresponds to in the Camera2D's view.
+	*/
+	es.update = function(){
+		this.x = this.parent.x + this.xOffset;
+		this.y = this.parent.y + this.yOffset;
+	}
+	//	draw - Draws the EntitySprite
+	es.draw = function(){
+		Graphics.draw2D.drawSprite(this);
+	}
+	
 	return es;
 }
 Graphics.EntitySprite.prototype = Draw2DSprite.prototype;
@@ -203,18 +219,6 @@ Graphics.EntitySprite.create = function(params, parent, xOffset, yOffset){
 	return new Graphics.EntitySprite(params, parent, xOffset, yOffset);
 }
 
-/*	update
-		Update this EntitySprite's position by getting the Entity's position,
-		then determining where that corresponds to in the Camera2D's view.
-*/
-Graphics.EntitySprite.prototype.update = function(){
-	this.x = this.parent.x + this.xOffset;
-	this.y = this.parent.y + this.yOffset;
-}
-//	draw - Draws the EntitySprite
-Graphics.EntitySprite.prototype.draw = function(){
-	Graphics.draw2D.drawSprite(this);
-}
 //	drawEntityPhysics - Draw an Entity's physics object
 Graphics.drawEntityPhysics = function(body){
 	Graphics.debugDraw.drawRigidBody(body);

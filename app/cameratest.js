@@ -176,31 +176,26 @@ var CameraTest = {
 					if (curPos[1] < avOffsetPos[1]) curPos[1] = avOffsetPos[1] - CameraTest.cursor.range;
 					else curPos[1] = avOffsetPos[1] + CameraTest.cursor.range;	
 				}
-				//if (curPos[1] < CameraTest.cursor.upperBound) curPos[1] = CameraTest.cursor.upperBound;
-				//else if (curPos[1] > CameraTest.cursor.lowerBound) curPos[1] = CameraTest.cursor.lowerBound;
 			
 				CameraTest.cursor.setPosition(curPos[0],curPos[1]);
 			}
 			else {
 				var curPos = CameraTest.avatar.getPosition();
-				var xP = CameraTest.avatar.x;
-				var yP = CameraTest.avatar.y;
 				var range = CameraTest.cursor.range;
 				if (Input.keyDown[Input.keyCodes.W]){
-					yP -= range;
+					curPos[1] -= range;
 				}
 				if (Input.keyDown[Input.keyCodes.A]){
-					xP -= range;
-				}
-				if (Input.keyDown[Input.keyCodes.S]){
-					yP += range;
+					curPos[0] -= range;
 				}
 				if (Input.keyDown[Input.keyCodes.D]){
-					xP += range;
+					curPos[0] += range;
 				}
-				//console.log(curPos);
+				if (Input.keyDown[Input.keyCodes.S]){
+					curPos[1] += range;
+				}
 				
-				CameraTest.cursor.setPosition(xP,yP);
+				CameraTest.cursor.setPosition(curPos[0],curPos[1]);
 			}
 			
 			if (CameraTest.movePlayer || CameraTest.keyboardMovement) {
@@ -239,9 +234,6 @@ var CameraTest = {
 			CameraTest.em.runPhysics();
 			CameraTest.em.updateAll();
 			
-			if (CameraTest.avatar.stamina < MAX_STAM){
-				CameraTest.avatar.stamina += 1/30;
-			}
 			if (CameraTest.staminaDamageTimer){
 				CameraTest.staminaDamageTimer -= 1/10;
 				if (CameraTest.staminaDamageTimer < 0)
@@ -252,8 +244,8 @@ var CameraTest = {
 		},
 		
 		attack: function(){
-			CameraTest.avatar.stamina --;
-			if(CameraTest.avatar.stamina > 0) {
+			CameraTest.avatar.stamina.plus(-1);
+			if(CameraTest.avatar.stamina.get() > 0) {
 				var imIn = CameraTest.em.radiusSweepTest(CameraTest.avatar);
 				for (var i in imIn){
 					if (imIn[i].charType != CHAR_HOSTILE)
@@ -284,7 +276,6 @@ var CameraTest = {
 				}
 			}
 			else {
-				CameraTest.avatar.stamina = 0;
 				CameraTest.staminaDamageTimer = 1;
 			}
 		},
@@ -367,9 +358,9 @@ var CameraTest = {
 			CameraTest.cursor.zIndex = CameraTest.avatar.zIndex - 1;
 			CameraTest.em.drawAll(true);
 			
-			var fill = (CameraTest.avatar.stamina / MAX_STAM) * 48;
+			var fill = (CameraTest.avatar.stamina.get() / CameraTest.avatar.stamina.getMax()) * 48;
 			CameraTest.staminaFill.setWidth(fill);
-			if (CameraTest.avatar.stamina < 1) {
+			if (CameraTest.avatar.stamina.get() < 1) {
 				CameraTest.staminaFill.setColor([0,0,1,0.3]);
 			}
 			else CameraTest.staminaFill.setColor([0,0,1,1]);

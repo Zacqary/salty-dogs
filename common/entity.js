@@ -423,7 +423,6 @@ var EntityManager = function(){
 	
 	this.add = function(e){
 		entities[e.name] = e;
-		//if (e.hitbox && !e.permeable) world.addRigidBody(e.hitbox);
 	}
 	
 	this.get = function(name){
@@ -456,8 +455,14 @@ var EntityManager = function(){
 	this.updateAll = function(){
 		for (var i in entities){
 			if(entities[i].hitbox) {
-				if(entities[i].permeable) world.removeRigidBody(entities[i].hitbox);
-				else world.addRigidBody(entities[i].hitbox);
+				if(entities[i].permeable) {
+					if (entities[i].hitbox.world == world) {
+						world.removeRigidBody(entities[i].hitbox);
+					}
+				}
+				else if (entities[i].hitbox.world != world) {
+					world.addRigidBody(entities[i].hitbox);
+				}
 			}
 			entities[i].update();
 		}

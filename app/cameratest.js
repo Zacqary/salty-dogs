@@ -235,9 +235,11 @@ var CameraTest = {
 					return a.distance - b.distance;
 				});
 				while (1){
+					var checkPushForward = false;
+					if (CameraTest.movePlayer || CameraTest.keyboardMovement) checkPushForward = true;
 					var other = CameraTest.em.get(distances[0].name);
 					if(CameraTest.em.rayCastTest(CameraTest.avatar, other)) {
-						CameraTest.avatar.swingAtCharacter(other);
+						CameraTest.avatar.swingAtCharacter(other, checkPushForward);
 						break;
 					}
 					else {

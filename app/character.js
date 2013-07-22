@@ -254,13 +254,13 @@ var Character = function (params){
 	/*	swingAtCharacter
 			Try to attack another character, fail if there's not enough stamina
 	*/
-	c.swingAtCharacter = function(other){
+	c.swingAtCharacter = function(other, checkPushForward){
 		//	Deplete this character's stamina
 		this.stamina.plus(-1);
 		
 		//	If there's still enough stamina for a proper attack...
 		if (this.stamina.get() > 0) {
-			this.strikeCharacter(other);
+			this.strikeCharacter(other, checkPushForward);
 		}
 		
 		//	If not, damage the stamina and fail the attack
@@ -272,7 +272,7 @@ var Character = function (params){
 	/*	strikeCharacter
 			Attack another Character, pushing them away from this Character
 	*/
-	c.strikeCharacter = function(other){
+	c.strikeCharacter = function(other, checkPushForward){
 		
 		//Get the angle between this character's hitbox and the other character's hitbox
 		var theta = Math.angleXY(this.hitbox.getPosition(), other.hitbox.getPosition());
@@ -299,7 +299,7 @@ var Character = function (params){
 
 		//	If this character is pushing forward, increase the push distance
 		var pushForward = false;
-		if ( (this.charType == CHAR_PLAYER) && (Input.mouseDown.left) ){
+		if (checkPushForward){
 			if (Physics.collisionUtils.intersects(this.cursor.hitbox.shapes[0],other.hitbox.shapes[0]) )
 				pushForward = true;
 		}

@@ -272,6 +272,7 @@ Entity.prototype.setSpriteOffset = function(x,y) {
 */
 Entity.prototype.draw = function draw(){
 	if (this.visible) this.sprite.draw();
+	if (this.drawExtension) this.drawExtension();
 }
 
 /* 	drawPhysDebug

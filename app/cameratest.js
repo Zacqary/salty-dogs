@@ -3,10 +3,7 @@ var CameraTest = {
 	loop: {
 		
 		initialize: function(){
-			CameraTest.camera = Camera.create(Math.device);
 			CameraTest.camera2D = Graphics.Camera2D.create();
-			CameraTest.floor = Floor.create(Graphics.device, Math.device);
-			CameraTest.camera.lookAt([0,0,0], Graphics.WORLD_UP, [0,70,240]);
 			GameState.setCamera(CameraTest.camera2D);
 			
 			CameraTest.keyboardMovement = 0;
@@ -24,23 +21,6 @@ var CameraTest = {
 			Graphics.textureManager.load("textures/clhilt.png");
 			Graphics.textureManager.load("textures/patch.png");
 			Graphics.textureManager.load("textures/patchleft.png");
-			
-			CameraTest.staminaBar = Draw2DSprite.create({
-				texture: null,
-				width: 48,
-				height: 4,
-				x: 1142,
-				y: 700,
-				color: [1,0,0,1]
-			});
-			CameraTest.staminaFill = Draw2DSprite.create({
-				texture: null,
-				width: 48,
-				height: 4,
-				x: 1142,
-				y: 700,
-				color: [0,0,1,1]
-			});
 			
 			CameraTest.em = EntityManager.create();
 			
@@ -63,6 +43,9 @@ var CameraTest = {
 			CameraTest.avatar.setPosition(0,170);
 			CameraTest.avatar.makePlayer();
 			CameraTest.em.add(CameraTest.avatar);
+			
+			CameraTest.avatar.createStaminaBar();
+			
 			
 			CameraTest.NPC = Character.create({});
 			CameraTest.NPC.setPosition(640,170);
@@ -159,8 +142,6 @@ var CameraTest = {
 			CameraTest.cursorOnNPC = false;
 			
 			CameraTest.em.applyAllEffects();
-			
-			Graphics.updateCameraMatrices(CameraTest.camera);
 			
 			if(!CameraTest.keyboardMovement) {
 				var curPos = CameraTest.camera2D.mouseToWorld();
@@ -325,7 +306,6 @@ var CameraTest = {
 		draw: function(){
 
 			Graphics.device.clear([1,1,1,1]);
-			//CameraTest.floor.render(Graphics.device, CameraTest.camera);
 			
 			if (CameraTest.keyboardMovement) {
 				CameraTest.cursor.visible = false;
@@ -344,25 +324,7 @@ var CameraTest = {
 			CameraTest.cursor.sprite.setTexture(Graphics.textureManager.get("textures/circle.png"));
 			CameraTest.cursor.zIndex = CameraTest.avatar.zIndex - 1;
 			CameraTest.em.drawAll(true);
-			
-			var fill = (CameraTest.avatar.stamina.get() / CameraTest.avatar.stamina.getMax()) * 48;
-			CameraTest.staminaFill.setWidth(fill);
-			if (CameraTest.avatar.stamina.get() < 1) {
-				CameraTest.staminaFill.setColor([0,0,1,0.3]);
-			}
-			else CameraTest.staminaFill.setColor([0,0,1,1]);
-			
-			CameraTest.staminaBar.setColor([1-CameraTest.avatar.staminaDamageTimer.get(),0,0,1]);
-			
-			CameraTest.staminaBar.x = CameraTest.avatar.sprite.x;
-			CameraTest.staminaBar.y = CameraTest.avatar.sprite.y + 36;
-			CameraTest.staminaFill.x = CameraTest.staminaBar.x;
-			CameraTest.staminaFill.y = CameraTest.staminaBar.y;
-			
-			Graphics.draw2D.begin("alpha");
-			Graphics.draw2D.drawSprite(CameraTest.staminaBar);
-			Graphics.draw2D.drawSprite(CameraTest.staminaFill);
-			Graphics.draw2D.end();
+
 		},
 		
 	},

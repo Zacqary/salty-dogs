@@ -30,6 +30,8 @@ var Character = function (params){
 	c.staminaRegenRate = 1/30;
 	c.staminaDamageTimer = new Spectrum(1);
 	
+	c.bars = { };
+	
 	c.paperDoll = {
 		body: {
 			type: "body",
@@ -84,6 +86,15 @@ var Character = function (params){
 	
 	c.updateExtension = function(){
 		this.regenerateStamina();
+		for (var i in this.bars){
+			this.bars[i].update();
+		}
+	}
+	
+	c.drawExtension = function(){
+		for (var i in this.bars){
+			if (this.bars[i].visible) this.bars[i].draw();
+		}
 	}
 	
 	//	paperDoll manipulation functions
@@ -192,6 +203,36 @@ var Character = function (params){
 	}
 	c.makeFriendly = function(){
 		this.charType = CHAR_FRIENDLY;
+	}
+
+	//	Character UI functions
+	//	======================
+	c.createStaminaBar = function(){
+		var sdt = this.staminaDamageTimer;
+		var sprite = this.sprite;
+		this.bars.staminaBar = Graphics.UI.Bar.create({
+			width: 48,
+			height: 4,
+			x: 0,
+			y: 0,
+			emptyColor: [1,0,0,1],
+			fullColor: [0,0,1,1],
+			spectrum: this.stamina,
+			effects: {
+				tooLow: function(bar, emptySprite, fullSprite, spectrum){
+					if (spectrum.get() < 1) {
+						fullSprite.setColor([0,0,1,0.3]);
+					}
+					else fullSprite.setColor([0,0,1,1]);
+				},
+				damageTimer: function(bar, emptySprite){
+					emptySprite.setColor([1-sdt.get(),0,0,1]);
+				},
+				reposition: function(bar){
+					bar.setPosition(sprite.x, sprite.y + 36)
+				}
+			},
+		});
 	}
 
 	//	Character passive functions

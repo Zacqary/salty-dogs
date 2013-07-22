@@ -7,6 +7,7 @@
 	- Graphics
 	- Graphics.Camera2D
 	- Graphics.EntitySprite
+	- Graphics.UI
 	
 */
 /*	Graphics Interface
@@ -223,3 +224,100 @@ Graphics.EntitySprite.create = function(params, parent, xOffset, yOffset){
 Graphics.drawEntityPhysics = function(body){
 	Graphics.debugDraw.drawRigidBody(body);
 }
+
+/*	===========================================================================
+	UI Interface
+		Code for rendering UI elements
+	===========================================================================
+*/
+Graphics.UI = { };
+
+/*	Bar class - extends Draw2DSprite
+		Displays a Spectrum in the form of a horizontal bar
+*/
+Graphics.UI.Bar = function Bar(params) {
+	var emptySprite = Draw2DSprite.create({
+		texture: null,
+		width: params.width,
+		height: params.height,
+		x: params.x,
+		y: params.y,
+		color: params.emptyColor
+	});
+	var fullSprite = Draw2DSprite.create({
+		texture: null,
+		width: params.width,
+		height: params.height,
+		x: params.x,
+		y: params.y,
+		color: params.fullColor
+	});
+	this.visible = params.visible;
+	if (typeof this.visible === "undefined") this.visible = true;
+	
+	
+	this.draw = function(){
+		Graphics.draw2D.drawSprite(emptySprite);
+		Graphics.draw2D.drawSprite(fullSprite);
+	}
+	
+	this.setWidth = function(width) {
+		emptySprite.setWidth(width);
+		fullSprite.setWidth(width);
+	}
+	this.getWidth = function(){
+		return emptySprite.getWidth();
+	}
+	this.setHeight = function(height) {
+		emptySprite.setHeight(height);
+		fullSprite.setHeight(height);
+	}
+	this.getHeight = function(){
+		return emptySprite.getHeight();
+	}
+	this.setPosition = function(x,y){
+		emptySprite.x = fullSprite.x = x;
+		emptySprite.y = fullSprite.y = y;
+	}
+	this.getPosition = function(){
+		return [emptySprite.x, emptySprite.y];
+	}
+	
+	this.setColor = function(type, color){
+		if (type == "empty") emptySprite.setColor(color);
+		else if (type == "full") fullSprite.setColor(color);
+	}
+	this.getColor = function(type){
+		if (type == "empty") emptySprite.getColor();
+		else if (type == "full") fullSprite.getColor();
+	}
+	
+	
+	this.spectrum = params.spectrum;
+	this.update = function(){
+		var fill = (this.spectrum.get() / this.spectrum.getMax()) * emptySprite.getWidth();
+		fullSprite.setWidth(fill);
+		for (var i in effects){
+			effects[i](this, emptySprite, fullSprite, this.spectrum);
+		}
+	}
+	
+	var effects = [];
+	this.addEffect = function (name, effect){
+		effects[name] = effect;
+	}
+	this.removeEffect = function(name){
+		delete effects[name];
+	}
+	
+};
+
+Graphics.UI.Bar.create = function(params){
+	var bar = new Graphics.UI.Bar(params);
+	for (var i in params.effects){
+		bar.addEffect(i, params.effects[i]);
+	}
+	return bar;
+};
+
+

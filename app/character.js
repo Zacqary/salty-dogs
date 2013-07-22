@@ -22,14 +22,15 @@ var Character = function (params){
 	var c = Entity.create(params);
 	c.entType = ENT_CHARACTER;
 	c.charType = CHAR_NEUTRAL;
+	c.alive = true;
 	c.createSprite({width: 48, height: 64}, 0, -18);
 	c.speed = 8;
 	c.createHitbox(48,28);
-	c.focus = 30;
+	c.focus = new Spectrum(30);
 	c.stamina = new Spectrum(2.5);
 	c.staminaRegenRate = 1/30;
 	c.staminaDamageTimer = new Spectrum(1);
-	
+
 	c.bars = { };
 	
 	c.paperDoll = {
@@ -72,20 +73,32 @@ var Character = function (params){
 			speed: this.speed,
 			speedMult: this.speedMult,
 			sprite: this.sprite,
-			stamina: this.stamina,
 			cloned: true,
 		});
 		c.createEffectRadius(this.effect.radius.shapes[0].getRadius());
 		var effect = {types: this.effect.types, doThis: this.effect.doThis};
 		c.createEffect(effect);
-
+		
 		c.setPaperDoll(this.paperDoll);
 		c.charType = this.charType;
+		
+		c.stamina = new Spectrum(this.stamina.getMax());
+		c.staminaRegenRate = this.staminaRegenRate;
+		c.focus = new Spectrum(this.focus.getMax());
+		
+		if(this.bars.staminaBar) c.createStaminaBar();
+		if(this.bars.focusBar) c.createFocusBar();
+		
 		return c;
 	}
 	
 	c.updateExtension = function(){
-		this.regenerateStamina();
+		if (this.alive) {
+			this.regenerateStamina();
+			if (this.focus.get() == 0){
+				this.kill();
+			}
+		}
 		for (var i in this.bars){
 			this.bars[i].update();
 		}
@@ -234,6 +247,24 @@ var Character = function (params){
 			},
 		});
 	}
+	
+	c.createFocusBar = function(){
+		var sprite = this.sprite;
+		this.bars.focusBar = Graphics.UI.Bar.create({
+			width: 48,
+			height: 4,
+			x: 0,
+			y: 0,
+			emptyColor: [0.6,0,0,1],
+			fullColor: [0,1,0,1],
+			spectrum: this.focus,
+			effects: {
+				reposition: function(bar){
+					bar.setPosition(sprite.x, sprite.y + 36)
+				}
+			},
+		});
+	}
 
 	//	Character passive functions
 	//	===========================
@@ -246,6 +277,19 @@ var Character = function (params){
 		if (this.staminaDamageTimer.get()) {
 			this.staminaDamageTimer.plus(-1/10);
 		}
+	}
+	
+	c.kill = function(){
+		this.alive = false;
+		this.effect = {};
+		delete this.radStore;
+		delete this.savedState.radStore;
+		this.sprite.rotation = Math.PI/2;
+		this.sprite.yOffset = 0;
+		this.permeable = true;
+		this.zIndex--;
+		this.bars.focusBar.visible = false;
+		this.createHitbox(0,0);
 	}
 
 	//	Character actions
@@ -322,6 +366,9 @@ var Character = function (params){
 		//	Apply the waypoints 
 		other.overwriteWaypoint(0, oWaypoint[0],oWaypoint[1], slowRange, speed, 0.3);
 		this.overwriteWaypoint(0, myWaypoint[0],myWaypoint[1], slowRange, speed, 0.3);
+		
+		//	Deal focus damage
+		other.focus.plus(-5);
 	}
 	
 	return c;

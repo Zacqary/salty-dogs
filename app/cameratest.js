@@ -62,6 +62,7 @@ var CameraTest = {
 				}
 				
 			});
+			CameraTest.NPC.createFocusBar();
 			CameraTest.em.add(CameraTest.NPC);
 			
 			CameraTest.cursor = CameraTest.em.createEntity({permeable: true});

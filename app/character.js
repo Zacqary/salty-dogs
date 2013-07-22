@@ -290,6 +290,7 @@ var Character = function (params){
 		this.zIndex--;
 		this.bars.focusBar.visible = false;
 		this.createHitbox(0,0);
+		this.charType = CHAR_NEUTRAL;
 	}
 
 	//	Character actions

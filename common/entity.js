@@ -363,14 +363,10 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 	var tick = 60/(distance/speed);
 	
 	//	Push the Entity towards the destination
-	if ( (targetX != this.x) || (targetY != this.y) ){
-		this.hitbox.setVelocityFromPosition([targetX,targetY],0,1/tick);
-		//	Mark the Entity as moving, and at what speed. This gets reset at the end of the frame.
-		this.movement = {
-			x: xSpeed,
-			y: ySpeed,
-		}
-	}
+	this.hitbox.setVelocityFromPosition([targetX,targetY],0,1/tick);
+	//	Mark the Entity as moving. This gets reset at the end of the frame.
+	this.movement = true;
+
 }
 
 /*	addWaypoint, overwriteWaypoint, and nextWaypoint

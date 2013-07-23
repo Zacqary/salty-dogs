@@ -7,6 +7,7 @@ var CameraTest = {
 			GameState.setCamera(CameraTest.camera2D);
 			
 			CameraTest.keyboardMovement = 0;
+			CameraTest.keyboardReleaseTimer = new Countdown(0,1);
 			
 			Graphics.textureManager.load("textures/circle.png");
 			
@@ -145,7 +146,7 @@ var CameraTest = {
 			
 			CameraTest.em.applyAllEffects();
 			
-			if(!CameraTest.keyboardMovement) {
+			if(!CameraTest.keyboardMovement && !CameraTest.keyboardReleaseTimer.get()) {
 				var curPos = CameraTest.camera2D.mouseToWorld();
 				var avOffsetPos = CameraTest.avatar.getPosition();
 
@@ -161,35 +162,47 @@ var CameraTest = {
 			
 				CameraTest.cursor.setPosition(curPos[0],curPos[1]);
 			}
-			else {
-				var curPos = CameraTest.avatar.getPosition();
+			else if (CameraTest.keyboardMovement) {
+				CameraTest.keyboardReleaseTimer.maxOut();
+				var curPos = CameraTest.cursor.getPosition();
 				var range = CameraTest.cursor.range;
 				if (Input.keyDown[Input.keyCodes.W]){
-					curPos[1] -= range;
+					curPos[1] -= 8;
 				}
 				if (Input.keyDown[Input.keyCodes.A]){
-					curPos[0] -= range;
+					curPos[0] -= 8;
 				}
 				if (Input.keyDown[Input.keyCodes.D]){
-					curPos[0] += range;
+					curPos[0] += 8;
 				}
 				if (Input.keyDown[Input.keyCodes.S]){
-					curPos[1] += range;
+					curPos[1] += 8;
 				}
-				
-				CameraTest.cursor.setPosition(curPos[0],curPos[1]);
+				if ( (curPos[0] != CameraTest.avatar.x) || (curPos[1] != CameraTest.avatar.y) ) {
+					var avOffsetPos = CameraTest.avatar.getPosition();
+
+					if ( Math.abs(curPos[0] - avOffsetPos[0]) > CameraTest.cursor.range) {
+						if (curPos[0] < avOffsetPos[0]) curPos[0] = avOffsetPos[0] - CameraTest.cursor.range;
+						else curPos[0] = avOffsetPos[0] + CameraTest.cursor.range;	
+					}
+
+					if ( Math.abs(curPos[1] - avOffsetPos[1]) > CameraTest.cursor.range ) {
+						if (curPos[1] < avOffsetPos[1]) curPos[1] = avOffsetPos[1] - CameraTest.cursor.range;
+						else curPos[1] = avOffsetPos[1] + CameraTest.cursor.range;	
+					}
+					
+					CameraTest.cursor.setPosition(curPos[0],curPos[1]);
+				}
 			}
 			
-			if (CameraTest.movePlayer || CameraTest.keyboardMovement) {
+			if (CameraTest.movePlayer || CameraTest.keyboardMovement || CameraTest.keyboardReleaseTimer.get()) {
 				CameraTest.avatar.approach(CameraTest.cursor.x, CameraTest.cursor.y, CameraTest.cursor.range);
 					
 				if ( Math.abs(CameraTest.avatar.x - CameraTest.camera2D.x) > 128) {
 					if (CameraTest.camera2D.x > CameraTest.avatar.x) {
-						//CameraTest.camera.matrix[9] -= CameraTest.avatar.movement.x/3;
 						CameraTest.camera2D.x = CameraTest.avatar.x + 128;
 					}
 					else {
-						//CameraTest.camera.matrix[9] += CameraTest.avatar.movement.x/3;
 						CameraTest.camera2D.x = CameraTest.avatar.x - 128;
 					}
 				}
@@ -200,11 +213,9 @@ var CameraTest = {
 				
 				if ( Math.abs(CameraTest.avatar.x - CameraTest.camera2D.x) > 2) {
 					if (CameraTest.camera2D.x > CameraTest.avatar.x) {
-						//CameraTest.camera.matrix[9] -= 1;
 						CameraTest.camera2D.x -= 2;
 					}
 					else {
-						//CameraTest.camera.matrix[9] += 1;
 						CameraTest.camera2D.x += 2;
 					}
 				
@@ -253,6 +264,7 @@ var CameraTest = {
 		},
 		
 		onMouseDown: function(mouseCode, x, y){
+			CameraTest.keyboardReleaseTimer.set(0);
 			if (mouseCode === Input.MOUSE_0)
 		    {
 		        CameraTest.movePlayer = true;
@@ -275,6 +287,8 @@ var CameraTest = {
 		},
 		
 		onKeyDown: function(keyCode){
+			var startKB;
+			if (!CameraTest.keyboardMovement) startKB = true;
 			if (keyCode === Input.keyCodes.W) {
 				CameraTest.keyboardMovement += 1;
 			}
@@ -286,6 +300,9 @@ var CameraTest = {
 			}
 			if (keyCode === Input.keyCodes.D) {
 				CameraTest.keyboardMovement += 8;
+			}
+			if ( (startKB) && (CameraTest.keyboardMovement) ){
+				CameraTest.cursor.setPosition(CameraTest.avatar.x, CameraTest.avatar.y);
 			}
 			if (keyCode === Input.keyCodes.K) {
 				this.attack();
@@ -311,7 +328,7 @@ var CameraTest = {
 
 			Graphics.device.clear([1,1,1,1]);
 			
-			if (CameraTest.keyboardMovement) {
+			if (CameraTest.keyboardReleaseTimer.get()) {
 				CameraTest.cursor.visible = false;
 			}
 			else {

@@ -28,17 +28,17 @@ var Character = function (params){
 	c.createHitbox(48,28);
 	
 	c.damage = 1;
-	c.hitClock = new Spectrum(0,3);
-	c.hitClockInterval = 1.5;
+	c.hitClock = new Spectrum(0,2);
+	c.hitClockInterval = 1;
 	
 	c.focus = new Spectrum(30);
 	
 	c.stamina = new Spectrum(2.5);
-	c.staminaRegenRate = 1/30;
+	c.staminaRegenRate = 1/45;
 	
 	c.timers = {
 		staminaDamage: new Countdown(0, 0.1),
-		hit: new Countdown(0, 0.4),
+		hit: new Countdown(0, 0.6),
 	};	
 
 	c.bars = { };
@@ -233,6 +233,7 @@ var Character = function (params){
 	c.createStaminaBar = function(){
 		var sdt = this.timers.staminaDamage;
 		var sprite = this.sprite;
+		var myBars = this.bars;
 		this.bars.staminaBar = Graphics.UI.Bar.create({
 			width: 48,
 			height: 4,
@@ -253,7 +254,9 @@ var Character = function (params){
 					}
 				},
 				reposition: function(bar){
-					bar.setPosition(sprite.x, sprite.y + 36)
+					var yOff = 36;
+					if (myBars.focusBar) yOff = 40;
+					bar.setPosition(sprite.x, sprite.y + yOff)
 				}
 			},
 		});
@@ -267,7 +270,7 @@ var Character = function (params){
 			x: 0,
 			y: 0,
 			emptyColor: [0.6,0,0,1],
-			fullColor: [0,1,0,1],
+			fullColor: [0.4,0.9,0.1,1],
 			spectrum: this.focus,
 			effects: {
 				reposition: function(bar){

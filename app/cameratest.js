@@ -45,6 +45,7 @@ var CameraTest = {
 			CameraTest.em.add(CameraTest.avatar);
 			
 			CameraTest.avatar.createStaminaBar();
+			CameraTest.avatar.createFocusBar();
 			
 			
 			CameraTest.NPC = Character.create({});

@@ -176,7 +176,7 @@ Entity.prototype.createEffect = function(effect){
 Entity.prototype.saveState = function(property, overwrite){
 	if (!this.savedState)
 		this.savedState = {};
-	if ( (!this.savedState[property]) || (overwrite) ) {
+	if ( (this.savedState[property] === undefined) || (overwrite) ) {
 		this.savedState[property] = this[property];
 	}
 }

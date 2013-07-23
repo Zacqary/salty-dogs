@@ -36,7 +36,7 @@ var Character = function (params){
 	c.stamina = new Spectrum(2.5);
 	c.staminaRegenRate = 1/45;
 	
-	c.inCombat = 0;
+	c.inCombat = false;
 	
 	c.timers = {
 		staminaDamage: new Countdown(0, 0.1),

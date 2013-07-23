@@ -387,9 +387,10 @@ var Character = function (params){
 		//	Deal focus damage
 		var damageMult = 1;
 		damageMult += this.hitClock.get();
+		if (pushForward) damageMult /= 2;
 		
 		var damage = this.damage * damageMult;
-		console.log(Math.floor(damage));
+		console.log(Math.round(damage));
 		other.focus.plus(-damage);
 		
 		//	Set the consecutive hit timer

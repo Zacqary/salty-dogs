@@ -59,7 +59,7 @@ var CameraTest = {
 					if (it.charType == CHAR_PLAYER) {
 						it.affect("speedMult",0.1);
 						if (it.cursor) it.cursor.affect("range",48);
-						it.affect("inCombat",true);
+						it.affect("inCombat",1);
 						me.affectRadius(120);
 					}
 				}

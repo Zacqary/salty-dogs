@@ -327,7 +327,6 @@ var CameraTest = {
 			CameraTest.cursor.sprite.setTexture(Graphics.textureManager.get("textures/circle.png"));
 			CameraTest.cursor.zIndex = CameraTest.avatar.zIndex - 1;
 			CameraTest.em.drawAll(true);
-
 		},
 		
 	},

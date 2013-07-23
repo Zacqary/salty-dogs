@@ -79,6 +79,10 @@ var objSize = function objSize(obj) {
     return size;
 };
 
+
+/*	Spectrum
+		A number that can be between two values
+*/
 var Spectrum = function Spectrum(current, a, b){
 	var min;
 	var max;
@@ -123,6 +127,5 @@ var Spectrum = function Spectrum(current, a, b){
 	this.plus = function(v){
 		set(current + v);
 	}
-	
 
-}
+};

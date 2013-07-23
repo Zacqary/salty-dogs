@@ -26,10 +26,20 @@ var Character = function (params){
 	c.createSprite({width: 48, height: 64}, 0, -18);
 	c.speed = 8;
 	c.createHitbox(48,28);
+	
+	c.damage = 1;
+	c.hitClock = new Spectrum(0,3);
+	c.hitClockInterval = 1.5;
+	
 	c.focus = new Spectrum(30);
+	
 	c.stamina = new Spectrum(2.5);
 	c.staminaRegenRate = 1/30;
-	c.staminaDamageTimer = new Spectrum(1);
+	
+	c.timers = {
+		staminaDamage: new Countdown(0, 0.1),
+		hit: new Countdown(0, 0.4),
+	};	
 
 	c.bars = { };
 	
@@ -221,25 +231,26 @@ var Character = function (params){
 	//	Character UI functions
 	//	======================
 	c.createStaminaBar = function(){
-		var sdt = this.staminaDamageTimer;
+		var sdt = this.timers.staminaDamage;
 		var sprite = this.sprite;
 		this.bars.staminaBar = Graphics.UI.Bar.create({
 			width: 48,
 			height: 4,
 			x: 0,
 			y: 0,
-			emptyColor: [1,0,0,1],
+			emptyColor: [0.9,0.9,1,1],
 			fullColor: [0,0,1,1],
 			spectrum: this.stamina,
 			effects: {
 				tooLow: function(bar, emptySprite, fullSprite, spectrum){
 					if (spectrum.get() < 1) {
 						fullSprite.setColor([0,0,1,0.3]);
+						emptySprite.setColor([1-(sdt.get()*10),0,0.7,1]);
 					}
-					else fullSprite.setColor([0,0,1,1]);
-				},
-				damageTimer: function(bar, emptySprite){
-					emptySprite.setColor([1-sdt.get(),0,0,1]);
+					else {
+						fullSprite.setColor([0,0.5,1,1]);
+						emptySprite.setColor([0.6,0.9,1,1]);
+					}
 				},
 				reposition: function(bar){
 					bar.setPosition(sprite.x, sprite.y + 36)
@@ -274,9 +285,6 @@ var Character = function (params){
 		if (this.stamina.get() < this.stamina.getMax()) {
 			this.stamina.plus(this.staminaRegenRate);
 		}
-		if (this.staminaDamageTimer.get()) {
-			this.staminaDamageTimer.plus(-1/10);
-		}
 	}
 	
 	c.kill = function(){
@@ -310,7 +318,7 @@ var Character = function (params){
 		
 		//	If not, damage the stamina and fail the attack
 		else {
-			this.staminaDamageTimer.set(1);
+			this.timers.staminaDamage.maxOut();
 		}
 	}
 	
@@ -368,8 +376,22 @@ var Character = function (params){
 		other.overwriteWaypoint(0, oWaypoint[0],oWaypoint[1], slowRange, speed, 0.3);
 		this.overwriteWaypoint(0, myWaypoint[0],myWaypoint[1], slowRange, speed, 0.3);
 		
+		//	Reset the hit clock if this is a new attack chain
+		if (!this.timers.hit.get()){
+			this.hitClock.set(0);
+		}
+		
 		//	Deal focus damage
-		other.focus.plus(-5);
+		var damageMult = 1;
+		damageMult += this.hitClock.get();
+		
+		var damage = this.damage * damageMult;
+		console.log(Math.floor(damage));
+		other.focus.plus(-damage);
+		
+		//	Set the consecutive hit timer
+		this.timers.hit.maxOut();
+		this.hitClock.plus(this.hitClockInterval);
 	}
 	
 	return c;

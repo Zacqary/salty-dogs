@@ -5,6 +5,7 @@
 	
 	Includes:
 	- GameState
+	- Countdown
 	
 */
 /*	GameState Interface
@@ -24,6 +25,9 @@ var GameState = new function() {
 		if (currentLoop.loaded)
 			currentLoop.run();
 		else currentLoop.loadingLoop();
+		
+		tickCountdowns();
+		
 		previousFrameTime = currentTime;
 		currentTime = TurbulenzEngine.time;
 	}
@@ -56,12 +60,21 @@ var GameState = new function() {
 	//	======
 	var previousFrameTime;
 	var currentTime = TurbulenzEngine.time;
+	var countdowns = [];
 	
 	this.getTime = function(){
 		return currentTime;
 	}
 	this.getTimeDelta = function(){
 		return currentTime - previousFrameTime;
+	}
+	this.addCountdown = function(countdown){
+		countdowns.push(countdown);
+	}
+	var tickCountdowns = function(){
+		for (var i in countdowns){
+			countdowns[i].tick();
+		}
 	}
 	
 	//	Camera
@@ -75,3 +88,28 @@ var GameState = new function() {
 	}
 	
 }
+
+/*	Countdown - extends Spectrum
+		A Spectrum specialized for countdown timers, automatically ticked each frame by GameState
+*/
+var Countdown = function Countdown(current, a, b){
+	var c = new Spectrum(current, a, b);
+	var frozen = false;
+	
+	c.maxOut = function(){
+		c.set(c.getMax());
+	}
+	c.tick = function(){
+		if (!frozen) c.plus(-GameState.getTimeDelta());
+	}
+	c.freeze = function(){
+		frozen = true;
+	}
+	c.unfreeze = function(){
+		frozen = false;
+	}
+	
+	GameState.addCountdown(c);
+	
+	return c;
+};

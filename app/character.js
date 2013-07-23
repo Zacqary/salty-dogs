@@ -219,6 +219,7 @@ var Character = function (params){
 	//	========================
 	c.makePlayer = function(){
 		this.charType = CHAR_PLAYER;
+		Player.entity = this;
 	}
 	c.makeNeutral = function(){
 		this.charType = CHAR_NEUTRAL;

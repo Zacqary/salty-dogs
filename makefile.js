@@ -31,6 +31,7 @@
 /*{{ javascript("config/config.js") }}*/
 
 /*{{ javascript("app/character.js") }}*/
+/*{{ javascript("app/player.js") }}*/
 
 /*{{ javascript("app/cameratest.js") }}*/
 

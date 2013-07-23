@@ -6,9 +6,6 @@ var CameraTest = {
 			CameraTest.camera2D = Graphics.Camera2D.create();
 			GameState.setCamera(CameraTest.camera2D);
 			
-			CameraTest.keyboardMovement = 0;
-			CameraTest.keyboardReleaseTimer = new Countdown(0,1);
-			
 			Graphics.textureManager.load("textures/circle.png");
 			
 			Graphics.textureManager.load("textures/body.png");
@@ -70,8 +67,6 @@ var CameraTest = {
 			
 			CameraTest.cursor = CameraTest.em.createEntity({permeable: true});
 			CameraTest.cursor.range = 128;
-			CameraTest.cursor.upperBound = 40;
-			CameraTest.cursor.lowerBound = 280;
 			CameraTest.cursor.createSprite({
 				texture: Graphics.textureManager.get("textures/circle.png"),
 				width: 64,
@@ -147,86 +142,7 @@ var CameraTest = {
 			
 			CameraTest.em.applyAllEffects();
 			
-			if(!CameraTest.keyboardMovement && !CameraTest.keyboardReleaseTimer.get()) {
-				var curPos = CameraTest.camera2D.mouseToWorld();
-				var avOffsetPos = CameraTest.avatar.getPosition();
-
-				if ( Math.abs(curPos[0] - avOffsetPos[0]) > CameraTest.cursor.range) {
-					if (curPos[0] < avOffsetPos[0]) curPos[0] = avOffsetPos[0] - CameraTest.cursor.range;
-					else curPos[0] = avOffsetPos[0] + CameraTest.cursor.range;	
-				}
-			
-				if ( Math.abs(curPos[1] - avOffsetPos[1]) > CameraTest.cursor.range ) {
-					if (curPos[1] < avOffsetPos[1]) curPos[1] = avOffsetPos[1] - CameraTest.cursor.range;
-					else curPos[1] = avOffsetPos[1] + CameraTest.cursor.range;	
-				}
-			
-				CameraTest.cursor.setPosition(curPos[0],curPos[1]);
-			}
-			else if (CameraTest.keyboardMovement) {
-				CameraTest.keyboardReleaseTimer.maxOut();
-				var curPos = CameraTest.cursor.getPosition();
-				var delta = 8;
-				if (CameraTest.avatar.inCombat) {
-					delta = CameraTest.cursor.range;
-					curPos = CameraTest.avatar.getPosition();
-				}
-				if (Input.keyDown[Input.keyCodes.W]){
-					curPos[1] -= delta;
-				}
-				if (Input.keyDown[Input.keyCodes.A]){
-					curPos[0] -= delta;
-				}
-				if (Input.keyDown[Input.keyCodes.D]){
-					curPos[0] += delta;
-				}
-				if (Input.keyDown[Input.keyCodes.S]){
-					curPos[1] += delta;
-				}
-				if ( (curPos[0] != CameraTest.avatar.x) || (curPos[1] != CameraTest.avatar.y) ) {
-					var avOffsetPos = CameraTest.avatar.getPosition();
-
-					if ( Math.abs(curPos[0] - avOffsetPos[0]) > CameraTest.cursor.range) {
-						if (curPos[0] < avOffsetPos[0]) curPos[0] = avOffsetPos[0] - CameraTest.cursor.range;
-						else curPos[0] = avOffsetPos[0] + CameraTest.cursor.range;	
-					}
-
-					if ( Math.abs(curPos[1] - avOffsetPos[1]) > CameraTest.cursor.range ) {
-						if (curPos[1] < avOffsetPos[1]) curPos[1] = avOffsetPos[1] - CameraTest.cursor.range;
-						else curPos[1] = avOffsetPos[1] + CameraTest.cursor.range;	
-					}
-					
-					CameraTest.cursor.setPosition(curPos[0],curPos[1]);
-				}
-			}
-			
-			if (CameraTest.movePlayer || CameraTest.keyboardMovement || CameraTest.keyboardReleaseTimer.get()) {
-				CameraTest.avatar.approach(CameraTest.cursor.x, CameraTest.cursor.y, CameraTest.cursor.range);
-					
-				if ( Math.abs(CameraTest.avatar.x - CameraTest.camera2D.x) > 128) {
-					if (CameraTest.camera2D.x > CameraTest.avatar.x) {
-						CameraTest.camera2D.x = CameraTest.avatar.x + 128;
-					}
-					else {
-						CameraTest.camera2D.x = CameraTest.avatar.x - 128;
-					}
-				}
-				
-			
-			}
-			else {
-				
-				if ( Math.abs(CameraTest.avatar.x - CameraTest.camera2D.x) > 2) {
-					if (CameraTest.camera2D.x > CameraTest.avatar.x) {
-						CameraTest.camera2D.x -= 2;
-					}
-					else {
-						CameraTest.camera2D.x += 2;
-					}
-				
-				}
-				
-			}
+			Player.movementLoop();
 			
 			CameraTest.em.allToCurrentWaypoint();
 			CameraTest.em.runPhysics();
@@ -269,10 +185,10 @@ var CameraTest = {
 		},
 		
 		onMouseDown: function(mouseCode, x, y){
-			CameraTest.keyboardReleaseTimer.set(0);
+			Player.keyboardReleaseTimer.set(0);
 			if (mouseCode === Input.MOUSE_0)
 		    {
-		        CameraTest.movePlayer = true;
+		        Player.moveButtonDown = true;
 		    }
 			else if (mouseCode === Input.MOUSE_1)
 		    {
@@ -283,7 +199,7 @@ var CameraTest = {
 		onMouseUp: function(mouseCode, x, y){
 			if (mouseCode === Input.MOUSE_0)
 		    {
-		        CameraTest.movePlayer = false;
+		        Player.moveButtonDown = false;
 		    }
 			else if (mouseCode === Input.MOUSE_1)
 		    {
@@ -293,20 +209,20 @@ var CameraTest = {
 		
 		onKeyDown: function(keyCode){
 			var startKB;
-			if (!CameraTest.keyboardMovement) startKB = true;
+			if (!Player.keyboardMovement) startKB = true;
 			if (keyCode === Input.keyCodes.W) {
-				CameraTest.keyboardMovement += 1;
+				Player.keyboardMovement += 1;
 			}
 			if (keyCode === Input.keyCodes.A) {
-				CameraTest.keyboardMovement += 2;
+				Player.keyboardMovement += 2;
 			}
 			if (keyCode === Input.keyCodes.S) {
-				CameraTest.keyboardMovement += 4;
+				Player.keyboardMovement += 4;
 			}
 			if (keyCode === Input.keyCodes.D) {
-				CameraTest.keyboardMovement += 8;
+				Player.keyboardMovement += 8;
 			}
-			if ( (startKB) && (CameraTest.keyboardMovement) ){
+			if ( (startKB) && (Player.keyboardMovement) ){
 				CameraTest.cursor.setPosition(CameraTest.avatar.x, CameraTest.avatar.y);
 			}
 			if (keyCode === Input.keyCodes.K) {
@@ -316,16 +232,16 @@ var CameraTest = {
 		
 		onKeyUp: function(keyCode){
 			if (keyCode === Input.keyCodes.W) {
-				CameraTest.keyboardMovement -= 1;
+				Player.keyboardMovement -= 1;
 			}
 			if (keyCode === Input.keyCodes.A) {
-				CameraTest.keyboardMovement -= 2;
+				Player.keyboardMovement -= 2;
 			}
 			if (keyCode === Input.keyCodes.S) {
-				CameraTest.keyboardMovement -= 4;
+				Player.keyboardMovement -= 4;
 			}
 			if (keyCode === Input.keyCodes.D) {
-				CameraTest.keyboardMovement -= 8;
+				Player.keyboardMovement -= 8;
 			}
 		},
 		
@@ -333,12 +249,12 @@ var CameraTest = {
 
 			Graphics.device.clear([1,1,1,1]);
 			
-			/*if (CameraTest.keyboardReleaseTimer.get()) {
+			if (Player.keyboardReleaseTimer.get()) {
 				CameraTest.cursor.visible = false;
 			}
 			else {
 				CameraTest.cursor.visible = true;
-			}*/
+			}
 		 	if (Input.mouseDown.left || CameraTest.keyboardMovement) {
 				if (CameraTest.cursorOnNPC) CameraTest.cursor.sprite.setColor([1,0,0,1]);
 				else CameraTest.cursor.sprite.setColor([0,0,1,1]);

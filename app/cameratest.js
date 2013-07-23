@@ -151,38 +151,6 @@ var CameraTest = {
 			
 		},
 		
-		attack: function(){
-			var imIn = CameraTest.em.radiusSweepTest(CameraTest.avatar);
-			for (var i in imIn){
-				if (imIn[i].charType != CHAR_HOSTILE)
-					imIn.splice(i,1);
-			}
-		
-			if (imIn.length > 0) {
-				var distances = [];
-				for (var i in imIn){
-					var me = imIn[i];
-					distances.push({distance: Math.distanceXY([me.x,me.y],[CameraTest.cursor.x,CameraTest.cursor.y]), name: me.name} );
-				}
-		
-				distances.sort(function(a, b){
-					return a.distance - b.distance;
-				});
-				while (1){
-					var checkPushForward = false;
-					if (CameraTest.movePlayer || CameraTest.keyboardMovement) checkPushForward = true;
-					var other = CameraTest.em.get(distances[0].name);
-					if(CameraTest.em.rayCastTest(CameraTest.avatar, other)) {
-						CameraTest.avatar.swingAtCharacter(other, checkPushForward);
-						break;
-					}
-					else {
-						distances.splice(0,1);
-						if (!distances.length) break;
-					}
-				}
-			}
-		},
 		
 		onMouseDown: function(mouseCode, x, y){
 			Player.keyboardReleaseTimer.set(0);
@@ -192,7 +160,7 @@ var CameraTest = {
 		    }
 			else if (mouseCode === Input.MOUSE_1)
 		    {
-		        this.attack();
+		        Player.attack();
 		    }
 		},
 		
@@ -226,7 +194,7 @@ var CameraTest = {
 				CameraTest.cursor.setPosition(CameraTest.avatar.x, CameraTest.avatar.y);
 			}
 			if (keyCode === Input.keyCodes.K) {
-				this.attack();
+				Player.attack();
 			}
 		},
 		

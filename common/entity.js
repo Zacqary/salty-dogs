@@ -421,6 +421,7 @@ var EntityManager = function(){
 	
 	this.add = function(e){
 		entities[e.name] = e;
+		e.manager = this;
 	}
 	
 	this.get = function(name){

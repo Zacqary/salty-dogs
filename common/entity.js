@@ -89,7 +89,6 @@ Entity.prototype.clone = function(){
 Entity.prototype.update = function(){
 	//	Mark the Entity as no longer moving (which may be reset next frame if it's still moving)
 	this.movement = null; 
-	this.hitbox.setRotation(0);
 	this.updatePosition();
 	
 	if (this.updateExtension) this.updateExtension();
@@ -299,6 +298,7 @@ Entity.createHitbox = function(width,height){
 		vertices: Physics.device.createBoxVertices(width,height) 
 	});
  	var hitbox = Physics.createBasicBody(shape);
+	hitbox.setAngularDrag(1);
 	return hitbox;
 }
 Entity.prototype.createHitbox = function(width,height,xOffset,yOffset){
@@ -377,7 +377,7 @@ Entity.prototype.addWaypoint = function(x, y, range, override, timer){
 }
 
 Entity.prototype.overwriteWaypoint = function(index, x, y, range, override, timer){
-	this.waypoints.splice(0,1,[x,y,range, override, timer]);
+	this.waypoints.splice(index,1,[x,y,range, override, timer]);
 }
 
 Entity.prototype.nextWaypoint = function(){
@@ -542,7 +542,7 @@ var EntityManager = function(){
 				entities[i].approachCurrentWaypoint();
 			}
 			//	Allow the physics simulation to move moving entities, and to hold static ones in place
-			if (entities[i].hitbox) {
+			if (entities[i].hitbox && entities[i].hitbox.isDynamic()) {
 				if (entities[i].movement){
 					entities[i].hitbox.setLinearDrag(0);
 					entities[i].hitbox.setMass(1);

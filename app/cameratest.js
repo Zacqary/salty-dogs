@@ -17,7 +17,8 @@ CameraTest.initializeExtension = function(){
 	this.wall1 = this.em.createEntity({});
 	this.wall1.setPosition(500,-300);
 	this.wall1.createHitbox(1400,1,0,0);
-
+	//this.wall1.hitbox.setAsStatic();
+	
 	this.wall2 = this.em.createEntity({});
 	this.wall2.setPosition(500,320);
 	this.wall2.createHitbox(1400,1,0,0);
@@ -32,9 +33,10 @@ CameraTest.initializeExtension = function(){
 	this.avatar.setPosition(0,170);
 	this.avatar.createStaminaBar();
 	this.avatar.createFocusBar();
-
+	this.avatar.createHitClockBar();
+	
 	this.NPC = Character.create({});
-	this.NPC.setPosition(640,170);
+	this.NPC.setPosition(640,-100);
 	this.NPC.makeHostile();
 	this.NPC.createEffectRadius(80);
 	this.NPC.createEffect({
@@ -44,12 +46,16 @@ CameraTest.initializeExtension = function(){
 				it.affect("speedMult",0.1);
 				if (it.cursor) it.cursor.affect("range",48);
 				it.affect("inCombat",true);
+				me.affect("inCombat",true);
+				me.affect("speedMult",0.1);
 				me.affectRadius(120);
 			}
 		}
 
 	});
 	this.NPC.createFocusBar();
+	this.NPC.createStaminaBar();
+	this.NPC.createHitClockBar();
 	this.em.add(this.NPC);
 
 	this.cursor = this.em.createEntity({permeable: true});
@@ -68,7 +74,7 @@ CameraTest.initializeExtension = function(){
 		types: [ENT_CHARACTER],
 		doThis: function(it, me){
 			if (it.charType == CHAR_HOSTILE){
-				this.cursorOnNPC = true;
+				Player.cursorOnNPC = true;
 			}
 		}
 	});
@@ -98,7 +104,9 @@ CameraTest.loadingLoop = function(){
 			this.NPC.setSword("cl","aaaaaa");
 			this.NPC.addMisc("patchleft","000033",2);
 			this.NPC.composeDoll();
-
+			this.NPC.focus.setMax(15);
+		
+			/*
 			this.NPC2 = this.NPC.clone();
 			this.NPC2.setPosition(200, 120);
 			this.NPC2.setBodyColor("dedefe");
@@ -112,6 +120,29 @@ CameraTest.loadingLoop = function(){
 			this.NPC3.setTorso("shirt","dedefe");
 			this.NPC3.composeDoll();
 			this.em.add(this.NPC3);
-
+			*/
 	}
+}
+
+CameraTest.runAfterPlayerMoves = function(){
+	
+	if (!this.NPC.inCombat) {
+		this.NPC.timers.combatDelay = null;
+		//this.NPC.overwriteWaypoint(0, this.avatar.x, this.avatar.y, 64);
+	}
+	else {
+		if (!this.NPC.timers.combatDelay){
+			this.NPC.timers.combatDelay = new Countdown(0.5);
+		}
+		if ( (this.NPC.stamina.get() > 1) && (!this.avatar.timers.hit.get()) ) {
+			if (!this.NPC.timers.combatDelay.get()) {
+				this.NPC.swingAtCharacter(this.avatar);
+			}
+		}
+		else {
+			this.NPC.timers.combatDelay.maxOut();
+		}
+	}
+	
+	
 }

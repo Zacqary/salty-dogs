@@ -121,9 +121,11 @@ var Spectrum = function(current, a, b){
 	}
 	this.setMax = function(v){
 		max = v;
+		set(current);
 	}
 	this.setMin = function(v){
 		min = v;
+		set(current);
 	}
 	
 	this.get = function(){

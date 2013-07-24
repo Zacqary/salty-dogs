@@ -18,11 +18,13 @@ var InCharacterLoop = function(){
 	
 	l.run = function(){
 		this.em.resetAll();
-		this.cursorOnNPC = false;
+		Player.cursorOnNPC = false;
 		
 		this.em.applyAllEffects();
 		
 		Player.movementLoop();
+		
+		if(this.runAfterPlayerMoves) this.runAfterPlayerMoves();
 		
 		this.em.allToCurrentWaypoint();
 		this.em.runPhysics();
@@ -39,11 +41,11 @@ var InCharacterLoop = function(){
 			Player.entity.cursor.visible = true;
 		}
 	 	if (Player.moveButtonDown || Player.keyboardMovement) {
-			if (this.cursorOnNPC) Player.entity.cursor.sprite.setColor([1,0,0,1]);
+			if (Player.cursorOnNPC) Player.entity.cursor.sprite.setColor([1,0,0,1]);
 			else Player.entity.cursor.sprite.setColor([0,0,1,1]);
 		}
 		else {
-			if (this.cursorOnNPC) Player.entity.cursor.sprite.setColor([0.4,0,1,0.7]);
+			if (Player.cursorOnNPC) Player.entity.cursor.sprite.setColor([0.4,0,1,0.7]);
 			else Player.entity.cursor.sprite.setColor([0,0.4,1,0.5]);
 		}
 		Player.entity.cursor.sprite.setTexture(Graphics.textureManager.get("textures/circle.png"));

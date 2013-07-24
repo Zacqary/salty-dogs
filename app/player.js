@@ -150,6 +150,7 @@ Player.goToCursor = function(){
 		if ( (currentDistance - targetDistance) < -30) {
 			// Slow the player down
 			Player.entity.affect("speedMult",Player.entity.speedMult/2);
+			Player.entity.affect("retreating",true);
 		}
 	}
 	

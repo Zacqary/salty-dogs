@@ -28,19 +28,20 @@ var Character = function (params){
 	c.createHitbox(48,28);
 	
 	c.damage = 1;
-	c.hitClock = new Spectrum(0,2);
-	c.hitClockInterval = 1;
+	c.hitClock = 0;
+	c.hitClockInterval = 0.5;
 	
 	c.focus = new Spectrum(30);
+	c.focusRegenRate = 1/120;
 	
-	c.stamina = new Spectrum(2.5);
-	c.staminaRegenRate = 1/45;
+	c.stamina = new Spectrum(5);
+	c.staminaRegenRate = 1/60;
 	
 	c.inCombat = false;
 	
 	c.timers = {
 		staminaDamage: new Countdown(0, 0.1),
-		hit: new Countdown(0, 0.6),
+		hit: new Countdown(0, 0.45),
 	};	
 
 	c.bars = { };
@@ -106,7 +107,7 @@ var Character = function (params){
 	
 	c.updateExtension = function(){
 		if (this.alive) {
-			this.regenerateStamina();
+			this.regenerate();
 			if (this.focus.get() == 0){
 				this.kill();
 			}
@@ -282,14 +283,35 @@ var Character = function (params){
 			},
 		});
 	}
+	
+	c.createHitClockBar = function(){
+		var sprite = this.sprite;
+		this.bars.hitClockBar = Graphics.UI.Bar.create({
+			width: 48,
+			height: 4,
+			x: 0,
+			y: 0,
+			emptyColor: [0,0,0,1],
+			fullColor: [0.8,0.8,0.8,1],
+			spectrum: this.timers.hit,
+			effects: {
+				reposition: function(bar){
+					bar.setPosition(sprite.x, sprite.y + 44)
+				}
+			},
+		});
+	}
 
 	//	Character passive functions
 	//	===========================
 
-	//	regenerateStamina
-	c.regenerateStamina = function(){
+	//	regenerate
+	c.regenerate = function(){
 		if (this.stamina.get() < this.stamina.getMax()) {
 			this.stamina.plus(this.staminaRegenRate);
+		}
+		if ( (!this.inCombat) && (this.focus.get() < this.focus.getMax()) ){
+			this.focus.plus(this.focusRegenRate);
 		}
 	}
 	
@@ -319,6 +341,7 @@ var Character = function (params){
 		
 		//	If there's still enough stamina for a proper attack...
 		if (this.stamina.get() > 0) {
+			if (other.timers.hit.get()) this.stamina.plus(-2);
 			this.strikeCharacter(other, checkPushForward);
 		}
 		
@@ -362,13 +385,14 @@ var Character = function (params){
 			if (Physics.collisionUtils.intersects(this.cursor.hitbox.shapes[0],other.hitbox.shapes[0]) )
 				pushForward = true;
 		}
+		if (other.retreating) pushForward = true;
 		if (pushForward === true){
 			push *= 2;
 			pushRadius *= 1.25;
 			speed *= 2;
 			slowRange * 2;
 		}
-
+		
 		//	Generate the waypoints towards which to push both characters
 		var oWaypoint = [];
 		var myWaypoint = [];
@@ -384,21 +408,22 @@ var Character = function (params){
 		
 		//	Reset the hit clock if this is a new attack chain
 		if (!this.timers.hit.get()){
-			this.hitClock.set(0);
+			this.hitClock = 0;
 		}
 		
 		//	Deal focus damage
 		var damageMult = 1;
-		damageMult += this.hitClock.get();
+		damageMult += this.hitClock;
 		if (pushForward) damageMult /= 2;
+		if (other.retreating) damageMult /= 2;
 		
 		var damage = this.damage * damageMult;
-		console.log(Math.round(damage));
+		console.log(damage);
 		other.focus.plus(-damage);
 		
 		//	Set the consecutive hit timer
 		this.timers.hit.maxOut();
-		this.hitClock.plus(this.hitClockInterval);
+		this.hitClock += this.hitClockInterval;
 	}
 	
 	return c;

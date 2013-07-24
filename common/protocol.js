@@ -14,7 +14,7 @@
 */
 var Protocol = {
 
-	initializeEngineReferences: function initializeEngineReferences(){
+	initializeEngineReferences: function(){
 		
 		Protocol.requestHandler = RequestHandler.create( { } );
 		
@@ -23,11 +23,11 @@ var Protocol = {
 		Input.initializeEngineReferences();
 		Physics.initializeEngineReferences();
 	
-		Protocol.intervalID = TurbulenzEngine.setInterval(INITIAL_LOOP, 1000 / INITIAL_FRAMERATE);
+		Protocol.intervalID = TurbulenzEngine.setInterval(Protocol.loop, 1000 / INITIAL_FRAMERATE);
 		
 	},
 	
-	clearEngineReferences: function clearEngineReferences(){
+	clearEngineReferences: function(){
 		Protocol.requestHandler = null;
 		Math.device = null;
 		Graphics.clearEngineReferences();
@@ -37,41 +37,51 @@ var Protocol = {
 		Protocol.intervalID = null;
 		delete UUIDs;
 	},
-
+	
+	loop: function(){
+		GameState.loop();
+		
+		if (!Graphics.device.beginFrame()) {
+			return;
+		}
+		Graphics.device.clear([0.5,0.5,0.5,1]);
+		GameState.draw();
+		Graphics.device.endFrame();
+	}
 }
 
 //	randomNumber - Generates a random number
-var randomNumber = function randomNumber(lower, upper){
+var randomNumber = function(lower, upper){
 	var mult = upper - lower;
 	mult++;
 	return Math.floor( Math.random()*mult ) + lower;
 }
 //	randomBool - Flips a coin, basically
-var randomBool = function randomBool(){
+var randomBool = function(){
 	num = randomNumber(0,5);
 	if (num >= 3) return true;
 	else return false;
 }
 //	makeid - Creates a UUID
 var UUIDs = [];
-var makeid = function makeid(){
+var makeid = function(){
 	var id = guid();
 	while(id in UUIDs) id = guid();
 	UUIDs.push(id);
 	return id;
 }
-var s4 = function s4() {
+var s4 = function() {
   return Math.floor((1 + Math.random()) * 0x10000)
              .toString(16)
              .substring(1);
 };
-var guid = function guid() {
+var guid = function() {
   return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
          s4() + '-' + s4() + s4() + s4();
 }
 
 // objSize - Gets the number of properties in an object
-var objSize = function objSize(obj) {
+var objSize = function(obj) {
     var size = 0, key;
     for (key in obj) {
         if (obj.hasOwnProperty(key)) size++;
@@ -83,7 +93,7 @@ var objSize = function objSize(obj) {
 /*	Spectrum
 		A number that can be between two values
 */
-var Spectrum = function Spectrum(current, a, b){
+var Spectrum = function(current, a, b){
 	var min;
 	var max;
 	var current = current;

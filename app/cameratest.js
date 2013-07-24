@@ -1,242 +1,117 @@
-var CameraTest = {
-	
-	loop: {
-		
-		initialize: function(){
-			CameraTest.camera2D = Graphics.Camera2D.create();
-			GameState.setCamera(CameraTest.camera2D);
-			
-			Graphics.textureManager.load("textures/circle.png");
-			
-			Graphics.textureManager.load("textures/body.png");
-			Graphics.textureManager.load("textures/hat.png");
-			Graphics.textureManager.load("textures/shirt.png");
-			Graphics.textureManager.load("textures/tank.png");
-			Graphics.textureManager.load("textures/pants.png");
-			Graphics.textureManager.load("textures/lsblade.png");
-			Graphics.textureManager.load("textures/lshilt.png");
-			Graphics.textureManager.load("textures/clblade.png");
-			Graphics.textureManager.load("textures/clhilt.png");
-			Graphics.textureManager.load("textures/patch.png");
-			Graphics.textureManager.load("textures/patchleft.png");
-			
-			CameraTest.em = EntityManager.create();
-			
-			CameraTest.wall1 = CameraTest.em.createEntity({});
-			CameraTest.wall1.setPosition(500,-300);
-			CameraTest.wall1.createHitbox(1400,1,0,0);
-			
-			CameraTest.wall2 = CameraTest.em.createEntity({});
-			CameraTest.wall2.setPosition(500,320);
-			CameraTest.wall2.createHitbox(1400,1,0,0);
-			
-			CameraTest.wall3 = CameraTest.em.createEntity({});
-			CameraTest.wall3.setPosition(-200,10);
-			CameraTest.wall3.createHitbox(1,620,0,0);
-			CameraTest.wall4 = CameraTest.em.createEntity({});
-			CameraTest.wall4.setPosition(1200,10);
-			CameraTest.wall4.createHitbox(1,620,0,0);
-			
-			CameraTest.avatar = Character.create({});
-			CameraTest.avatar.setPosition(0,170);
-			CameraTest.avatar.makePlayer();
-			CameraTest.em.add(CameraTest.avatar);
-			
-			CameraTest.avatar.createStaminaBar();
-			CameraTest.avatar.createFocusBar();
-			
-			
-			CameraTest.NPC = Character.create({});
-			CameraTest.NPC.setPosition(640,170);
-			CameraTest.NPC.makeHostile();
-			CameraTest.NPC.createEffectRadius(80);
-			CameraTest.NPC.createEffect({
-				types: [ENT_CHARACTER],
-				doThis: function(it, me){
-					if (it.charType == CHAR_PLAYER) {
-						it.affect("speedMult",0.1);
-						if (it.cursor) it.cursor.affect("range",48);
-						it.affect("inCombat",true);
-						me.affectRadius(120);
-					}
-				}
-				
-			});
-			CameraTest.NPC.createFocusBar();
-			CameraTest.em.add(CameraTest.NPC);
-			
-			CameraTest.cursor = CameraTest.em.createEntity({permeable: true});
-			CameraTest.cursor.range = 128;
-			CameraTest.cursor.createSprite({
-				texture: Graphics.textureManager.get("textures/circle.png"),
-				width: 64,
-				height: 48,
-				textureRectangle: [0,0,64,48],
-				color: [0,0,1,1]
-			});
-			CameraTest.cursor.createHitbox(8,24,0,0);
-			CameraTest.cursor.useHitboxAsEffectRadius();
-			
-			CameraTest.cursor.createEffect({
-				types: [ENT_CHARACTER],
-				doThis: function(it, me){
-					if (it.charType == CHAR_HOSTILE){
-						CameraTest.cursorOnNPC = true;
-					}
-				}
-			});
+var CameraTest = new InCharacterLoop();
+CameraTest.initializeExtension = function(){
+	Graphics.textureManager.load("textures/circle.png");
 
-			CameraTest.avatar.cursor = CameraTest.cursor;
-		
-			CameraTest.struck = false;
-			
-		},
-		
-		loadingLoop: function(){
-			if (!Graphics.textureManager.getNumPendingTextures()) {
-				CameraTest.loop.loaded = true;
-			}
-			
-			if (CameraTest.loop.loaded){
-					
-					CameraTest.avatar.setBodyColor("bf8000");
-					CameraTest.avatar.setHead("hat","992370");
-					CameraTest.avatar.setTorso("shirt","cccc99");
-					CameraTest.avatar.setLegs("pants","77709a");
-					CameraTest.avatar.setSword("ls","aaaaaa");
-					CameraTest.avatar.addMisc("patch","000033",2);
-					CameraTest.avatar.composeDoll();
+	Graphics.textureManager.load("textures/body.png");
+	Graphics.textureManager.load("textures/hat.png");
+	Graphics.textureManager.load("textures/shirt.png");
+	Graphics.textureManager.load("textures/tank.png");
+	Graphics.textureManager.load("textures/pants.png");
+	Graphics.textureManager.load("textures/lsblade.png");
+	Graphics.textureManager.load("textures/lshilt.png");
+	Graphics.textureManager.load("textures/clblade.png");
+	Graphics.textureManager.load("textures/clhilt.png");
+	Graphics.textureManager.load("textures/patch.png");
+	Graphics.textureManager.load("textures/patchleft.png");
 
-					CameraTest.NPC.setBodyColor("909099");
-					CameraTest.NPC.setTorso("tank","cccc99");
-					CameraTest.NPC.setLegs("pants","aa5555");
-					CameraTest.NPC.setSword("cl","aaaaaa");
-					CameraTest.NPC.addMisc("patchleft","000033",2);
-					CameraTest.NPC.composeDoll();
-					
-					CameraTest.NPC2 = CameraTest.NPC.clone();
-					CameraTest.NPC2.setPosition(200, 120);
-					CameraTest.NPC2.setBodyColor("dedefe");
-					CameraTest.NPC2.setHead("hat","992370");
-					CameraTest.NPC2.removeMisc("patchleft");
-					CameraTest.NPC2.composeDoll();
-					CameraTest.em.add(CameraTest.NPC2);
-					
-					CameraTest.NPC3 = CameraTest.NPC.clone();
-					CameraTest.NPC3.setPosition(320, 160);
-					CameraTest.NPC3.setTorso("shirt","dedefe");
-					CameraTest.NPC3.composeDoll();
-					CameraTest.em.add(CameraTest.NPC3);
-				
-			}
-			
-		},
-		
-		loadingScreen: function(){
-			
-		},
-		
-		run: function() {
-			CameraTest.em.resetAll();
-			CameraTest.cursorOnNPC = false;
-			
-			CameraTest.em.applyAllEffects();
-			
-			Player.movementLoop();
-			
-			CameraTest.em.allToCurrentWaypoint();
-			CameraTest.em.runPhysics();
-			CameraTest.em.updateAll();
-			
-			
-		},
-		
-		
-		onMouseDown: function(mouseCode, x, y){
-			Player.keyboardReleaseTimer.set(0);
-			if (mouseCode === Input.MOUSE_0)
-		    {
-		        Player.moveButtonDown = true;
-		    }
-			else if (mouseCode === Input.MOUSE_1)
-		    {
-		        Player.attack();
-		    }
-		},
-		
-		onMouseUp: function(mouseCode, x, y){
-			if (mouseCode === Input.MOUSE_0)
-		    {
-		        Player.moveButtonDown = false;
-		    }
-			else if (mouseCode === Input.MOUSE_1)
-		    {
-		        
-		    }
-		},
-		
-		onKeyDown: function(keyCode){
-			var startKB;
-			if (!Player.keyboardMovement) startKB = true;
-			if (keyCode === Input.keyCodes.W) {
-				Player.keyboardMovement += 1;
-			}
-			if (keyCode === Input.keyCodes.A) {
-				Player.keyboardMovement += 2;
-			}
-			if (keyCode === Input.keyCodes.S) {
-				Player.keyboardMovement += 4;
-			}
-			if (keyCode === Input.keyCodes.D) {
-				Player.keyboardMovement += 8;
-			}
-			if ( (startKB) && (Player.keyboardMovement) ){
-				CameraTest.cursor.setPosition(CameraTest.avatar.x, CameraTest.avatar.y);
-			}
-			if (keyCode === Input.keyCodes.K) {
-				Player.attack();
-			}
-		},
-		
-		onKeyUp: function(keyCode){
-			if (keyCode === Input.keyCodes.W) {
-				Player.keyboardMovement -= 1;
-			}
-			if (keyCode === Input.keyCodes.A) {
-				Player.keyboardMovement -= 2;
-			}
-			if (keyCode === Input.keyCodes.S) {
-				Player.keyboardMovement -= 4;
-			}
-			if (keyCode === Input.keyCodes.D) {
-				Player.keyboardMovement -= 8;
-			}
-		},
-		
-		draw: function(){
+	this.wall1 = this.em.createEntity({});
+	this.wall1.setPosition(500,-300);
+	this.wall1.createHitbox(1400,1,0,0);
 
-			Graphics.device.clear([1,1,1,1]);
-			
-			if (Player.keyboardReleaseTimer.get()) {
-				CameraTest.cursor.visible = false;
+	this.wall2 = this.em.createEntity({});
+	this.wall2.setPosition(500,320);
+	this.wall2.createHitbox(1400,1,0,0);
+
+	this.wall3 = this.em.createEntity({});
+	this.wall3.setPosition(-200,10);
+	this.wall3.createHitbox(1,620,0,0);
+	this.wall4 = this.em.createEntity({});
+	this.wall4.setPosition(1200,10);
+	this.wall4.createHitbox(1,620,0,0);
+
+	this.avatar.setPosition(0,170);
+	this.avatar.createStaminaBar();
+	this.avatar.createFocusBar();
+
+	this.NPC = Character.create({});
+	this.NPC.setPosition(640,170);
+	this.NPC.makeHostile();
+	this.NPC.createEffectRadius(80);
+	this.NPC.createEffect({
+		types: [ENT_CHARACTER],
+		doThis: function(it, me){
+			if (it.charType == CHAR_PLAYER) {
+				it.affect("speedMult",0.1);
+				if (it.cursor) it.cursor.affect("range",48);
+				it.affect("inCombat",true);
+				me.affectRadius(120);
 			}
-			else {
-				CameraTest.cursor.visible = true;
+		}
+
+	});
+	this.NPC.createFocusBar();
+	this.em.add(this.NPC);
+
+	this.cursor = this.em.createEntity({permeable: true});
+	this.cursor.range = 128;
+	this.cursor.createSprite({
+		texture: Graphics.textureManager.get("textures/circle.png"),
+		width: 64,
+		height: 48,
+		textureRectangle: [0,0,64,48],
+		color: [0,0,1,1]
+	});
+	this.cursor.createHitbox(8,24,0,0);
+	this.cursor.useHitboxAsEffectRadius();
+
+	this.cursor.createEffect({
+		types: [ENT_CHARACTER],
+		doThis: function(it, me){
+			if (it.charType == CHAR_HOSTILE){
+				this.cursorOnNPC = true;
 			}
-		 	if (Input.mouseDown.left || CameraTest.keyboardMovement) {
-				if (CameraTest.cursorOnNPC) CameraTest.cursor.sprite.setColor([1,0,0,1]);
-				else CameraTest.cursor.sprite.setColor([0,0,1,1]);
-			}
-			else {
-				if (CameraTest.cursorOnNPC) CameraTest.cursor.sprite.setColor([0.4,0,1,0.7]);
-				else CameraTest.cursor.sprite.setColor([0,0.4,1,0.5]);
-			}
-			CameraTest.cursor.sprite.setTexture(Graphics.textureManager.get("textures/circle.png"));
-			CameraTest.cursor.zIndex = CameraTest.avatar.zIndex - 1;
-			CameraTest.em.drawAll(true);
-		},
-		
-	},
-	
+		}
+	});
+
+	this.avatar.cursor = this.cursor;
+
+	this.struck = false;
 }
+CameraTest.loadingLoop = function(){
+	if (!Graphics.textureManager.getNumPendingTextures()) {
+		this.loaded = true;
+	}
 
+	if (this.loaded){
+
+			this.avatar.setBodyColor("bf8000");
+			this.avatar.setHead("hat","992370");
+			this.avatar.setTorso("shirt","cccc99");
+			this.avatar.setLegs("pants","77709a");
+			this.avatar.setSword("ls","aaaaaa");
+			this.avatar.addMisc("patch","000033",2);
+			this.avatar.composeDoll();
+
+			this.NPC.setBodyColor("909099");
+			this.NPC.setTorso("tank","cccc99");
+			this.NPC.setLegs("pants","aa5555");
+			this.NPC.setSword("cl","aaaaaa");
+			this.NPC.addMisc("patchleft","000033",2);
+			this.NPC.composeDoll();
+
+			this.NPC2 = this.NPC.clone();
+			this.NPC2.setPosition(200, 120);
+			this.NPC2.setBodyColor("dedefe");
+			this.NPC2.setHead("hat","992370");
+			this.NPC2.removeMisc("patchleft");
+			this.NPC2.composeDoll();
+			this.em.add(this.NPC2);
+
+			this.NPC3 = this.NPC.clone();
+			this.NPC3.setPosition(320, 160);
+			this.NPC3.setTorso("shirt","dedefe");
+			this.NPC3.composeDoll();
+			this.em.add(this.NPC3);
+
+	}
+}

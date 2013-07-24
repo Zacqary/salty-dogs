@@ -6,26 +6,19 @@
 	Includes:
 	- Loop
 	
-	At some point Loop should probably be changed into a class, and this
-	interface can be renamed to something else or folded into Protocol
-	
 */
 
-/*	Loop Interface
-		Runs the current GameState Loop
+/*	Loop Class
+		Basic loop template
 */
-var Loop = {
+var Loop = function(){ }
 
-	game: function(){
+Loop.prototype.initialize = function() { }
+Loop.prototype.run = function() { }
+Loop.prototype.draw = function() { }
 
-		GameState.loop();
-		
-		if (!Graphics.device.beginFrame()) {
-			return;
-		}
-		Graphics.device.clear([0.5,0.5,0.5,1]);
-		GameState.draw();
-		Graphics.device.endFrame();
-	},
-	
+Loop.prototype.loadingLoop = function() { 
+	this.loaded = true;
 }
+Loop.prototype.loadingScreen = function() { }
+Loop.prototype.loaded = false;

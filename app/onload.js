@@ -26,6 +26,6 @@ TurbulenzEngine.onload = function onloadFn()
 	// Game-specific code 
 	// ==================
 	
-	GameState.set(CameraTest.loop);
+	GameState.set(CameraTest);
 	
 };

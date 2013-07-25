@@ -17,18 +17,26 @@ CameraTest.initializeExtension = function(){
 	this.wall1 = this.em.createEntity({});
 	this.wall1.setPosition(500,-300);
 	this.wall1.createHitbox(1400,1,0,0);
-	//this.wall1.hitbox.setAsStatic();
+	this.wall1.hitbox.sleep();
+	this.wall1.hitbox.setAsStatic();
 	
 	this.wall2 = this.em.createEntity({});
 	this.wall2.setPosition(500,320);
 	this.wall2.createHitbox(1400,1,0,0);
-
+	this.wall2.hitbox.sleep();
+	this.wall2.hitbox.setAsStatic();
+	
 	this.wall3 = this.em.createEntity({});
 	this.wall3.setPosition(-200,10);
 	this.wall3.createHitbox(1,620,0,0);
+	this.wall3.hitbox.sleep();
+	this.wall3.hitbox.setAsStatic();
+	
 	this.wall4 = this.em.createEntity({});
 	this.wall4.setPosition(1200,10);
 	this.wall4.createHitbox(1,620,0,0);
+	this.wall4.hitbox.sleep();
+	this.wall4.hitbox.setAsStatic();
 
 	this.avatar.setPosition(0,170);
 	this.avatar.createStaminaBar();
@@ -104,7 +112,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC.setSword("cl","aaaaaa");
 			this.NPC.addMisc("patchleft","000033",2);
 			this.NPC.composeDoll();
-			this.NPC.focus.setMax(15);
+			//this.NPC.focus.setMax(15);
 		
 			/*
 			this.NPC2 = this.NPC.clone();

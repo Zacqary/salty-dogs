@@ -17,6 +17,8 @@ var CHAR_HOSTILE = "CHAR_HOSTILE";
 var CHAR_NEUTRAL = "CHAR_NEUTRAL";
 var CHAR_FRIENDLY = "CHAR_FRIENDLY";
 
+var HIT_CLOCK_GREEN_ZONE = 1/2.5;
+
 var Character = function (params){
 	
 	var c = Entity.create(params);
@@ -101,6 +103,7 @@ var Character = function (params){
 		
 		if(this.bars.staminaBar) c.createStaminaBar();
 		if(this.bars.focusBar) c.createFocusBar();
+		if(this.bars.hitClockBar) c.createHitClockBar();
 		
 		return c;
 	}
@@ -297,6 +300,16 @@ var Character = function (params){
 			effects: {
 				reposition: function(bar){
 					bar.setPosition(sprite.x, sprite.y + 44)
+				},
+				flash: function(bar, emptySprite, fullSprite, spectrum){
+					if ( (spectrum.get() <= spectrum.getMax() * HIT_CLOCK_GREEN_ZONE) && (spectrum.get() > 0) ){
+						fullSprite.setColor([0.8,1,0.8,1]);
+						emptySprite.setColor([0,0.8,0,1]);
+					}
+					else {
+						fullSprite.setColor([0.8,0.8,0.8,1]);
+						emptySprite.setColor([0,0,0,1]);
+					}
 				}
 			},
 		});
@@ -324,7 +337,9 @@ var Character = function (params){
 		this.sprite.yOffset = 0;
 		this.permeable = true;
 		this.zIndex--;
-		this.bars.focusBar.visible = false;
+		for (var i in this.bars){
+			this.bars[i].visible = false;
+		}
 		this.createHitbox(0,0);
 		this.charType = CHAR_NEUTRAL;
 	}
@@ -338,10 +353,18 @@ var Character = function (params){
 	c.swingAtCharacter = function(other, checkPushForward){
 		//	Deplete this character's stamina
 		this.stamina.plus(-1);
+		//	Deplete it more if the character's attacking too fast
+		if (this.timers.hit.get() > this.timers.hit.getMax() * HIT_CLOCK_GREEN_ZONE){
+			var green = this.timers.hit.getMax() * HIT_CLOCK_GREEN_ZONE;
+			var diff = this.timers.hit.get() - green;
+			var percent = diff/green;
+			this.stamina.plus(-percent);
+		}
 		
 		//	If there's still enough stamina for a proper attack...
 		if (this.stamina.get() > 0) {
-			if (other.timers.hit.get()) this.stamina.plus(-2);
+			//	Deplete the stamina even more if breaking an attack chain
+			if (other.timers.hit.get()) this.stamina.plus(-1);
 			this.strikeCharacter(other, checkPushForward);
 		}
 		

@@ -30,8 +30,7 @@ var Character = function (params){
 	c.createHitbox(48,28);
 	
 	c.damage = 1;
-	c.hitClock = 0;
-	c.hitClockInterval = 0.5;
+	c.damageInterval = 0.25;
 	
 	c.focus = new Spectrum(30);
 	c.focusRegenRate = 1/120;
@@ -42,7 +41,7 @@ var Character = function (params){
 	c.inCombat = false;
 	
 	c.timers = {
-		staminaDamage: new Countdown(0, 0.1),
+		staminaDamage: new Countdown(0, 0.2),
 		hit: new Countdown(0, 0.45),
 	};	
 
@@ -320,7 +319,7 @@ var Character = function (params){
 
 	//	regenerate
 	c.regenerate = function(){
-		if (this.stamina.get() < this.stamina.getMax()) {
+		if (this.stamina.get() < this.stamina.getMax() && !this.timers.staminaDamage.get()) {
 			this.stamina.plus(this.staminaRegenRate);
 		}
 		if ( (!this.inCombat) && (this.focus.get() < this.focus.getMax()) ){
@@ -371,6 +370,17 @@ var Character = function (params){
 		//	If not, damage the stamina and fail the attack
 		else {
 			this.timers.staminaDamage.maxOut();
+		}
+		
+		//	If the character's out of stamina, reset the consecutive hit counter
+		if (this.stamina.get < 1){
+			if (!this.combat.hitResetTimer.get()) {
+				this.combat.hits = 0;
+				this.combat.hitResetTimer = null;
+			}
+			else if (!this.combat.hitResetTimer) {
+				this.combat.hitResetTimer = new Countdown(0.5);
+			}
 		}
 	}
 	
@@ -429,14 +439,17 @@ var Character = function (params){
 		other.overwriteWaypoint(0, oWaypoint[0],oWaypoint[1], slowRange, speed, 0.3);
 		this.overwriteWaypoint(0, myWaypoint[0],myWaypoint[1], slowRange, speed, 0.3);
 		
-		//	Reset the hit clock if this is a new attack chain
-		if (!this.timers.hit.get()){
-			this.hitClock = 0;
+		//	If this character just started attacking, reset the hit counter
+		if (!this.combat.attacker) {
+			this.combat.attacker = true;
+			other.combat.attacker = false;
+			this.combat.hits = 0;
 		}
+		
 		
 		//	Deal focus damage
 		var damageMult = 1;
-		damageMult += this.hitClock;
+		damageMult += this.combat.hits * this.damageInterval;
 		if (pushForward) damageMult /= 2;
 		if (other.retreating) damageMult /= 2;
 		
@@ -444,9 +457,16 @@ var Character = function (params){
 		console.log(damage);
 		other.focus.plus(-damage);
 		
-		//	Set the consecutive hit timer
+		//	Increase the number of consecutive hits
+		this.combat.hits ++;
+		// If the character is attacking too fast, reduce the benefits of a consecutive hit
+		if (this.timers.hit.get() > this.timers.hit.getMax() * HIT_CLOCK_GREEN_ZONE){
+			this.combat.hits -= 0.5;
+		}
+		
+		//	Set the hit chain timer
 		this.timers.hit.maxOut();
-		this.hitClock += this.hitClockInterval;
+		
 	}
 	
 	return c;

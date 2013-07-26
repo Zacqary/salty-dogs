@@ -134,23 +134,68 @@ CameraTest.loadingLoop = function(){
 
 CameraTest.runAfterPlayerMoves = function(){
 	
+	var attackPlayer = function(NPC, avatar){
+		NPC.swingAtCharacter(avatar);
+		var delay = randomNumber(10,50)/100;
+		console.log("delay: "+delay);
+		NPC.combat.delay.set(delay);
+	}
+	
+	if(!this.avatar.inCombat) {
+		this.avatar.combat = null;
+	}
+	else {
+		if (!this.avatar.combat){
+			this.avatar.combat = { };
+		}
+	}
+	
 	if (!this.NPC.inCombat) {
-		this.NPC.timers.combatDelay = null;
+		this.NPC.combat = null;
 		//this.NPC.overwriteWaypoint(0, this.avatar.x, this.avatar.y, 64);
 	}
 	else {
-		if (!this.NPC.timers.combatDelay){
-			this.NPC.timers.combatDelay = new Countdown(0.5);
+		if (!this.NPC.combat){
+			this.NPC.combat = { };
+			this.NPC.combat.restartDelta = 0;
+			this.NPC.combat.delay = new Countdown(0.5);
 		}
 		if ( (this.NPC.stamina.get() > 1) && (!this.avatar.timers.hit.get()) ) {
-			if (!this.NPC.timers.combatDelay.get()) {
-				this.NPC.swingAtCharacter(this.avatar);
+			this.NPC.combat.overSwing = false;
+			
+			if (!this.NPC.combat.delay.get()) {
+				if (this.NPC.timers.hit.get()) {
+					attackPlayer(this.NPC, this.avatar);
+				}
+				else {
+					var focusPercent = this.NPC.focus.get() / this.NPC.focus.getMax();
+					var staminaPercent = this.NPC.stamina.get() / this.NPC.stamina.getMax();
+					var maxDelta = (focusPercent * 40) + 15;
+					if (this.NPC.restartDelta > maxDelta/100) this.NPC.restartDelta = maxDelta/100;
+					if ( (focusPercent <= staminaPercent - this.NPC.combat.restartDelta) || (staminaPercent == 1) ){
+						this.NPC.combat.restartDelta = 0;
+						attackPlayer(this.NPC, this.avatar);
+					}
+				}
 			}
 		}
 		else {
-			this.NPC.timers.combatDelay.maxOut();
+			if (!this.NPC.combat.delay.get() && !this.avatar.timers.hit.get() && !this.NPC.combat.overSwing){
+				if (randomNumber(0,4) == 4) {
+					attackPlayer(this.NPC, this.avatar);
+				}
+				this.NPC.combat.overSwing = true;
+			}
+			if (!this.NPC.combat.restartDelta) {
+				var focusPercent = this.NPC.focus.get() / this.NPC.focus.getMax();
+				var maxDelta = (focusPercent * 40) + 15;
+				
+				this.NPC.combat.restartDelta = randomNumber(5,maxDelta)/100;
+			}
+			this.NPC.combat.delay.set(0.05);
 		}
 	}
+	
 	
 	
 }

@@ -192,7 +192,7 @@ CameraTest.runAfterPlayerMoves = function(){
 				
 				this.NPC.combat.restartDelta = randomNumber(5,maxDelta)/100;
 			}
-			this.NPC.combat.delay.set(0.05);
+			this.NPC.combat.delay.set(randomNumber(2,5)/60);
 		}
 	}
 	

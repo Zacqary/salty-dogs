@@ -52,7 +52,7 @@ CameraTest.initializeExtension = function(){
 		doThis: function(it, me){
 			if (it.charType == CHAR_PLAYER) {
 				it.affect("speedMult",0.1);
-				if (it.cursor) it.cursor.affect("range",48);
+				if (it.cursor) it.cursor.affect("range",64);
 				it.affect("inCombat",true);
 				me.affect("inCombat",true);
 				me.affect("speedMult",0.1);

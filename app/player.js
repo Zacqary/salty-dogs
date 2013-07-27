@@ -44,6 +44,14 @@ Player.movementLoop = function(){
 		}
 		else {
 			
+			//	If in combat, bring the player back to standard distance
+			if (Player.entity.inCombat) {
+				var other = Player.getCurrentCombatant();
+				var currentAngle = Math.angleXY([other.x, other.y],[Player.entity.x, Player.entity.y])*(180/Math.PI);
+				var approachTarget = Math.lineFromXYAtAngle([other.x,other.y],64,-currentAngle);
+				Player.entity.approach(approachTarget[0], approachTarget[1], 32);
+			}
+			
 			// Center the camera back on the player if it's not there
 			var camera = GameState.getCamera();
 			if ( Math.abs(Player.entity.x - camera.x) > 2) {
@@ -140,6 +148,7 @@ Player.curPosWithinRange = function(curPos, avPos, range){
 */
 Player.goToCursor = function(){
 	
+	var approachTarget = [];
 	if (Player.entity.inCombat) {
 		// Check to see if the player is moving towards or away their foe
 		var other = Player.getCurrentCombatant();
@@ -152,9 +161,39 @@ Player.goToCursor = function(){
 			Player.entity.affect("speedMult",Player.entity.speedMult/2);
 			Player.entity.affect("retreating",true);
 		}
+		
+		// If the player is defending, slow down their turning speed
+		if (Player.entity.combat && !Player.entity.combat.attacker){
+			Player.entity.affect("turnSpeed",Player.entity.turnSpeed/2);
+		}
+		
+		
+		var angle = Math.angleXY([other.x, other.y],[Player.entity.cursor.x,Player.entity.cursor.y])*(180/Math.PI);
+		var currentAngle = Math.angleXY([other.x, other.y],[Player.entity.x, Player.entity.y])*(180/Math.PI);
+		var diff = (angle - currentAngle);
+		if (Math.abs(diff) < 120){
+			if (diff < 0) {
+				angle = currentAngle - Player.entity.turnSpeed;
+			}
+			else angle = currentAngle + Player.entity.turnSpeed;
+		}
+		else {
+			if (diff < 0) {
+				angle = currentAngle + Player.entity.turnSpeed;
+			}
+			else angle = currentAngle - Player.entity.turnSpeed;
+		}
+		
+		angle *= Math.PI/180;
+		
+		approachTarget = Math.lineFromXYAtAngle([other.x,other.y],84,angle);
+		if (Player.cursorOnNPC) approachTarget = Math.lineFromXYAtAngle([other.x,other.y],40,-currentAngle);
+		if (Player.entity.retreating) approachTarget = Math.lineFromXYAtAngle([other.x,other.y],128,angle);
+
 	}
+	else approachTarget = [Player.entity.cursor.x,Player.entity.cursor.y];
 	
-	Player.entity.approach(Player.entity.cursor.x, Player.entity.cursor.y, Player.entity.cursor.range);
+	Player.entity.approach(approachTarget[0], approachTarget[1], Player.entity.cursor.range);
 	
 }
 

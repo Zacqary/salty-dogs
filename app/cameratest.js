@@ -64,6 +64,7 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createFocusBar();
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
+	this.NPC.addBehavior(AI.CombatBehavior);
 	this.em.add(this.NPC);
 
 	this.cursor = this.em.createEntity({permeable: true});
@@ -141,22 +142,11 @@ CameraTest.runAfterPlayerMoves = function(){
 		NPC.combat.delay.set(delay);
 	}
 	
-	if(!this.avatar.inCombat) {
-		this.avatar.combat = null;
-	}
-	else {
-		if (!this.avatar.combat){
-			this.avatar.combat = { };
-		}
-	}
+	CameraTest.em.updateCharacterCombatStates();
+	CameraTest.em.runCharacterBehaviors();
 	
-	if (!this.NPC.inCombat) {
-		this.NPC.combat = null;
-		//this.NPC.overwriteWaypoint(0, this.avatar.x, this.avatar.y, 64);
-	}
-	else {
-		if (!this.NPC.combat){
-			this.NPC.combat = { };
+/*	if (this.NPC.inCombat) {
+		if (typeof this.NPC.combat.delay === "undefined"){
 			this.NPC.combat.restartDelta = 0;
 			this.NPC.combat.delay = new Countdown(0.5);
 		}
@@ -194,7 +184,7 @@ CameraTest.runAfterPlayerMoves = function(){
 			}
 			this.NPC.combat.delay.set(randomNumber(2,5)/60);
 		}
-	}
+	} */
 	
 	
 	

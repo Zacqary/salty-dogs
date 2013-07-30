@@ -580,6 +580,17 @@ var EntityManager = function(){
 		}
 		return intersects;
 	}
+	/*	sweepTestRaidus
+			Return all the Entities that intersect an effect radius
+	*/
+	this.sweepTestRadius = function(entity){
+		var intersects = [];
+		for (var i in entities){
+			if (entities[i].isInRadius(entity))
+				intersects.push(entities[i]);
+		}
+		return intersects;
+	}
 	
 	/*	rayCastTest
 			Determines if two Entities have a clear line to one another

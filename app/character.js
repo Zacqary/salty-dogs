@@ -5,6 +5,7 @@
 	
 	Includes:
 	- Character
+	- Character-related functions for EntityManager
 	
 */
 
@@ -44,9 +45,7 @@ var Character = function (params){
 	c.timers = {
 		staminaDamage: new Countdown(0, 0.2),
 		hit: new Countdown(0, 0.45),
-	};	
-
-	c.bars = { };
+	};
 	
 	c.paperDoll = {
 		body: {
@@ -73,6 +72,8 @@ var Character = function (params){
 		misc: [],
 	}
 	
+	var bars = { };
+	var behaviors = { };
 	var paperDollZIndex = [c.paperDoll.body, c.paperDoll.torso, c.paperDoll.legs, c.paperDoll.head, c.paperDoll.sword];
 	
 	//	===============================================================================================================
@@ -101,28 +102,30 @@ var Character = function (params){
 		c.staminaRegenRate = this.staminaRegenRate;
 		c.focus = new Spectrum(this.focus.getMax());
 		
-		if(this.bars.staminaBar) c.createStaminaBar();
-		if(this.bars.focusBar) c.createFocusBar();
-		if(this.bars.hitClockBar) c.createHitClockBar();
+		if(bars.staminaBar) c.createStaminaBar();
+		if(bars.focusBar) c.createFocusBar();
+		if(bars.hitClockBar) c.createHitClockBar();
 		
 		return c;
 	}
 	
 	c.updateExtension = function(){
 		if (this.alive) {
+			//	Handle stats
 			this.regenerate();
 			if (this.focus.get() == 0){
 				this.kill();
+				return;
 			}
 		}
-		for (var i in this.bars){
-			this.bars[i].update();
+		for (var i in bars){
+			bars[i].update();
 		}
 	}
 	
 	c.drawExtension = function(){
-		for (var i in this.bars){
-			if (this.bars[i].visible) this.bars[i].draw();
+		for (var i in bars){
+			if (bars[i].visible) bars[i].draw();
 		}
 	}
 	
@@ -240,8 +243,8 @@ var Character = function (params){
 	c.createStaminaBar = function(){
 		var sdt = this.timers.staminaDamage;
 		var sprite = this.sprite;
-		var myBars = this.bars;
-		this.bars.staminaBar = Graphics.UI.Bar.create({
+		var myBars = bars;
+		bars.staminaBar = Graphics.UI.Bar.create({
 			width: 48,
 			height: 4,
 			x: 0,
@@ -271,7 +274,7 @@ var Character = function (params){
 	
 	c.createFocusBar = function(){
 		var sprite = this.sprite;
-		this.bars.focusBar = Graphics.UI.Bar.create({
+		bars.focusBar = Graphics.UI.Bar.create({
 			width: 48,
 			height: 4,
 			x: 0,
@@ -289,7 +292,7 @@ var Character = function (params){
 	
 	c.createHitClockBar = function(){
 		var sprite = this.sprite;
-		this.bars.hitClockBar = Graphics.UI.Bar.create({
+		bars.hitClockBar = Graphics.UI.Bar.create({
 			width: 48,
 			height: 4,
 			x: 0,
@@ -337,11 +340,20 @@ var Character = function (params){
 		this.sprite.yOffset = 0;
 		this.permeable = true;
 		this.zIndex--;
-		for (var i in this.bars){
-			this.bars[i].visible = false;
+		for (var i in bars){
+			bars[i].visible = false;
 		}
 		this.createHitbox(0,0);
 		this.charType = CHAR_NEUTRAL;
+	}
+	
+	c.updateCombatState = function(){
+		if (!this.inCombat) {
+			this.combat = null;
+		}
+		else if (!this.combat) {
+			this.combat = { };
+		}
 	}
 
 	//	Character actions
@@ -470,6 +482,20 @@ var Character = function (params){
 		
 	}
 	
+	//	AI handling
+	//	===========
+	c.runMyBehaviors = function(){
+		for (var i in behaviors){
+			behaviors[i].run();
+		}
+	}
+	c.addBehavior = function(behavior){
+		behaviors[behavior.name] = new behavior(this);
+	}
+	c.removeBehavior = function(behavior){
+		delete behaviors[behavior.name];
+	}
+	
 	return c;
 }
 Character.prototype = Entity.prototype;
@@ -478,4 +504,23 @@ Character.create = function(params){
 	return new Character(params);
 }
 
-
+//	====================================================================================
+	
+//	EntityManager extensions
+//	========================
+EntityManager.prototype.updateCharacterCombatStates = function(){
+	var entities = this.getEntities();
+	for (var i in entities){
+		if (entities[i].charType) {
+			entities[i].updateCombatState();
+		}
+	}
+}
+EntityManager.prototype.runCharacterBehaviors = function(){
+	var entities = this.getEntities();
+	for (var i in entities){
+		if (entities[i].charType) {
+			entities[i].runMyBehaviors();
+		}
+	}
+}

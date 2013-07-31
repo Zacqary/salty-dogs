@@ -209,6 +209,71 @@ Graphics.EntitySprite = function(params, parent, xOffset, yOffset){
 	}
 	//	draw - Draws the EntitySprite
 	es.draw = function(){
+		if (this.parent.charType) {
+			var lightPos = [300,-300];
+			var light = Draw2DSprite.create({
+				x: lightPos[0],
+				y: lightPos[1],
+				texture: null,
+				color: [1,0,0,1],
+				width: 8,
+				height: 8,
+			});
+			
+			var scale = [1,1];
+			var shear = [0,0];
+			var angle = Math.angleXY(lightPos, [this.parent.x,this.parent.y]) * 180/Math.PI;
+			var xOffset = 0;
+			var yOffset = 0;
+			if (angle >= 180 && angle <= 360){
+				scale = [1,-1];
+				yOffset = 64;
+				var percent = (angle - 260)/45;
+				if (angle < 190) {
+					var p = 1 - ((angle - 180)/10);
+					scale = [1,-1+p];
+					yOffset -= 32*p;
+				}
+				else if (angle > 350) {
+					var p = (angle - 350)/10;
+					scale = [1,-1+p];
+					yOffset -= 32*p;
+				}
+				shear = [-percent,0];
+				xOffset = percent * (this.getWidth() * (2/3));
+				
+			}
+			else {
+				var percent = (angle - 80)/45;
+				if (angle < 10) {
+					var p = 1 - ((angle)/10);
+					scale = [1,1-p];
+					yOffset += 32*p;
+				}
+				else if (angle > 170) {
+					var p = (angle - 170)/10;
+					scale = [1,1-p];
+					yOffset += 32*p;
+				}
+				shear = [percent,0];
+				xOffset = -percent * (this.getWidth() * (2/3));
+			}
+			var shadow = Draw2DSprite.create({
+				x: this.x+xOffset,
+				y: this.y+yOffset,
+				texture: this.getTexture(),
+				color: [0,0,0,0.5],
+				width: this.getWidth(),
+				height: this.getHeight(),
+				scale: scale,
+				shear: shear,
+				textureRectangle: this.getTextureRectangle()
+			});
+
+			
+			Graphics.draw2D.drawSprite(light);
+			Graphics.draw2D.drawSprite(shadow);
+		}
 		Graphics.draw2D.drawSprite(this);
 	}
 	

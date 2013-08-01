@@ -225,7 +225,7 @@ var Character = function (params){
 	//	Character type functions
 	//	========================
 	c.makePlayer = function(){
-		this.charType = CHAR_PLAYER;
+		this.charType = CHAR_FRIENDLY;
 		Player.entity = this;
 	}
 	c.makeNeutral = function(){
@@ -350,6 +350,7 @@ var Character = function (params){
 	c.updateCombatState = function(){
 		if (!this.inCombat) {
 			this.combat = null;
+	
 		}
 		else if (!this.combat) {
 			this.combat = { };

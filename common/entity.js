@@ -596,10 +596,13 @@ var EntityManager = function(){
 			Determines if two Entities have a clear line to one another
 	*/
 	this.rayCastTest = function(a, b){
+		var vector = [b.x - a.x, b.y - a.y];
+		var magnitude = Math.sqrt(Math.pow(vector[0],2) + Math.pow(vector[1],2));
+		var unitVector = [vector[0]/magnitude, vector[1]/magnitude];
 		var ray = {
 			origin: [a.x,a.y],
-			direction: [b.x - a.x, b.y - a.y],
-			maxFactor: 2
+			direction: unitVector,
+			maxFactor: 128
 		}
 		var result = world.rayCast(ray, true, function(ray, result){
 			if (result.shape === a.hitbox.shapes[0]){
@@ -607,7 +610,9 @@ var EntityManager = function(){
 			}
 			return true;
 		});
-		return (result.shape === b.hitbox.shapes[0]);
+		if (result !== null)
+			return (result.shape === b.hitbox.shapes[0]);
+		else return false;
 	}
 	
 }

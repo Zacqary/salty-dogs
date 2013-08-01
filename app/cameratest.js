@@ -50,10 +50,10 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createEffect({
 		types: [ENT_CHARACTER],
 		doThis: function(it, me){
-			if (it.charType == CHAR_PLAYER) {
+			if (it.charType != me.charType || it.charType == CHAR_NEUTRAL) {
 				it.affect("speedMult",0.1);
 				if (it.cursor) it.cursor.affect("range",64);
-				it.affect("inCombat",true);
+				if (it == Player.entity) it.affect("inCombat",true);
 				me.affect("inCombat",true);
 				me.affect("speedMult",0.1);
 				me.affectRadius(120);
@@ -115,21 +115,41 @@ CameraTest.loadingLoop = function(){
 			this.NPC.composeDoll();
 			//this.NPC.focus.setMax(15);
 		
-			/*
+			
 			this.NPC2 = this.NPC.clone();
 			this.NPC2.setPosition(200, 120);
 			this.NPC2.setBodyColor("dedefe");
 			this.NPC2.setHead("hat","992370");
 			this.NPC2.removeMisc("patchleft");
 			this.NPC2.composeDoll();
+			this.NPC2.addBehavior(AI.CombatBehavior);
+			this.NPC2.name = "NPC2";
 			this.em.add(this.NPC2);
-
+			
+			this.NPC2.debug = true;
+			
+			
 			this.NPC3 = this.NPC.clone();
-			this.NPC3.setPosition(320, 160);
+			this.NPC3.setPosition(280, 160);
 			this.NPC3.setTorso("shirt","dedefe");
 			this.NPC3.composeDoll();
+			this.NPC3.makeFriendly();
+			this.NPC3.addBehavior(AI.CombatBehavior);
+			this.NPC3.name = "NPC3";
 			this.em.add(this.NPC3);
-			*/
+			this.NPC3.debug = true;
+			
+			this.NPC4 = this.NPC.clone();
+			this.NPC4.setPosition(180, 160);
+			this.NPC4.setTorso("shirt","dedefe");
+			this.NPC4.composeDoll();
+			this.NPC4.makeFriendly();
+			this.NPC4.addBehavior(AI.CombatBehavior);
+			this.em.add(this.NPC4);
+			this.NPC4.debug = true;
+			
+			console.log(this.em.getEntities());
+			
 	}
 }
 

@@ -29,23 +29,29 @@ AI.CombatBehavior = function(me){
 		//	Figure out whose radius the character is in
 		var imIn = em.sweepTestRadius(me);
 		//	Now discard the radii that don't belong to enemy characters
+		var candidates = [];
 		for (var i in imIn){
-			if (imIn[i].charType == (me.charType || CHAR_NEUTRAL) )
-				imIn.splice(i,1);
+			if ( (imIn[i].entType == ENT_CHARACTER) && (imIn[i].charType != me.charType) && (imIn[i].charType != CHAR_NEUTRAL) ){
+				candidates.push(imIn[i])
+			}
 		}
-
-		return imIn[0];
+		return candidates[0];
 	}
 	
 	this.run = function(){
 		//	Only run the behavior if the character is in combat
 		if (me.inCombat) {
-			//	Recreate the stats if character just entered combat
-			if (!stats){
+			//	Recreate the stats if character just entered combat, or if the wrong enemy is targeted
+			if (!stats || !stats.enemy.inCombat){
 				stats = { };
 				stats.restartDelta = 0; // How much more %stamina than %focus character needs to start attacking 
 				stats.delay = new Countdown(0.5);
 				stats.enemy = getCurrentCombatant();
+				if (!stats.enemy) {
+					me.inCombat = false;
+					console.log(me.name+" bug");
+					return;
+				}
 			}
 			//	If this character has enough stamina to attack, and enemy isn't currently attacking
 			if ( (me.stamina.get() > 1) && (!stats.enemy.timers.hit.get()) ) {

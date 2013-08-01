@@ -208,24 +208,27 @@ Player.attack = function(){
 		
 	var checkPushForward = false;
 	if (Player.moveButtonDown || Player.keyboardMovement) checkPushForward = true;
-	var other = Player.getCurrentCombatant();
+	var other = Player.getCurrentCombatant(true);
+	
 	if (other) Player.entity.swingAtCharacter(other, checkPushForward);
 	
 }
 /*	getCurrentCombatant
 		Figure out who the player's current combatant is, based on avatar and cursor position
 */
-Player.getCurrentCombatant = function(){
+Player.getCurrentCombatant = function(forceRayTest){
 	var em = Player.entity.manager;
 	//	Figure out whose radius the player is in
 	var imIn = em.radiusSweepTest(Player.entity);
 	//	Now discard the radii that don't belong to hostile characters
 	for (var i in imIn){
-		if (imIn[i].charType != CHAR_HOSTILE)
+		if (imIn[i].charType != CHAR_HOSTILE){
 			imIn.splice(i,1);
+		}
 	}
-	
-	var other = false; // The current combatant. If there isn't one, this will return false.
+
+	var other = imIn[0]; // The current combatant. If there isn't one, this will return false.
+	if (!forceRayTest) var otherStore = other;
 	
 	//	If the player actually is in an enemy's radius
 	if (imIn.length > 0) {
@@ -243,13 +246,15 @@ Player.getCurrentCombatant = function(){
 		//	Test each enemy until we find the closest enemy that the player can actually touch
 		while (1){
 			other = em.get(distances[0].name);
-			if(em.rayCastTest(CameraTest.avatar, other)) break;
+			if(em.rayCastTest(Player.entity, other)) break;
 			else {
 				distances.splice(0,1);
+				other = false;
 				if (!distances.length) break;
 			}
 		}
 	}
+	if (!forceRayTest && !other) other = otherStore;
 	
 	return other;
 	

@@ -350,16 +350,15 @@ Entity.prototype.isInRadius = function(entity){
 Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 	//	We want to move the Entity at its speed modified by its speedMult, 
 	//	unless overridden with a specific speed
-	var xSpeed = speedOverride || this.speed * this.speedMult;
-	var ySpeed = xSpeed;
-
-	var distance = Math.distanceXY([targetX,targetY],[this.x,this.y]);
 	var speed = speedOverride || this.speed * this.speedMult;
+	//	Slow the Entity down the closer it gets to its target
+	var distance = Math.distanceXY([targetX,targetY],[this.x,this.y]);
 	var slowdown = (distance/range);
 	if (slowdown < 1) {
 		speed *= slowdown;
 	}
 	
+	//	Calculate the velocity destination in order to achieve the appropriate speed
 	var tick = 60/(distance/speed);
 	
 	//	Push the Entity towards the destination

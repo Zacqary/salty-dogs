@@ -130,15 +130,10 @@ Player.parseWASD = function(){
 		player's avatar
 */
 Player.curPosWithinRange = function(curPos, avPos, range){
-	//	If the X difference between cursor and avatar is greater than the cursor's range
-	if ( Math.abs(curPos[0] - avPos[0]) > range) {
-		if (curPos[0] < avPos[0]) curPos[0] = avPos[0] - range;
-		else curPos[0] = avPos[0] + range;	
-	}
-	//	Perform same check for Y
-	if ( Math.abs(curPos[1] - avPos[1]) > range ) {
-		if (curPos[1] < avPos[1]) curPos[1] = avPos[1] - range;
-		else curPos[1] = avPos[1] + range;	
+	//	Keep the cursor within a radius (equal to the range value) of the avatar
+	if (Math.distanceXY(avPos,curPos) > range){
+		var angle = Math.angleXY(avPos,curPos);
+		curPos = Math.lineFromXYAtAngle(avPos,range,angle);
 	}
 	
 	return curPos;

@@ -51,6 +51,8 @@ var InCharacterLoop = function(){
 		Player.entity.cursor.sprite.setTexture(Graphics.textureManager.get("textures/circle.png"));
 		Player.entity.cursor.zIndex = Player.entity.zIndex - 1;
 		this.em.drawAll(true);
+		
+		if (this.drawExtension) this.drawExtension();
 	}
 
 	l.onMouseDown = function(mouseCode, x, y){

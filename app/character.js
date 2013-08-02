@@ -356,6 +356,23 @@ var Character = function (params){
 			this.combat = { };
 		}
 	}
+	
+	c.takeDamage = function(damage, other){
+		var d = damage;
+		if (this.retreating) d /= 2;
+		if (this.pushingForward) d *= 2;
+		else {
+			var result = this.manager.rayCastTestXY(this,this.waypoints[0]);
+			if (result && result.shape !== other.hitbox.shapes[0]){
+				console.log(result.shape.body.entity);
+				console.log("Blocked!");
+				d *= 3;
+			}
+		}
+		
+		console.log(d);
+		this.focus.plus(-d);
+	}
 
 	//	Character actions
 	//	=================
@@ -363,7 +380,7 @@ var Character = function (params){
 	/*	swingAtCharacter
 			Try to attack another character, fail if there's not enough stamina
 	*/
-	c.swingAtCharacter = function(other, checkPushForward){
+	c.swingAtCharacter = function(other){
 		//	Deplete this character's stamina
 		this.stamina.plus(-1);
 		//	Deplete it more if the character's attacking too fast
@@ -378,7 +395,7 @@ var Character = function (params){
 		if (this.stamina.get() > 0) {
 			//	Deplete the stamina even more if breaking an attack chain
 			if (other.timers.hit.get()) this.stamina.plus(-1);
-			this.strikeCharacter(other, checkPushForward);
+			this.strikeCharacter(other);
 		}
 		
 		//	If not, damage the stamina and fail the attack
@@ -401,7 +418,7 @@ var Character = function (params){
 	/*	strikeCharacter
 			Attack another Character, pushing them away from this Character
 	*/
-	c.strikeCharacter = function(other, checkPushForward){
+	c.strikeCharacter = function(other){
 		
 		//Get the angle between this character's hitbox and the other character's hitbox
 		var theta = Math.angleXY(this.hitbox.getPosition(), other.hitbox.getPosition());
@@ -427,22 +444,31 @@ var Character = function (params){
 		var distance = Math.sqrt( Math.pow(xDiff,2) + Math.pow(yDiff,2) );
 
 		//	If this character is pushing forward, increase the push distance
-		var pushForward = false;
-		if (checkPushForward){
-			if (Physics.collisionUtils.intersects(this.cursor.hitbox.shapes[0],other.hitbox.shapes[0]) )
-				pushForward = true;
-		}
-		if (other.retreating) pushForward = true;
-		if (pushForward === true){
+		var doublePush = function(){
 			push *= 2;
 			pushRadius *= 1.25;
 			speed *= 2;
 			slowRange * 2;
 		}
+		if (this.pushingForward){
+			doublePush();
+		}
+		//	Also double (or double again) if the other character is retreating
+		if (other.retreating){
+			doublePush();
+		}
+		//	Quarter the push distance if the other character is refusing to give up ground
+		if (other.pushingForward){
+			push *= .25;
+			pushRadius *= .5;
+			speed *= .25;
+			slowRange * .25;
+		}
 		
 		//	Generate the waypoints towards which to push both characters
 		var oWaypoint = [];
 		var myWaypoint = [];
+		
 		//	Push the other character along the angle between the two characters' hitboxes
 		oWaypoint = Math.lineFromXYAtAngle([other.x,other.y],push,theta);
 		//	Push this character along the same angle, but pushRadius pixels away from the other character
@@ -464,12 +490,10 @@ var Character = function (params){
 		//	Deal focus damage
 		var damageMult = 1;
 		damageMult += this.combat.hits * this.damageInterval;
-		if (pushForward) damageMult /= 2;
-		if (other.retreating) damageMult /= 2;
+		if (this.pushingForward) damageMult /= 2;
 		
 		var damage = this.damage * damageMult;
-		console.log(damage);
-		other.focus.plus(-damage);
+		other.takeDamage(damage, this);
 		
 		//	Increase the number of consecutive hits
 		this.combat.hits ++;

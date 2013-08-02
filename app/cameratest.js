@@ -44,6 +44,7 @@ CameraTest.initializeExtension = function(){
 	this.avatar.createHitClockBar();
 	
 	this.NPC = Character.create({});
+	this.NPC.name = "NPC1";
 	this.NPC.setPosition(640,-100);
 	this.NPC.makeHostile();
 	this.NPC.createEffectRadius(80);
@@ -52,7 +53,7 @@ CameraTest.initializeExtension = function(){
 		doThis: function(it, me){
 			if (it.charType != me.charType || it.charType == CHAR_NEUTRAL) {
 				it.affect("speedMult",0.1);
-				if (it.cursor) it.cursor.affect("range",64);
+				if (it.cursor) it.cursor.affect("range",72);
 				if (it == Player.entity) it.affect("inCombat",true);
 				me.affect("inCombat",true);
 				me.affect("speedMult",0.1);
@@ -117,7 +118,7 @@ CameraTest.loadingLoop = function(){
 		
 			
 			this.NPC2 = this.NPC.clone();
-			this.NPC2.setPosition(200, 120);
+			this.NPC2.setPosition(64, 170);
 			this.NPC2.setBodyColor("dedefe");
 			this.NPC2.setHead("hat","992370");
 			this.NPC2.removeMisc("patchleft");
@@ -130,11 +131,11 @@ CameraTest.loadingLoop = function(){
 			
 			
 			this.NPC3 = this.NPC.clone();
-			this.NPC3.setPosition(280, 160);
+			this.NPC3.setPosition(128, 170);
 			this.NPC3.setTorso("shirt","dedefe");
 			this.NPC3.composeDoll();
 			this.NPC3.makeFriendly();
-			this.NPC3.addBehavior(AI.CombatBehavior);
+			//this.NPC3.addBehavior(AI.CombatBehavior);
 			this.NPC3.name = "NPC3";
 			this.em.add(this.NPC3);
 			this.NPC3.debug = true;
@@ -144,68 +145,31 @@ CameraTest.loadingLoop = function(){
 			this.NPC4.setTorso("shirt","dedefe");
 			this.NPC4.composeDoll();
 			this.NPC4.makeFriendly();
-			this.NPC4.addBehavior(AI.CombatBehavior);
-			this.em.add(this.NPC4);
-			this.NPC4.debug = true;
+			//this.NPC4.addBehavior(AI.CombatBehavior);
+			//this.em.add(this.NPC4);
+			this.NPC4.debug = true; 
 			
-			console.log(this.em.getEntities());
 			
 	}
 }
 
 CameraTest.runAfterPlayerMoves = function(){
 	
-	var attackPlayer = function(NPC, avatar){
-		NPC.swingAtCharacter(avatar);
-		var delay = randomNumber(10,50)/100;
-		console.log("delay: "+delay);
-		NPC.combat.delay.set(delay);
-	}
-	
 	CameraTest.em.updateCharacterCombatStates();
 	CameraTest.em.runCharacterBehaviors();
 	
-/*	if (this.NPC.inCombat) {
-		if (typeof this.NPC.combat.delay === "undefined"){
-			this.NPC.combat.restartDelta = 0;
-			this.NPC.combat.delay = new Countdown(0.5);
-		}
-		if ( (this.NPC.stamina.get() > 1) && (!this.avatar.timers.hit.get()) ) {
-			this.NPC.combat.overSwing = false;
-			
-			if (!this.NPC.combat.delay.get()) {
-				if (this.NPC.timers.hit.get()) {
-					attackPlayer(this.NPC, this.avatar);
-				}
-				else {
-					var focusPercent = this.NPC.focus.get() / this.NPC.focus.getMax();
-					var staminaPercent = this.NPC.stamina.get() / this.NPC.stamina.getMax();
-					var maxDelta = (focusPercent * 40) + 15;
-					if (this.NPC.restartDelta > maxDelta/100) this.NPC.restartDelta = maxDelta/100;
-					if ( (focusPercent <= staminaPercent - this.NPC.combat.restartDelta) || (staminaPercent == 1) ){
-						this.NPC.combat.restartDelta = 0;
-						attackPlayer(this.NPC, this.avatar);
-					}
-				}
-			}
-		}
-		else {
-			if (!this.NPC.combat.delay.get() && !this.avatar.timers.hit.get() && !this.NPC.combat.overSwing){
-				if (randomNumber(0,4) == 4) {
-					attackPlayer(this.NPC, this.avatar);
-				}
-				this.NPC.combat.overSwing = true;
-			}
-			if (!this.NPC.combat.restartDelta) {
-				var focusPercent = this.NPC.focus.get() / this.NPC.focus.getMax();
-				var maxDelta = (focusPercent * 40) + 15;
-				
-				this.NPC.combat.restartDelta = randomNumber(5,maxDelta)/100;
-			}
-			this.NPC.combat.delay.set(randomNumber(2,5)/60);
-		}
-	} */
 	
-	
-	
+}
+
+CameraTest.drawExtension = function(){
+	if (CameraTest.rayCastRect) {
+		var rect = CameraTest.rayCastRect;
+		var points = CameraTest.rayCastPoints;
+		Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
+		Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
+		Graphics.debugDraw.begin();
+		Graphics.debugDraw.drawRectangle(rect[0],rect[1],rect[2],rect[3],[1,0,0,1]);
+		Graphics.debugDraw.drawLine(points[0][0],points[0][1],points[1][0],points[1][1],[0,0,1,1]);
+		Graphics.debugDraw.end();
+	}
 }

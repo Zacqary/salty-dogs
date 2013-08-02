@@ -305,6 +305,7 @@ Entity.prototype.createHitbox = function(width,height,xOffset,yOffset){
 	xOffset = xOffset || 0;
 	yOffset = yOffset || 0;
 	this.hitbox = Entity.createHitbox(width,height,xOffset,yOffset);
+	this.hitbox.entity = this;
 	this.hitbox.setPosition([this.x,this.y]);
 }
 /*	createEffectRadius
@@ -591,27 +592,65 @@ var EntityManager = function(){
 		return intersects;
 	}
 	
-	/*	rayCastTest
-			Determines if two Entities have a clear line to one another
+	/*	rayCastTestAB
+			Determines if Entity A has an unobstructed line to Entity B
 	*/
-	this.rayCastTest = function(a, b){
-		var vector = [b.x - a.x, b.y - a.y];
-		var magnitude = Math.sqrt(Math.pow(vector[0],2) + Math.pow(vector[1],2));
-		var unitVector = [vector[0]/magnitude, vector[1]/magnitude];
+	this.rayCastTestAB = function(a, b){
 		var ray = {
 			origin: [a.x,a.y],
-			direction: unitVector,
-			maxFactor: 128
+			direction: Math.unitVector(a.getPosition(), b.getPosition()),
+			maxFactor: Math.distanceXY(a.getPosition(), b.getPosition()),
 		}
-		var result = world.rayCast(ray, true, function(ray, result){
-			if (result.shape === a.hitbox.shapes[0]){
+		var result = world.rayCast(ray, true, function(ray, tempResult){
+			if (tempResult.shape === a.hitbox.shapes[0]){
 				return false;
 			}
 			return true;
 		});
-		if (result !== null)
+		
+		
+		
+		if (result !== null) {
 			return (result.shape === b.hitbox.shapes[0]);
+		}
 		else return false;
+	}
+	
+	/*	rayCastTestXY
+			Determines if an Entity has an unobstructed line to a point
+	*/
+	this.rayCastTestXY = function(a, point){
+		var ray = {
+			origin: [a.x,a.y],
+			direction: Math.unitVector(a.getPosition(), point),
+			maxFactor: Math.distanceXY(a.getPosition(), point)
+		}
+
+		var result = world.rayCast(ray, true, function(ray, tempResult){
+			if (tempResult.shape === a.hitbox.shapes[0]){
+				return false;
+			}
+			return true;
+		});
+		
+		var x1 = a.x;
+        var y1 = a.y;
+		var direction = Math.unitVector(a.getPosition(), point);
+		var maxFactor = Math.distanceXY(a.getPosition(), point);
+        var x2 = x1 + (direction[0] * maxFactor);
+        var y2 = y1 + (direction[1] * maxFactor);
+		var rect = [];
+	    rect[0] = (x1 < x2 ? x1 : x2);
+        rect[1] = (y1 < y2 ? y1 : y2);
+        rect[2] = (x1 < x2 ? x2 : x1);
+        rect[3] = (y1 < y2 ? y2 : y1);
+		CameraTest.rayCastRect = rect;
+		CameraTest.rayCastPoints = [a.getPosition(), point];
+		
+		if (result.shape === a.hitbox.shapes[0]){
+			return false;
+		}
+		else return result;
 	}
 	
 }

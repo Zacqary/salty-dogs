@@ -25,3 +25,10 @@ Math.vNeg = function(array){
 	}
 	return a;
 }
+
+Math.unitVector = function(a, b){
+	var vector = [b[0] - a[0], b[1] - a[1]];
+	var magnitude = Math.sqrt(Math.pow(vector[0],2) + Math.pow(vector[1],2));
+	var unitVector = [vector[0]/magnitude, vector[1]/magnitude];
+	return unitVector;
+}

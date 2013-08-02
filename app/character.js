@@ -362,10 +362,15 @@ var Character = function (params){
 		if (this.retreating) d /= 2;
 		if (this.pushingForward) d *= 2;
 		else {
-			var result = this.manager.rayCastTestXY(this,this.waypoints[0]);
-			if (result && result.shape !== other.hitbox.shapes[0]){
+			var buffer = 16;
+			var angle = Math.angleXY(this.getPosition(),this.waypoints[0]);
+			var endpoint = Math.lineFromXYAtAngle(this.waypoints[0],buffer,angle);
+			
+			var result = this.manager.rayCastTestXY(this,endpoint);
+			if (result){
 				console.log(result.shape.body.entity);
 				console.log("Blocked!");
+				if (other.pushingForward) d *= 2;
 				d *= 3;
 			}
 		}
@@ -427,7 +432,7 @@ var Character = function (params){
 		var hitboxHeight = 28;
 
 		//	Default values for how far to push the other character, and how far this character should stand away
-		var push = 30;
+		var push = 45;
 		var pushRadius = 64;
 		var speed = 2;
 		var slowRange = 10;

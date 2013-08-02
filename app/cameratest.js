@@ -33,19 +33,19 @@ CameraTest.initializeExtension = function(){
 	this.wall3.hitbox.setAsStatic();
 	
 	this.wall4 = this.em.createEntity({});
-	this.wall4.setPosition(1200,10);
+	this.wall4.setPosition(400,10);
 	this.wall4.createHitbox(1,620,0,0);
 	this.wall4.hitbox.sleep();
 	this.wall4.hitbox.setAsStatic();
 
-	this.avatar.setPosition(0,170);
+	//this.avatar.setPosition(0,120);
 	this.avatar.createStaminaBar();
 	this.avatar.createFocusBar();
 	this.avatar.createHitClockBar();
 	
 	this.NPC = Character.create({});
 	this.NPC.name = "NPC1";
-	this.NPC.setPosition(640,-100);
+	this.NPC.setPosition(200,0);
 	this.NPC.makeHostile();
 	this.NPC.createEffectRadius(80);
 	this.NPC.createEffect({
@@ -92,6 +92,8 @@ CameraTest.initializeExtension = function(){
 	this.avatar.cursor = this.cursor;
 
 	this.struck = false;
+	
+	this.em.updateAll();
 }
 CameraTest.loadingLoop = function(){
 	if (!Graphics.textureManager.getNumPendingTextures()) {

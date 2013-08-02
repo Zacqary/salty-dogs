@@ -646,11 +646,8 @@ var EntityManager = function(){
         rect[3] = (y1 < y2 ? y2 : y1);
 		CameraTest.rayCastRect = rect;
 		CameraTest.rayCastPoints = [a.getPosition(), point];
-		
-		if (result.shape === a.hitbox.shapes[0]){
-			return false;
-		}
-		else return result;
+	
+		return result;
 	}
 	
 }

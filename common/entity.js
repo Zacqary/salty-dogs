@@ -126,9 +126,9 @@ Entity.prototype.isAtPosition = function(x,y,z){
 	}
 	z = z || 0;
 	var truth = 0;
-	if (x == this.x) truth++;
-	if (y == this.y) truth++;
-	if (z == this.z) truth++;
+	if (Math.abs(x-this.x) < 1) truth++;
+	if (Math.abs(y-this.y) < 1) truth++;
+	if (Math.abs(z-this.z) < 1) truth++;
 	if (truth == 3) return true;
 	else return false;
 }
@@ -397,7 +397,7 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 Entity.prototype.addWaypoint = function(x, y, range, override, timer){
 	if (x.length) {
 		timer = override;
-		override = timer;
+		override = range;
 		range = y;
 		y = x[1];
 		x = x[0];
@@ -414,7 +414,7 @@ Entity.prototype.addWaypoint = function(x, y, range, override, timer){
 Entity.prototype.overwriteWaypoint = function(index, x, y, range, override, timer){
 	if (x.length) {
 		timer = override;
-		override = timer;
+		override = range;
 		range = y;
 		y = x[1];
 		x = x[0];
@@ -434,7 +434,9 @@ Entity.prototype.nextWaypoint = function(){
 
 Entity.prototype.getWaypoint = function(index){
 	index = index || 0;
-	return ([this.waypoints[index].x,this.waypoints[index].y]);
+	if (this.waypoints[index])
+		return ([this.waypoints[index].x,this.waypoints[index].y]);
+	else return false;
 }
 
 Entity.prototype.hasWaypoint = function(x, y){
@@ -703,6 +705,18 @@ var EntityManager = function(){
 		});
 	
 		return result;
+	}
+	
+	this.hitboxProjectionTest = function(a, point){
+		var store = [];
+		var rectangle = [point[0] - (a.hitbox.width/2), point[1] - (a.hitbox.height/2), point[0] + (a.hitbox.width/2), point[1] + (a.hitbox.height/2)];
+		if (world.bodyRectangleQuery(rectangle,store)) {
+			for (var i in store){
+				if (store[i] == a.hitbox) store.splice(i,1);
+			}
+			return store.length;
+		}
+		else return false;
 	}
 	
 	this.getWorld = function(){

@@ -103,6 +103,11 @@ PathfindingTest.loadingLoop = function(){
 PathfindingTest.runAfterPlayerMoves = function(){
 	
 	PathfindingTest.em.runCharacterBehaviors();
+	if (!this.NPC.aiGoals.movement){
+		var x = randomNumber (0,500) - 100;
+		var y = randomNumber (0,500) - 270;
+		this.NPC.setMovementAIGoal(x,y);
+	}
 	
 	
 }
@@ -112,9 +117,14 @@ PathfindingTest.drawExtension = function(){
 		Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
 		Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
 		Graphics.debugDraw.begin();
-		for (var i in PathfindingTest.drawPath){
+		for (var i =0; i < PathfindingTest.drawPath.length; i++){
 			var me = PathfindingTest.drawPath[i];
-			Graphics.debugDraw.drawRectangle(me[0],me[1],me[0]+1,me[1]+1,[1,0,0,1]);
+			Graphics.debugDraw.drawCircle(me[0],me[1],4,[1,0,0,1]);
+			if (i < PathfindingTest.drawPath.length-1){
+				var next = PathfindingTest.drawPath[i+1];
+				Graphics.debugDraw.drawLine(me[0],me[1],next[0],next[1],[0,0,1,1]);
+			}
+			
 		}
 		Graphics.debugDraw.end();
 	}

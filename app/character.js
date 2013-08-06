@@ -47,6 +47,8 @@ var Character = function (params){
 		hit: new Countdown(0, 0.45),
 	};
 	
+	c.aiGoals = { };
+	
 	c.paperDoll = {
 		body: {
 			type: "body",
@@ -363,8 +365,8 @@ var Character = function (params){
 		if (this.pushingForward) d *= 2;
 		else {
 			var buffer = 16;
-			var angle = Math.angleXY(this.getPosition(),this.waypoints[0]);
-			var endpoint = Math.lineFromXYAtAngle(this.waypoints[0],buffer,angle);
+			var angle = Math.angleXY(this.getPosition(),this.getWaypoint());
+			var endpoint = Math.lineFromXYAtAngle(this.getWaypoint(),buffer,angle);
 			
 			var result = this.manager.rayCastTestXY(this,endpoint);
 			if (result){
@@ -519,11 +521,16 @@ var Character = function (params){
 			behaviors[i].run();
 		}
 	}
-	c.addBehavior = function(behavior){
-		behaviors[behavior.name] = new behavior(this);
+	c.addBehavior = function(name){
+		var behavior = AI[name];
+		behaviors[name] = new behavior(this);
 	}
 	c.removeBehavior = function(behavior){
 		delete behaviors[behavior.name];
+	}
+	
+	c.setMovementAIGoal = function(x,y){
+		this.aiGoals.movement = [x,y];
 	}
 	
 	return c;

@@ -17,7 +17,6 @@ var AI = { };
 		AI routine for when a character is in combat
 */
 AI.CombatBehavior = function(me){
-	this.name = "CombatBehavior";
 	var stats = { };
 	var attack = function(){
 		me.swingAtCharacter(stats.enemy);
@@ -108,4 +107,78 @@ AI.CombatBehavior = function(me){
 	
 } 
 
+
+AI.PathfindingBehavior = function(me){
+	
+	this.run = function(){
+		if (!me.aiGoals.movement) return;
+		if (me.isAtPosition(me.aiGoals.movement)){
+			me.aiGoals.movement = null;
+			currentSlice = null;
+			return;
+		}
+		
+		if (!me.hasWaypoint(me.aiGoals.movement)){
+			me.addWaypoint(me.aiGoals.movement);
+		}
+		
+		var distanceToPoint = new Spectrum(64);
+		distanceToPoint.set(Math.distanceXY(me.getPosition(),me.getWaypoint()));
+		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceToPoint.get())){
+			
+			var gridSize = 16;
+			var tileSize = 16;
+			
+			var angle = Math.angleXY(me.getPosition(), me.getWaypoint());
+			var targetPoint = Math.lineFromXYAtAngle(me.getPosition(),(gridSize*tileSize)/2,angle);
+			
+			var gridOrigin = [me.x - (gridSize*tileSize)/2, me.y - (gridSize*tileSize)/2];
+			var targetOnGrid = [targetPoint[0] - gridOrigin[0], targetPoint[1] - gridOrigin[1]];
+			var targetTile = [Math.round(targetOnGrid[0]/tileSize),Math.round(targetOnGrid[1]/tileSize)];
+			
+			var matrix = [];
+			var world = me.manager.getWorld();
+			var width = me.hitbox.width;
+			var height = me.hitbox.height;
+			var blocks = 0;
+			for (var i = 0; i < gridSize; i++){
+				var row = [];
+				var y = ( (tileSize/2)+(tileSize*i) ) + gridOrigin[1];
+				for (var j = 0; j < gridSize; j++){
+					var x = ( (tileSize/2)+(tileSize*j) ) + gridOrigin[0];
+					var rectangle = [x-(width/2), y-(height/2), x+(width/2), y+(height/2)];
+					var store = [];
+					if (world.bodyRectangleQuery(rectangle,store)) {
+						if (store[0] !== me.hitbox) {
+							blocks++;
+							row.push(1);
+						}
+						else row.push(0);
+					}
+					else row.push(0);
+				}
+				matrix.push(row);
+			}
+
+			var grid = new PF.Grid(gridSize,gridSize,matrix);
+			var finder = new PF.AStarFinder({
+				allowDiagonal: true,
+				dontCrossCorners: true,
+				heuristic: PF.Heuristic.euclidean,
+			});
+			var center = (gridSize/2)-1;
+
+			var path = finder.findPath(center,center,targetTile[0]-1,targetTile[1]-1, grid);
+			me.waypoints = [];
+			PathfindingTest.drawPath = [];
+			for (var i in path){
+				path[i][0] = ( (tileSize/2) + (tileSize*path[i][0]) ) + gridOrigin[0];
+				path[i][1] = ( (tileSize/2) + (tileSize*path[i][1]) ) + gridOrigin[1];
+				me.addWaypoint(path[i]);
+				PathfindingTest.drawPath.push(path[i]);
+			}
+		}
+		
+	}
+}
 

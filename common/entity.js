@@ -87,6 +87,8 @@ Entity.prototype.clone = function(){
 		Update the entity. This is usually called by the EntityManager before drawing.
 */
 Entity.prototype.update = function(){
+	this.hitbox.setRotation(0);
+	
 	//	Mark the Entity as no longer moving (which may be reset next frame if it's still moving)
 	this.movement = null; 
 	this.updatePosition();
@@ -116,6 +118,21 @@ Entity.prototype.setPosition = function(x,y,z){
 Entity.prototype.getPosition = function(){
 	return [this.x,this.y,this.z];
 }
+Entity.prototype.isAtPosition = function(x,y,z){
+	if (x.length) {
+		y = x[1];
+		z = x[2];
+		x = x[0];
+	}
+	z = z || 0;
+	var truth = 0;
+	if (x == this.x) truth++;
+	if (y == this.y) truth++;
+	if (z == this.z) truth++;
+	if (truth == 3) return true;
+	else return false;
+}
+
 
 Entity.prototype.getSpriteOffsetPosition = function(){
 	return[this.x+this.sprite.xOffset, this.y+this.sprite.yOffset];
@@ -306,6 +323,8 @@ Entity.prototype.createHitbox = function(width,height,xOffset,yOffset){
 	yOffset = yOffset || 0;
 	this.hitbox = Entity.createHitbox(width,height,xOffset,yOffset);
 	this.hitbox.entity = this;
+	this.hitbox.width = width;
+	this.hitbox.height = height;
 	this.hitbox.setPosition([this.x,this.y]);
 }
 /*	createEffectRadius
@@ -351,6 +370,7 @@ Entity.prototype.isInRadius = function(entity){
 Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 	//	We want to move the Entity at its speed modified by its speedMult, 
 	//	unless overridden with a specific speed
+	range = range || this.speed;
 	var speed = speedOverride || this.speed * this.speedMult;
 	//	Slow the Entity down the closer it gets to its target
 	var distance = Math.distanceXY([targetX,targetY],[this.x,this.y]);
@@ -361,6 +381,8 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 	
 	//	Calculate the velocity destination in order to achieve the appropriate speed
 	var tick = 60/(distance/speed);
+	//	Avoid dividing by zero
+	if (speed == 0) tick = 60;
 	
 	//	Push the Entity towards the destination
 	this.hitbox.setVelocityFromPosition([targetX,targetY],0,1/tick);
@@ -373,16 +395,63 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 		Manipulates this Entity's array of waypoints
 */
 Entity.prototype.addWaypoint = function(x, y, range, override, timer){
-	this.waypoints.push([x,y,range, override, timer]);
+	if (x.length) {
+		timer = override;
+		override = timer;
+		range = y;
+		y = x[1];
+		x = x[0];
+	}
+	this.waypoints.push({
+		x: x,
+		y: y,
+		range: range,
+		override: override,
+		timer: timer,
+	});
 }
 
 Entity.prototype.overwriteWaypoint = function(index, x, y, range, override, timer){
-	this.waypoints.splice(index,1,[x,y,range, override, timer]);
+	if (x.length) {
+		timer = override;
+		override = timer;
+		range = y;
+		y = x[1];
+		x = x[0];
+	}
+	this.waypoints.splice(index,1,{
+		x: x,
+		y: y,
+		range: range,
+		override: override,
+		timer: timer,
+	});
 }
 
 Entity.prototype.nextWaypoint = function(){
 	this.waypoints.splice(0,1);
 }
+
+Entity.prototype.getWaypoint = function(index){
+	index = index || 0;
+	return ([this.waypoints[index].x,this.waypoints[index].y]);
+}
+
+Entity.prototype.hasWaypoint = function(x, y){
+	if (x.length) {
+		y = x[1];
+		x = x[0];
+	}
+	var result = false;
+	for (var i in this.waypoints){
+		var me = this.waypoints[i];
+		if ( (me.x == x) && (me.y == y) ) {
+			result = true;
+		}
+	}
+	return result;
+}
+
 /*	approachCurrentWaypoint
 		Makes the Entity approach its current waypoint. This is usually called by the EntityManager
 		each frame.
@@ -390,18 +459,18 @@ Entity.prototype.nextWaypoint = function(){
 Entity.prototype.approachCurrentWaypoint = function(){
 	w = this.waypoints[0];
 	//	Approach the current waypoint's x and y
-	this.approach(w[0],w[1], w[2], w[3]);
+	this.approach(w.x,w.y, w.range, w.override);
 	
 	//	Determine if the Entity has reached its waypoint
 	var pos = this.getPosition();
-	if ( Math.distanceXY(pos,w) < 1){
+	if ( Math.distanceXY(pos,[w.x,w.y]) < 1){
 		this.nextWaypoint();
 	}
 	// If the waypoint has a timer, lower it (used mostly for collision handling)
-	if (typeof w[4] != "undefined") {
-		w[4] -= GameState.getTimeDelta();
+	if (typeof w.timer != "undefined") {
+		w.timer -= GameState.getTimeDelta();
 		// If the timer has expired, move to the next waypoint
-		if (w[4] <= 0) {
+		if (w.timer <= 0) {
 			this.nextWaypoint();
 		}
 	}
@@ -595,11 +664,11 @@ var EntityManager = function(){
 	/*	rayCastTestAB
 			Determines if Entity A has an unobstructed line to Entity B
 	*/
-	this.rayCastTestAB = function(a, b){
+	this.rayCastTestAB = function(a, b, maxFactor){
 		var ray = {
 			origin: [a.x,a.y],
 			direction: Math.unitVector(a.getPosition(), b.getPosition()),
-			maxFactor: Math.distanceXY(a.getPosition(), b.getPosition()),
+			maxFactor: maxFactor || Math.distanceXY(a.getPosition(), b.getPosition()),
 		}
 		var result = world.rayCast(ray, true, function(ray, tempResult){
 			if (tempResult.shape === a.hitbox.shapes[0]){
@@ -619,11 +688,11 @@ var EntityManager = function(){
 	/*	rayCastTestXY
 			Determines if an Entity has an unobstructed line to a point
 	*/
-	this.rayCastTestXY = function(a, point){
+	this.rayCastTestXY = function(a, point, maxFactor){
 		var ray = {
 			origin: [a.x,a.y],
 			direction: Math.unitVector(a.getPosition(), point),
-			maxFactor: Math.distanceXY(a.getPosition(), point)
+			maxFactor: maxFactor || Math.distanceXY(a.getPosition(), point),
 		}
 
 		var result = world.rayCast(ray, true, function(ray, tempResult){
@@ -632,22 +701,12 @@ var EntityManager = function(){
 			}
 			return true;
 		});
-		
-		var x1 = a.x;
-        var y1 = a.y;
-		var direction = Math.unitVector(a.getPosition(), point);
-		var maxFactor = Math.distanceXY(a.getPosition(), point);
-        var x2 = x1 + (direction[0] * maxFactor);
-        var y2 = y1 + (direction[1] * maxFactor);
-		var rect = [];
-	    rect[0] = (x1 < x2 ? x1 : x2);
-        rect[1] = (y1 < y2 ? y1 : y2);
-        rect[2] = (x1 < x2 ? x2 : x1);
-        rect[3] = (y1 < y2 ? y2 : y1);
-		CameraTest.rayCastRect = rect;
-		CameraTest.rayCastPoints = [a.getPosition(), point];
 	
 		return result;
+	}
+	
+	this.getWorld = function(){
+		return world;
 	}
 	
 }

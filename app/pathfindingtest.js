@@ -42,6 +42,8 @@ PathfindingTest.initializeExtension = function(){
 	this.NPC.name = "NPC1";
 	this.NPC.setPosition(0,-200);
 	
+	this.NPC.addWaypoint(400,-200, 64);
+	this.NPC.addWaypoint(0,-200, 64);
 	this.NPC.setMovementAIGoal(0,280);
 	
 	this.NPC.addBehavior("PathfindingBehavior");

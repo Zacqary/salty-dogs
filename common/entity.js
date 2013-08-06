@@ -465,7 +465,9 @@ Entity.prototype.approachCurrentWaypoint = function(){
 	
 	//	Determine if the Entity has reached its waypoint
 	var pos = this.getPosition();
-	if ( Math.distanceXY(pos,[w.x,w.y]) < 1){
+	var maxDistance = 1;
+	if (this.waypoints[0].range && this.waypoints.length > 1) maxDistance = this.speed;
+	if ( Math.distanceXY(pos,[w.x,w.y]) < maxDistance){
 		this.nextWaypoint();
 	}
 	// If the waypoint has a timer, lower it (used mostly for collision handling)

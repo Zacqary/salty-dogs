@@ -112,7 +112,7 @@ AI.PathfindingBehavior = function(me){
 	
 	this.run = function(){
 		if (!me.aiGoals.movement) return;
-		if (me.isAtPosition(me.aiGoals.movement)){
+		if (Math.distanceXY(me.getPosition(),me.aiGoals.movement) < me.speed){
 			me.aiGoals.movement = null;
 			currentSlice = null;
 			return;

@@ -42,9 +42,7 @@ PathfindingTest.initializeExtension = function(){
 	this.NPC.name = "NPC1";
 	this.NPC.setPosition(0,-200);
 	
-	this.NPC.addWaypoint(400,-200, 64);
-	this.NPC.addWaypoint(0,-200, 64);
-	this.NPC.setMovementAIGoal(0,280);
+	this.NPC.setMovementAIGoal(0,200);
 	
 	this.NPC.addBehavior("PathfindingBehavior");
 	this.em.add(this.NPC);
@@ -104,6 +102,20 @@ PathfindingTest.loadingLoop = function(){
 
 PathfindingTest.runAfterPlayerMoves = function(){
 	
+	var arbiters = this.em.getWorld().dynamicArbiters;
+	if (arbiters.length){
+		for (var i in arbiters){
+			var me = arbiters[i];
+			if(me.contacts[0].getPenetration() > 0) {
+				var normal = Math.vNeg(me.getNormal());
+				
+
+				me.bodyA.entity.affect("collision", me.getNormal());
+				me.bodyB.entity.affect("collision", Math.vNeg(me.getNormal()));
+			}
+		}
+	}
+	
 	PathfindingTest.em.runCharacterBehaviors();
 	if (!this.NPC.aiGoals.movement){
 		var x = randomNumber (0,500) - 100;
@@ -111,23 +123,22 @@ PathfindingTest.runAfterPlayerMoves = function(){
 		this.NPC.setMovementAIGoal(x,y);
 	}
 	
-	
 }
 
 PathfindingTest.drawExtension = function(){
+	Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
+	Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
+	Graphics.debugDraw.begin();
+	Graphics.debugDraw.drawCircle(this.NPC.aiGoals.movement[0],this.NPC.aiGoals.movement[1],12,[0,0,0,1]);
 	if (PathfindingTest.drawPath) {
-		Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
-		Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
-		Graphics.debugDraw.begin();
 		for (var i =0; i < PathfindingTest.drawPath.length; i++){
 			var me = PathfindingTest.drawPath[i];
 			Graphics.debugDraw.drawCircle(me[0],me[1],4,[1,0,0,1]);
 			if (i < PathfindingTest.drawPath.length-1){
 				var next = PathfindingTest.drawPath[i+1];
 				Graphics.debugDraw.drawLine(me[0],me[1],next[0],next[1],[0,0,1,1]);
-			}
-			
-		}
-		Graphics.debugDraw.end();
+			}	
+		}	
 	}
+	Graphics.debugDraw.end();
 }

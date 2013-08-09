@@ -114,7 +114,6 @@ AI.PathfindingBehavior = function(me){
 		if (!me.aiGoals.movement) return;
 		if (Math.distanceXY(me.getPosition(),me.aiGoals.movement) < me.speed){
 			me.aiGoals.movement = null;
-			currentSlice = null;
 			return;
 		}
 		
@@ -125,20 +124,56 @@ AI.PathfindingBehavior = function(me){
 		var distanceToPoint = new Spectrum(64);
 		distanceToPoint.set(Math.distanceXY(me.getPosition(),me.getWaypoint()));
 		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceToPoint.get())){
-			correctPath();
+			if (!correctPath(10)) {
+				me.aiGoals.movement = null;
+				return;
+			}
 		}
-		if(me.manager.hitboxProjectionTest(me, me.getWaypoint())){
+	/*	if(me.manager.hitboxProjectionTest(me, me.getWaypoint())){
 			correctPath();
+		}*/
+		if(me.collision) {
+			if (!correctPath(10, me.collision)) {
+				me.aiGoals.movement = null;
+				return;
+			}
 		}
 
 		
 	}
 	
-	var correctPath = function(){
-		var gridSize = 16;
-		var tileSize = 16;
-		
+	
+	var correctPath = function(maxIterations, collision){
+		var iterations = 0;
+		var path = null;
 		var angle = Math.angleXY(me.getPosition(), me.getWaypoint());
+		while (iterations < maxIterations){
+			iterations++;
+			console.log(iterations);
+			path = pathAround(iterations, 1, angle, collision);
+			if (path) break;
+		}
+		if (path) {
+			pushPath(path);
+			return true;
+		}
+		else return false;
+	}
+	
+	
+	var pushPath = function(path){
+		for (var i in path){
+			me.addWaypoint(path[i]);
+			PathfindingTest.drawPath.push(path[i]);
+		}
+	}
+	
+	var pathAround = function(scope, scale, angle, backAway){
+		scope = scope || 1;
+		scale = scale || 1;
+		var gridSize = 16 * (1*scope);
+		var tileSize = 16 / (1*scale);
+		
 		var targetPoint = Math.lineFromXYAtAngle(me.getPosition(),(gridSize*tileSize)/2,angle);
 		
 		var gridOrigin = [me.x - (gridSize*tileSize)/2, me.y - (gridSize*tileSize)/2];
@@ -168,39 +203,51 @@ AI.PathfindingBehavior = function(me){
 			dontCrossCorners: true,
 			heuristic: PF.Heuristic.euclidean,
 		});
-		var center = (gridSize/2)-1;
 		if (targetTile[0] > gridSize - 1) targetTile[0] = gridSize - 1;
 		if (targetTile[1] > gridSize - 1) targetTile[1] = gridSize - 1;
+			
+		var startTile = [(gridSize/2)-1,(gridSize/2)-1];
+		if (backAway){
+			var negAngle = Math.unitVectorToAngle(backAway);
+			if (Math.abs(backAway[0]) == 1){
+				if (backAway[0] == -1) negAngle = 0;
+				else negAngle = Math.PI;
+			}
+			var startPoint = Math.lineFromXYAtAngle(me.getPosition(),(gridSize*tileSize)/4, negAngle);
+			var startOnGrid =  [startPoint[0] - gridOrigin[0], startPoint[1] - gridOrigin[1]];
+			var startTile = [Math.round(startOnGrid[0]/tileSize),Math.round(startOnGrid[1]/tileSize)];
+		}
+		var path = finder.findPath(startTile[0],startTile[1],targetTile[0],targetTile[1], grid);
+		targetTile = null;
 		
-		var path = finder.findPath(center,center,targetTile[0],targetTile[1], grid);
 		me.waypoints = [];
 		PathfindingTest.drawPath = [];
 		
-		//path.splice(0,1);
-		var processedPath = [];
-		var direction = [0,0];
-		for (var i = 0; i < path.length; i++){
-			var newDir = [];
-			if (i < path.length-1) {
-				newDir = [
-					(path[i+1][0] - path[i][0]),
-					(path[i+1][1] - path[i][1]),
-				];
+		if (path.length == 0) return false;
+		else {
+			if (!backAway) path.splice(0,1);
+			var processedPath = [];
+			var direction = [0,0];
+			for (var i = 0; i < path.length; i++){
+				var newDir = [];
+				if (i < path.length-1) {
+					newDir = [
+						(path[i+1][0] - path[i][0]),
+						(path[i+1][1] - path[i][1]),
+					];
+				}
+
+				if (!arraysEqual(newDir,direction)) {
+					direction = newDir;
+					var point = [];
+					point[0] = ( (tileSize/2) + (tileSize*path[i][0]) ) + gridOrigin[0];
+					point[1] = ( (tileSize/2) + (tileSize*path[i][1]) ) + gridOrigin[1];
+					processedPath.push(point);
+				}
 			}
-			
-			if (!arraysEqual(newDir,direction)) {
-				direction = newDir;
-				var point = [];
-				point[0] = ( (tileSize/2) + (tileSize*path[i][0]) ) + gridOrigin[0];
-				point[1] = ( (tileSize/2) + (tileSize*path[i][1]) ) + gridOrigin[1];
-				processedPath.push(point);
-			}
-		}
-		for (var i in processedPath){
-			me.addWaypoint(processedPath[i]);
-			PathfindingTest.drawPath.push(processedPath[i]);
-		}
-		
+
+			return processedPath;
+		}	
 	}
 }
 

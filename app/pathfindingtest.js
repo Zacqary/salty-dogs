@@ -1,5 +1,5 @@
-var CameraTest = new InCharacterLoop();
-CameraTest.initializeExtension = function(){
+var PathfindingTest = new InCharacterLoop();
+PathfindingTest.initializeExtension = function(){
 	Graphics.textureManager.load("textures/circle.png");
 
 	Graphics.textureManager.load("textures/body.png");
@@ -33,39 +33,18 @@ CameraTest.initializeExtension = function(){
 	this.wall3.hitbox.setAsStatic();
 	
 	this.wall4 = this.em.createEntity({});
-	this.wall4.setPosition(400,10);
+	this.wall4.setPosition(1200,10);
 	this.wall4.createHitbox(1,620,0,0);
 	this.wall4.hitbox.sleep();
 	this.wall4.hitbox.setAsStatic();
-
-	//this.avatar.setPosition(0,120);
-	this.avatar.createStaminaBar();
-	this.avatar.createFocusBar();
-	this.avatar.createHitClockBar();
 	
 	this.NPC = Character.create({});
 	this.NPC.name = "NPC1";
-	this.NPC.setPosition(200,0);
-	this.NPC.makeHostile();
-	this.NPC.createEffectRadius(80);
-	this.NPC.createEffect({
-		types: [ENT_CHARACTER],
-		doThis: function(it, me){
-			if (it.charType != me.charType || it.charType == CHAR_NEUTRAL) {
-				it.affect("speedMult",0.1);
-				if (it.cursor) it.cursor.affect("range",72);
-				if (it == Player.entity) it.affect("inCombat",true);
-				me.affect("inCombat",true);
-				me.affect("speedMult",0.1);
-				me.affectRadius(120);
-			}
-		}
-
-	});
-	this.NPC.createFocusBar();
-	this.NPC.createStaminaBar();
-	this.NPC.createHitClockBar();
-	this.NPC.addBehavior("CombatBehavior");
+	this.NPC.setPosition(0,-200);
+	
+	this.NPC.setMovementAIGoal(0,200);
+	
+	this.NPC.addBehavior("PathfindingBehavior");
 	this.em.add(this.NPC);
 
 	this.cursor = this.em.createEntity({permeable: true});
@@ -95,7 +74,7 @@ CameraTest.initializeExtension = function(){
 	
 	this.em.updateAll();
 }
-CameraTest.loadingLoop = function(){
+PathfindingTest.loadingLoop = function(){
 	if (!Graphics.textureManager.getNumPendingTextures()) {
 		this.loaded = true;
 	}
@@ -116,60 +95,60 @@ CameraTest.loadingLoop = function(){
 			this.NPC.setSword("cl","aaaaaa");
 			this.NPC.addMisc("patchleft","000033",2);
 			this.NPC.composeDoll();
-			//this.NPC.focus.setMax(15);
-		
 			
-	/*		this.NPC2 = this.NPC.clone();
-			this.NPC2.setPosition(200, 120);
-			this.NPC2.setBodyColor("dedefe");
-			this.NPC2.setHead("hat","992370");
-			this.NPC2.removeMisc("patchleft");
-			this.NPC2.composeDoll();
-			this.NPC2.addBehavior(AI.CombatBehavior);
-			this.NPC2.name = "NPC2";
-			this.em.add(this.NPC2);
-			
-			this.NPC2.debug = true;
-			
-			
-			this.NPC3 = this.NPC.clone();
-			this.NPC3.setPosition(280, 160);
-			this.NPC3.setTorso("shirt","dedefe");
-			this.NPC3.composeDoll();
-			this.NPC3.makeFriendly();
-			this.NPC3.addBehavior(AI.CombatBehavior);
-			this.NPC3.name = "NPC3";
-			this.em.add(this.NPC3);
-			this.NPC3.debug = true;
-			
-			this.NPC4 = this.NPC.clone();
-			this.NPC4.setPosition(180, 160);
-			this.NPC4.setTorso("shirt","dedefe");
-			this.NPC4.composeDoll();
-			this.NPC4.makeFriendly();
-			this.NPC4.addBehavior(AI.CombatBehavior);
-			this.em.add(this.NPC4);
-			this.NPC4.debug = true; */
-			
+			this.NPCs = [this.NPC];
+		/*	for (var i = 0; i < 11; i++){
+				var newNPC = this.NPC.clone();
+				newNPC.setPosition(randomNumber(0,1000)-150, randomNumber(0,500)-270);
+				newNPC.addBehavior("PathfindingBehavior");
+				this.em.add(newNPC);
+				this.NPCs.push(newNPC);
+			} */
 			
 	}
 }
 
-CameraTest.runAfterPlayerMoves = function(){
+PathfindingTest.runAfterPlayerMoves = function(){
 	
-	CameraTest.em.updateCharacterCombatStates();
-	CameraTest.em.runCharacterBehaviors();
+	var arbiters = this.em.getWorld().dynamicArbiters;
+	if (arbiters.length){
+		for (var i in arbiters){
+			var me = arbiters[i];
+			if(me.contacts[0].getPenetration() > 0) {
+				var normal = Math.vNeg(me.getNormal());
+				
+
+				me.bodyA.entity.affect("collision", me.getNormal());
+				me.bodyB.entity.affect("collision", Math.vNeg(me.getNormal()));
+			}
+		}
+	}
 	
-	
+	PathfindingTest.em.runCharacterBehaviors();
+	for (var i in this.NPCs){
+		var me = this.NPCs[i];
+		if (!me.aiGoals.movement){
+			var x = randomNumber (0,1200) - 100;
+			var y = randomNumber (0,500) - 270;
+			me.setMovementAIGoal(x,y);
+		}
+	}
 }
 
-CameraTest.drawExtension = function(){
-	if (CameraTest.rayCastPoints) {
-		var points = CameraTest.rayCastPoints;
-		Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
-		Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
-		Graphics.debugDraw.begin();
-		Graphics.debugDraw.drawLine(points[0][0],points[0][1],points[1][0],points[1][1],[0,0,1,1]);
-		Graphics.debugDraw.end();
+PathfindingTest.drawExtension = function(){
+	Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
+	Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
+	Graphics.debugDraw.begin();
+	Graphics.debugDraw.drawCircle(this.NPC.aiGoals.movement[0],this.NPC.aiGoals.movement[1],12,[0,0,0,1]);
+	if (PathfindingTest.drawPath) {
+		for (var i =0; i < PathfindingTest.drawPath.length; i++){
+			var me = PathfindingTest.drawPath[i];
+			Graphics.debugDraw.drawCircle(me[0],me[1],4,[1,0,0,1]);
+			if (i < PathfindingTest.drawPath.length-1){
+				var next = PathfindingTest.drawPath[i+1];
+				Graphics.debugDraw.drawLine(me[0],me[1],next[0],next[1],[0,0,1,1]);
+			}	
+		}	
 	}
+	Graphics.debugDraw.end(); 
 }

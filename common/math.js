@@ -26,6 +26,12 @@ Math.vNeg = function(array){
 	return a;
 }
 
+Math.unitVectorToAngle = function(vector){
+	var theta = Math.atan2(vector[1],vector[0]);
+	if (theta < 0) theta += 2 * Math.PI;
+	return theta;
+}
+
 Math.unitVector = function(a, b){
 	var vector = [b[0] - a[0], b[1] - a[1]];
 	var magnitude = Math.sqrt(Math.pow(vector[0],2) + Math.pow(vector[1],2));

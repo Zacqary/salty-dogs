@@ -17,7 +17,6 @@ var AI = { };
 		AI routine for when a character is in combat
 */
 AI.CombatBehavior = function(me){
-	this.name = "CombatBehavior";
 	var stats = { };
 	var attack = function(){
 		me.swingAtCharacter(stats.enemy);
@@ -25,9 +24,8 @@ AI.CombatBehavior = function(me){
 		stats.delay.set(delay);
 	}
 	var getCurrentCombatant = function(){
-		var em = me.manager;
 		//	Figure out whose radius the character is in
-		var imIn = em.sweepTestRadius(me);
+		var imIn = me.manager.sweepTestRadius(me);
 		//	Now discard the radii that don't belong to enemy characters
 		var candidates = [];
 		for (var i in imIn){
@@ -36,6 +34,14 @@ AI.CombatBehavior = function(me){
 			}
 		}
 		return candidates[0];
+	}
+	var getSituation = function(){
+		//	Get the angle between this character and the enemy
+		var combatAngle = Math.angleXY(me.getPosition(), stats.enemy.getPosition());
+		var endPoint = Math.lineFromXYAtAngle(me.getPosition(), 144, combatAngle - Math.PI);
+		CameraTest.rayCastPoints = [me.getPosition(), endPoint];
+		stats.backToWall = me.manager.rayCastTestXY(me, endPoint);
+		
 	}
 	
 	this.run = function(){
@@ -53,6 +59,7 @@ AI.CombatBehavior = function(me){
 					return;
 				}
 			}
+			getSituation();
 			//	If this character has enough stamina to attack, and enemy isn't currently attacking
 			if ( (me.stamina.get() > 1) && (!stats.enemy.timers.hit.get()) ) {
 				//	Reset the over-swing tracker
@@ -108,4 +115,189 @@ AI.CombatBehavior = function(me){
 	
 } 
 
+
+AI.PathfindingBehavior = function(me){
+	
+	var collisionTimer = new Countdown(0.2);
+	
+	this.run = function(){
+		if (!me.aiGoals.movement) return;
+		if (Math.distanceXY(me.getPosition(),me.aiGoals.movement) < me.speed){
+			me.aiGoals.movement = null;
+			return;
+		}
+		
+		if (!me.hasWaypoint(me.aiGoals.movement)){
+			me.addWaypoint(me.aiGoals.movement, 64);
+		}
+		
+		var distanceToPoint = new Spectrum(64);
+		distanceToPoint.set(Math.distanceXY(me.getPosition(),me.getWaypoint()));
+		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceToPoint.get())){
+			if (!correctPath(4)) {
+				me.waypoints = [];
+				me.aiGoals.movement = null;
+				return;
+			}
+		}
+	/*	if(me.manager.hitboxProjectionTest(me, me.getWaypoint())){
+			correctPath();
+		}*/
+		else if(me.collision) {
+			if (!collisionTimer.get()){
+				collisionTimer.maxOut();
+				if (!correctPath(4, me.collision)) {
+					me.waypoints = [];
+					me.aiGoals.movement = null;
+					return;
+				}
+			}
+		}
+
+		
+	}
+	
+	/*	correctPath
+			Attempt to correct this Character's path
+	*/
+	var correctPath = function(maxIterations, collision){
+		var iterations = 0;
+		var path = null;
+		//	Find the angle from the character to the waypoint.
+		//	Doing this inside pathAround() caused it to return NaN on second iteration.
+		var angle = Math.angleXY(me.getPosition(), me.getWaypoint());
+		
+		while (iterations < maxIterations){
+			iterations++;
+			path = pathAround(iterations, 1, angle, collision);
+			if (path) break;
+		}
+		if (path) {
+			pushPath(path);
+			return true;
+		}
+		else return false;
+	}
+	
+	/*	pushPath
+			Push a new path into this Character's waypoints
+	*/
+	var pushPath = function(path){
+		me.waypoints = [];
+		PathfindingTest.drawPath = [];
+		for (var i in path){
+			me.addWaypoint(path[i]);
+			PathfindingTest.drawPath.push(path[i]);
+		}
+	}
+	
+	/*	pathAround
+			Try to find a path around nearby obstacles
+	*/
+	var pathAround = function(scope, scale, angle, backAway){
+		//	Compute the size of the grid, and the precision of its tiles in world units
+		scope = scope || 1;
+		scale = scale || 1;
+		var gridSize = 16 * (1*scope);
+		var tileSize = 16 / (1*scale);
+		
+		//	Figure out the grid's origin in world coordinates
+		var gridOrigin = [me.x - (gridSize*tileSize)/2, me.y - (gridSize*tileSize)/2];
+		
+		//	Find a point in the world that's probably behind the obstruction
+		var targetPoint = Math.lineFromXYAtAngle(me.getPosition(),(gridSize*tileSize)/2,angle);
+		//	Now, convert the target point to a tile on the grid
+		var targetOnGrid = [targetPoint[0] - gridOrigin[0], targetPoint[1] - gridOrigin[1]];
+		var targetTile = [Math.round(targetOnGrid[0]/tileSize),Math.round(targetOnGrid[1]/tileSize)];
+		//	Make sure the target tile is within the bounds of the grid
+		if (targetTile[0] > gridSize - 1) targetTile[0] = gridSize - 1;
+		if (targetTile[1] > gridSize - 1) targetTile[1] = gridSize - 1;
+		
+		//	Now figure out the starting tile...
+		//	Normally, this is the center of the grid, where the character is standing
+		var startTile = [(gridSize/2)-1,(gridSize/2)-1];
+		//	But if we're resolving a collision, the starting tile is where the character must back up to
+		if (backAway){
+			//	If the collision was vertical, find the back-up angle from the collision normal
+			var negAngle = Math.unitVectorToAngle(backAway);
+			//	If the collision was horizontal, resolve the angle manually
+			if (Math.abs(Math.round(backAway[0])) == 1){
+				negAngle = Math.unitVectorToAngle([-backAway[1],-backAway[0]]);
+				negAngle -= Math.PI/2;
+			}
+			console.log(negAngle * 180/Math.PI);
+			//	Find the point to back up to
+			var startPoint = Math.lineFromXYAtAngle(me.getPosition(),64, negAngle);
+			//	Then convert this point to a tile
+			var startOnGrid =  [startPoint[0] - gridOrigin[0], startPoint[1] - gridOrigin[1]];
+			var startTile = [Math.round(startOnGrid[0]/tileSize),Math.round(startOnGrid[1]/tileSize)];
+		}
+		
+		//	Create a matrix to figure out which grid tiles correspond to obstructed parts of the world
+		var matrix = [];
+		var width = me.hitbox.width;
+		var height = me.hitbox.height;
+		var blocks = 0;
+		//	For every row...
+		for (var i = 0; i < gridSize; i++){
+			var row = [];
+			//	Find the y coordinate in the world that this row corresponds to
+			var y = ( (tileSize/2)+(tileSize*i) ) + gridOrigin[1];
+			//	For every cell of this row...
+			for (var j = 0; j < gridSize; j++){
+				//	Find the x coordinate in the world that this column corresponds to
+				var x = ( (tileSize/2)+(tileSize*j) ) + gridOrigin[0];
+				//	Project this character's hitbox onto the x and y coordinates to see
+				//	if it would fit in the space. If not, mark the cell as obstructed.
+				if (me.manager.hitboxProjectionTest(me,[x,y])) {
+					row.push(1);
+				}
+				else row.push(0);
+			}
+			matrix.push(row);
+		}
+	
+		
+		//	Run the pathfinding routine on the grid that was just generated
+		var grid = new PF.Grid(gridSize,gridSize,matrix);
+		var finder = new PF.AStarFinder({
+			allowDiagonal: true,
+			dontCrossCorners: true,
+			heuristic: PF.Heuristic.euclidean,
+		});
+		var path = finder.findPath(startTile[0],startTile[1],targetTile[0],targetTile[1], grid);
+		
+		if (path.length == 0) return false;
+		else {
+			//	If the character isn't backing up to anywhere, we don't need the first tile of the path
+			if (!backAway) path.splice(0,1);
+			//	Process this path by converting it to waypoints, and eliminating redundant ones
+			var processedPath = [];
+			//	Keep track of the direction that the path is moving in
+			var direction = [0,0];
+			//	For every tile...
+			for (var i = 0; i < path.length; i++){
+				var newDir = [];
+				//	If this isn't the last tile, measure the difference between this tile and the next one
+				if (i < path.length-1) {
+					newDir = [
+						(path[i+1][0] - path[i][0]),
+						(path[i+1][1] - path[i][1]),
+					];
+				}
+				//	If the direction has changed, don't ignore this tile
+				if (!arraysEqual(newDir,direction)) {
+					direction = newDir;
+					var point = [];
+					//	Convert the tile to world coordinates
+					point[0] = ( (tileSize/2) + (tileSize*path[i][0]) ) + gridOrigin[0];
+					point[1] = ( (tileSize/2) + (tileSize*path[i][1]) ) + gridOrigin[1];
+					processedPath.push(point);
+				}
+			}
+
+			return processedPath;
+		}	
+	}
+}
 

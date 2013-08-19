@@ -24,6 +24,7 @@
 /*{{ javascript("common/graphics.js") }}*/
 /*{{ javascript("common/input.js") }}*/
 /*{{ javascript("common/physics.js") }}*/
+/*{{ javascript("common/pathfinding.js") }}*/
 /*{{ javascript("common/gamestate.js") }}*/
 /*{{ javascript("common/loop.js") }}*/
 /*{{ javascript("common/entity.js") }}*/
@@ -36,6 +37,7 @@
 /*{{ javascript("app/player.js") }}*/
 
 /*{{ javascript("app/cameratest.js") }}*/
+/*{{ javascript("app/pathfindingtest.js") }}*/
 
 /*{{ javascript("app/onload.js") }}*/
 

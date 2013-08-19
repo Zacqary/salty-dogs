@@ -95,7 +95,15 @@ PathfindingTest.loadingLoop = function(){
 			this.NPC.setSword("cl","aaaaaa");
 			this.NPC.addMisc("patchleft","000033",2);
 			this.NPC.composeDoll();
-	
+			
+			this.NPCs = [this.NPC];
+		/*	for (var i = 0; i < 11; i++){
+				var newNPC = this.NPC.clone();
+				newNPC.setPosition(randomNumber(0,1000)-150, randomNumber(0,500)-270);
+				newNPC.addBehavior("PathfindingBehavior");
+				this.em.add(newNPC);
+				this.NPCs.push(newNPC);
+			} */
 			
 	}
 }
@@ -117,12 +125,14 @@ PathfindingTest.runAfterPlayerMoves = function(){
 	}
 	
 	PathfindingTest.em.runCharacterBehaviors();
-	if (!this.NPC.aiGoals.movement){
-		var x = randomNumber (0,500) - 100;
-		var y = randomNumber (0,500) - 270;
-		this.NPC.setMovementAIGoal(x,y);
+	for (var i in this.NPCs){
+		var me = this.NPCs[i];
+		if (!me.aiGoals.movement){
+			var x = randomNumber (0,1200) - 100;
+			var y = randomNumber (0,500) - 270;
+			me.setMovementAIGoal(x,y);
+		}
 	}
-	
 }
 
 PathfindingTest.drawExtension = function(){
@@ -140,5 +150,5 @@ PathfindingTest.drawExtension = function(){
 			}	
 		}	
 	}
-	Graphics.debugDraw.end();
+	Graphics.debugDraw.end(); 
 }

@@ -93,11 +93,14 @@ var Character = function (params){
 			sprite: this.sprite,
 			cloned: true,
 		});
-		c.createEffectRadius(this.effect.radius.shapes[0].getRadius());
-		var effect = {types: this.effect.types, doThis: this.effect.doThis};
-		c.createEffect(effect);
+		if (this.effect.radius) {
+			c.createEffectRadius(this.effect.radius.shapes[0].getRadius());
+			var effect = {types: this.effect.types, doThis: this.effect.doThis};
+			c.createEffect(effect);
+		}
 		
 		c.setPaperDoll(this.paperDoll);
+		c.composeDoll();
 		c.charType = this.charType;
 		
 		c.stamina = new Spectrum(this.stamina.getMax());

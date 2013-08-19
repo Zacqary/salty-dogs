@@ -65,7 +65,7 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createFocusBar();
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
-	this.NPC.addBehavior(AI.CombatBehavior);
+	this.NPC.addBehavior("CombatBehavior");
 	this.em.add(this.NPC);
 
 	this.cursor = this.em.createEntity({permeable: true});
@@ -164,13 +164,11 @@ CameraTest.runAfterPlayerMoves = function(){
 }
 
 CameraTest.drawExtension = function(){
-	if (CameraTest.rayCastRect) {
-		var rect = CameraTest.rayCastRect;
+	if (CameraTest.rayCastPoints) {
 		var points = CameraTest.rayCastPoints;
 		Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
 		Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
 		Graphics.debugDraw.begin();
-		Graphics.debugDraw.drawRectangle(rect[0],rect[1],rect[2],rect[3],[1,0,0,1]);
 		Graphics.debugDraw.drawLine(points[0][0],points[0][1],points[1][0],points[1][1],[0,0,1,1]);
 		Graphics.debugDraw.end();
 	}

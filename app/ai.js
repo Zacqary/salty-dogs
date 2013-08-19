@@ -24,9 +24,8 @@ AI.CombatBehavior = function(me){
 		stats.delay.set(delay);
 	}
 	var getCurrentCombatant = function(){
-		var em = me.manager;
 		//	Figure out whose radius the character is in
-		var imIn = em.sweepTestRadius(me);
+		var imIn = me.manager.sweepTestRadius(me);
 		//	Now discard the radii that don't belong to enemy characters
 		var candidates = [];
 		for (var i in imIn){
@@ -35,6 +34,14 @@ AI.CombatBehavior = function(me){
 			}
 		}
 		return candidates[0];
+	}
+	var getSituation = function(){
+		//	Get the angle between this character and the enemy
+		var combatAngle = Math.angleXY(me.getPosition(), stats.enemy.getPosition());
+		var endPoint = Math.lineFromXYAtAngle(me.getPosition(), 144, combatAngle - Math.PI);
+		CameraTest.rayCastPoints = [me.getPosition(), endPoint];
+		stats.backToWall = me.manager.rayCastTestXY(me, endPoint);
+		
 	}
 	
 	this.run = function(){
@@ -52,6 +59,7 @@ AI.CombatBehavior = function(me){
 					return;
 				}
 			}
+			getSituation();
 			//	If this character has enough stamina to attack, and enemy isn't currently attacking
 			if ( (me.stamina.get() > 1) && (!stats.enemy.timers.hit.get()) ) {
 				//	Reset the over-swing tracker
@@ -110,6 +118,8 @@ AI.CombatBehavior = function(me){
 
 AI.PathfindingBehavior = function(me){
 	
+	var collisionTimer = new Countdown(0.2);
+	
 	this.run = function(){
 		if (!me.aiGoals.movement) return;
 		if (Math.distanceXY(me.getPosition(),me.aiGoals.movement) < me.speed){
@@ -124,7 +134,8 @@ AI.PathfindingBehavior = function(me){
 		var distanceToPoint = new Spectrum(64);
 		distanceToPoint.set(Math.distanceXY(me.getPosition(),me.getWaypoint()));
 		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceToPoint.get())){
-			if (!correctPath(10)) {
+			if (!correctPath(4)) {
+				me.waypoints = [];
 				me.aiGoals.movement = null;
 				return;
 			}
@@ -132,10 +143,14 @@ AI.PathfindingBehavior = function(me){
 	/*	if(me.manager.hitboxProjectionTest(me, me.getWaypoint())){
 			correctPath();
 		}*/
-		if(me.collision) {
-			if (!correctPath(10, me.collision)) {
-				me.aiGoals.movement = null;
-				return;
+		else if(me.collision) {
+			if (!collisionTimer.get()){
+				collisionTimer.maxOut();
+				if (!correctPath(4, me.collision)) {
+					me.waypoints = [];
+					me.aiGoals.movement = null;
+					return;
+				}
 			}
 		}
 
@@ -206,12 +221,13 @@ AI.PathfindingBehavior = function(me){
 			//	If the collision was vertical, find the back-up angle from the collision normal
 			var negAngle = Math.unitVectorToAngle(backAway);
 			//	If the collision was horizontal, resolve the angle manually
-			if (Math.abs(backAway[0]) == 1){
-				if (backAway[0] == -1) negAngle = 0;
-				else negAngle = Math.PI;
+			if (Math.abs(Math.round(backAway[0])) == 1){
+				negAngle = Math.unitVectorToAngle([-backAway[1],-backAway[0]]);
+				negAngle -= Math.PI/2;
 			}
+			console.log(negAngle * 180/Math.PI);
 			//	Find the point to back up to
-			var startPoint = Math.lineFromXYAtAngle(me.getPosition(),(gridSize*tileSize)/4, negAngle);
+			var startPoint = Math.lineFromXYAtAngle(me.getPosition(),64, negAngle);
 			//	Then convert this point to a tile
 			var startOnGrid =  [startPoint[0] - gridOrigin[0], startPoint[1] - gridOrigin[1]];
 			var startTile = [Math.round(startOnGrid[0]/tileSize),Math.round(startOnGrid[1]/tileSize)];

@@ -35,10 +35,10 @@ var Character = function (params){
 	c.damageInterval = 0.25;
 	
 	c.focus = new Spectrum(30);
-	c.focusRegenRate = 1/120;
+	c.focusRegenRate = 1/90;
 	
-	c.stamina = new Spectrum(5);
-	c.staminaRegenRate = 1/60;
+	c.stamina = new Spectrum(4);
+	c.staminaRegenRate = 1/45;
 	
 	c.inCombat = false;
 	
@@ -117,11 +117,11 @@ var Character = function (params){
 	c.updateExtension = function(){
 		if (this.alive) {
 			//	Handle stats
-			this.regenerate();
 			if (this.focus.get() == 0){
 				this.kill();
 				return;
 			}
+			this.regenerate();
 		}
 		for (var i in bars){
 			bars[i].update();
@@ -331,7 +331,7 @@ var Character = function (params){
 		if (this.stamina.get() < this.stamina.getMax() && !this.timers.staminaDamage.get()) {
 			this.stamina.plus(this.staminaRegenRate);
 		}
-		if ( (!this.inCombat) && (this.focus.get() < this.focus.getMax()) ){
+		if ( this.focus.get() < this.focus.getMax() ){
 			this.focus.plus(this.focusRegenRate);
 		}
 	}

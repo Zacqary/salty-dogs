@@ -48,9 +48,11 @@ Player.movementLoop = function(){
 			if (Player.entity.inCombat) {
 				Player.entity.pushingForward = false;
 				var other = Player.getCurrentCombatant();
-				var currentAngle = Math.angleXY([other.x, other.y],[Player.entity.x, Player.entity.y])*(180/Math.PI);
-				var approachTarget = Math.lineFromXYAtAngle([other.x,other.y],64,-currentAngle);
-				Player.entity.approach(approachTarget[0], approachTarget[1], 32);
+				if (!other.strafing){
+					var currentAngle = Math.angleXY([other.x, other.y],[Player.entity.x, Player.entity.y])*(180/Math.PI);
+					var approachTarget = Math.lineFromXYAtAngle([other.x,other.y],64,-currentAngle);
+					Player.entity.approach(approachTarget[0], approachTarget[1], 32);
+				}
 			}
 			
 			// Center the camera back on the player if it's not there
@@ -145,7 +147,9 @@ Player.curPosWithinRange = function(curPos, avPos, range){
 Player.goToCursor = function(){
 	
 	var approachTarget = [];
+	// If the player is in combat...
 	if (Player.entity.inCombat) {
+		Player.entity.strafing = true;
 		// Check to see if the player is moving towards or away their foe
 		var other = Player.getCurrentCombatant();
 		// Compare the distance between foe/player and foe/cursor
@@ -160,7 +164,7 @@ Player.goToCursor = function(){
 		
 		// If the player is defending, slow down their turning speed
 		if (Player.entity.combat && !Player.entity.combat.attacker){
-			Player.entity.affect("turnSpeed",Player.entity.turnSpeed/2);
+			Player.entity.affect("turnSpeed",Player.entity.turnSpeed/6);
 		}
 		
 		
@@ -193,7 +197,9 @@ Player.goToCursor = function(){
 		if (Player.entity.retreating) approachTarget = Math.lineFromXYAtAngle([other.x,other.y],100,angle);
 
 	}
+	//	If the player is not in combat, just approach the cursor
 	else {
+		Player.entity.strafing = false;
 		approachTarget = [Player.entity.cursor.x,Player.entity.cursor.y];
 	}
 	

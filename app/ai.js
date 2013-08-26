@@ -39,27 +39,14 @@ AI.CombatBehavior = function(me){
 		//	Get the angle between this character and the enemy
 		var combatAngle = Math.angleXY(me.getPosition(), stats.enemy.getPosition());
 		var endPoint = Math.lineFromXYAtAngle(me.getPosition(), 144, combatAngle - Math.PI);
-		CameraTest.rayCastPoints = [me.getPosition(), endPoint];
+		//CameraTest.rayCastPoints = [me.getPosition(), endPoint];
 		stats.backToWall = me.manager.rayCastTestXY(me, endPoint);
 		
 	}
 	
-	this.run = function(){
-		//	Only run the behavior if the character is in combat
-		if (me.inCombat) {
-			//	Recreate the stats if character just entered combat, or if the wrong enemy is targeted
-			if (!stats || !stats.enemy.inCombat){
-				stats = { };
-				stats.restartDelta = 0; // How much more %stamina than %focus character needs to start attacking 
-				stats.delay = new Countdown(0.5);
-				stats.enemy = getCurrentCombatant();
-				if (!stats.enemy) {
-					me.inCombat = false;
-					console.log(me.name+" bug");
-					return;
-				}
-			}
-			getSituation();
+	var attackStrategies = {
+		
+		standard: function(){
 			//	If this character has enough stamina to attack, and enemy isn't currently attacking
 			if ( (me.stamina.get() > 1) && (!stats.enemy.timers.hit.get()) ) {
 				//	Reset the over-swing tracker
@@ -104,11 +91,62 @@ AI.CombatBehavior = function(me){
 				//	Randomize the character's reaction time
 				stats.delay.set(randomNumber(2,5)/60);
 			}
+		},
+		
+	};
+	
+	var strafeOpponent = function(){
+		var angle = null;
+		var targetAngle = -180;
+		var currentAngle = Math.angleXY([stats.enemy.x, stats.enemy.y],[me.x, me.y])*(180/Math.PI);
+		var diff = (targetAngle - currentAngle);
+		if (!me.combat.attacker) me.affect("turnSpeed",me.turnSpeed/6);
+		if (Math.abs(diff) < 120){
+			if (diff < 0) {
+				angle = currentAngle - me.turnSpeed;
+			}
+			else angle = currentAngle + me.turnSpeed;
+		}
+		else {
+			if (diff < 0) {
+				angle = currentAngle + me.turnSpeed;
+			}
+			else angle = currentAngle - me.turnSpeed;
+		}
+		angle *= Math.PI/180;
+		console.log(angle);
+		approachTarget = Math.lineFromXYAtAngle([stats.enemy.x,stats.enemy.y],84,angle);
+		me.approach(approachTarget[0], approachTarget[1], 32);
+		CameraTest.rayCastPoints = [me.getPosition(), approachTarget];
+		me.strafing = true;
+	}
+	
+	this.run = function(){
+		//	Only run the behavior if the character is in combat
+		if (me.inCombat) {
+			//	Recreate the stats if character just entered combat, or if the wrong enemy is targeted
+			if (!stats || !stats.enemy.inCombat){
+				stats = { };
+				stats.restartDelta = 0; // How much more %stamina than %focus character needs to start attacking 
+				stats.delay = new Countdown(0.5);
+				stats.enemy = getCurrentCombatant();
+				if (!stats.enemy) {
+					me.inCombat = false;
+					console.log(me.name+" bug");
+					return;
+				}
+			}
+			me.strafing = false;
+			getSituation();
 			
+			strafeOpponent();
+			attackStrategies.standard();
+		
 		}
 		//	If the character is out of combat, reset all of this behavior's stats
 		else {
 			stats = null;
+			me.strafing = false;
 		}
 		
 	}

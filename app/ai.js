@@ -18,6 +18,7 @@ var AI = { };
 */
 AI.CombatBehavior = function(me){
 	var stats = { };
+	var strategy = { };
 	var attack = function(){
 		me.swingAtCharacter(stats.enemy);
 		var delay = randomNumber(10,50)/100;
@@ -39,8 +40,10 @@ AI.CombatBehavior = function(me){
 		//	Get the angle between this character and the enemy
 		var combatAngle = Math.angleXY(me.getPosition(), stats.enemy.getPosition());
 		var endPoint = Math.lineFromXYAtAngle(me.getPosition(), 144, combatAngle - Math.PI);
-		//CameraTest.rayCastPoints = [me.getPosition(), endPoint];
 		stats.backToWall = me.manager.rayCastTestXY(me, endPoint);
+		if (stats.backToWall){
+			strategy.angle = combatAngle - (Math.PI/2);
+		}
 		
 	}
 	
@@ -95,9 +98,9 @@ AI.CombatBehavior = function(me){
 		
 	};
 	
-	var strafeOpponent = function(){
+	var strafeOpponent = function(targetAngle){
 		var angle = null;
-		var targetAngle = -180;
+		targetAngle *= 180/Math.PI;
 		var currentAngle = Math.angleXY([stats.enemy.x, stats.enemy.y],[me.x, me.y])*(180/Math.PI);
 		var diff = (targetAngle - currentAngle);
 		if (!me.combat.attacker) me.affect("turnSpeed",me.turnSpeed/6);
@@ -113,12 +116,13 @@ AI.CombatBehavior = function(me){
 			}
 			else angle = currentAngle - me.turnSpeed;
 		}
+		console.log(diff);
 		angle *= Math.PI/180;
-		console.log(angle);
 		approachTarget = Math.lineFromXYAtAngle([stats.enemy.x,stats.enemy.y],84,angle);
 		me.approach(approachTarget[0], approachTarget[1], 32);
 		CameraTest.rayCastPoints = [me.getPosition(), approachTarget];
 		me.strafing = true;
+		return angle;
 	}
 	
 	this.run = function(){
@@ -135,17 +139,23 @@ AI.CombatBehavior = function(me){
 					console.log(me.name+" bug");
 					return;
 				}
+				
+				strategy = { };
 			}
 			me.strafing = false;
 			getSituation();
 			
-			strafeOpponent();
+			if (strategy.angle) {
+				var newAngle = strafeOpponent(strategy.angle);
+				if (Math.abs(newAngle - strategy.angle) < 1) strategy.angle = null;
+			}
 			attackStrategies.standard();
 		
 		}
 		//	If the character is out of combat, reset all of this behavior's stats
 		else {
 			stats = null;
+			strategy = null;
 			me.strafing = false;
 		}
 		

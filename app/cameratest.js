@@ -65,7 +65,7 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createFocusBar();
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
-	this.NPC.addBehavior("CombatBehavior");
+	//this.NPC.addBehavior("CombatBehavior");
 	this.em.add(this.NPC);
 
 	this.cursor = this.em.createEntity({permeable: true});
@@ -118,19 +118,18 @@ CameraTest.loadingLoop = function(){
 			this.NPC.composeDoll();
 			//this.NPC.focus.setMax(15);
 		
-			
-	/*		this.NPC2 = this.NPC.clone();
-			this.NPC2.setPosition(200, 120);
+			/*
+			this.NPC2 = this.NPC.clone();
+			this.NPC2.setPosition(130, 90);
 			this.NPC2.setBodyColor("dedefe");
 			this.NPC2.setHead("hat","992370");
 			this.NPC2.removeMisc("patchleft");
 			this.NPC2.composeDoll();
-			this.NPC2.addBehavior(AI.CombatBehavior);
 			this.NPC2.name = "NPC2";
 			this.em.add(this.NPC2);
 			
 			this.NPC2.debug = true;
-			
+			/*
 			
 			this.NPC3 = this.NPC.clone();
 			this.NPC3.setPosition(280, 160);
@@ -170,6 +169,14 @@ CameraTest.drawExtension = function(){
 		Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
 		Graphics.debugDraw.begin();
 		Graphics.debugDraw.drawLine(points[0][0],points[0][1],points[1][0],points[1][1],[0,0,1,1]);
+		Graphics.debugDraw.end();
+	}
+	if (CameraTest.drawCircle) {
+		var points = CameraTest.drawCircle;
+		Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
+		Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
+		Graphics.debugDraw.begin();
+		Graphics.debugDraw.drawCircle(points[0],points[1],3,[0,0,1,1]);
 		Graphics.debugDraw.end();
 	}
 }

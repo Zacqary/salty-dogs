@@ -104,15 +104,19 @@ var InCharacterLoop = function(){
 	l.onKeyUp = function(keyCode){
 		if (keyCode === Input.keyCodes.W) {
 			Player.keyboardMovement -= 1;
+			delete Player.keyData["W"];
 		}
 		if (keyCode === Input.keyCodes.A) {
 			Player.keyboardMovement -= 2;
+			delete Player.keyData["A"];
 		}
 		if (keyCode === Input.keyCodes.S) {
 			Player.keyboardMovement -= 4;
+			delete Player.keyData["S"];
 		}
 		if (keyCode === Input.keyCodes.D) {
 			Player.keyboardMovement -= 8;
+			delete Player.keyData["D"];
 		}
 	}
 	

@@ -28,7 +28,7 @@ var Character = function (params){
 	c.alive = true;
 	c.createSprite({width: 48, height: 64}, 0, -18);
 	c.speed = 8;
-	c.turnSpeed = 64;
+	c.turnSpeed = 3;
 	c.createHitbox(48,28);
 	
 	c.damage = 1;

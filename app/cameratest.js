@@ -33,7 +33,7 @@ CameraTest.initializeExtension = function(){
 	this.wall3.hitbox.setAsStatic();
 	
 	this.wall4 = this.em.createEntity({});
-	this.wall4.setPosition(400,10);
+	this.wall4.setPosition(1200,10);
 	this.wall4.createHitbox(1,620,0,0);
 	this.wall4.hitbox.sleep();
 	this.wall4.hitbox.setAsStatic();
@@ -65,7 +65,7 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createFocusBar();
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
-	//this.NPC.addBehavior("CombatBehavior");
+	this.NPC.addBehavior("CombatBehavior");
 	this.em.add(this.NPC);
 
 	this.cursor = this.em.createEntity({permeable: true});

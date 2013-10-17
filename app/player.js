@@ -8,6 +8,51 @@ var Player = {
 	
 	entity: null,
 	
+	keyMap: [],
+	mouseMap: [],
+	
+}
+
+//	Button Mapping
+//	===========
+/*	mapKey
+		Map a key to a function
+*/
+Player.mapKey = function(code, obj){
+	Player.keyMap[code] = obj;
+}
+/*	mapMouse
+		Map a mouse button to a function
+*/
+Player.mapMouse = function(code, obj){
+	Player.mouseMap[code] = obj;
+}
+//	Button Objects
+//	==============
+Player.buttons = {};
+//	Move button
+Player.buttons.MOVE = {
+	down: function(){
+		Player.moveButtonDown = true;
+	},
+	up: function(){
+		Player.moveButtonDown = false;
+	}
+};
+//	Attack button
+Player.buttons.ATTACK = {
+	down: function(){
+		Player.attack();
+	},
+	up: function(){
+		
+	}
+}
+
+//	Default button maps
+Player.loadDefaultMap = function(){
+	Player.mapMouse(Input.MOUSE_0,Player.buttons.MOVE);
+	Player.mapMouse(Input.MOUSE_1,Player.buttons.ATTACK);
 }
 
 //	Movement
@@ -98,7 +143,7 @@ Player.parseWASD = function(){
 	var curPos = Player.entity.cursor.getPosition();
 	var delta = 8;
 	
-	// Turn off momentum if the player is in combat
+	// Turn off momentum if the player is in combat, and handle movement differently
 	if (Player.entity.inCombat) {
 		Player.keyboardReleaseTimer.set(0); // Cursor will jump back to mouse immediately on key release
 		//delta = Player.entity.cursor.range; // Move the cursor all the way to its maximum range
@@ -562,14 +607,16 @@ Player.goToCursor = function(){
 		if (Player.entity.retreating) approachTarget = Math.lineFromXYAtAngle([other.x,other.y],96,angle);
 		CameraTest.drawCircle = approachTarget;
 		speedOverride = Player.entity.turnSpeed;
+		approachRange = 32;
 	}
 	//	If the player is not in combat, just approach the cursor
 	else {
 		Player.entity.strafing = false;
 		approachTarget = [Player.entity.cursor.x,Player.entity.cursor.y];
+		approachRange = Player.entity.cursor.range;
 	}
 	
-	Player.entity.approach(approachTarget[0], approachTarget[1], Player.entity.cursor.range, speedOverride);
+	Player.entity.approach(approachTarget[0], approachTarget[1], approachRange, speedOverride);
 	
 }
 
@@ -612,7 +659,7 @@ Player.getCurrentCombatant = function(forceRayTest){
 		for (var i in candidates){
 			var me = candidates[i];
 			//	Push both the distance and the Entity's name so we can retrieve it later
-			distances.push({distance: Math.distanceXY([me.x,me.y],[CameraTest.cursor.x,CameraTest.cursor.y]), name: me.name} );
+			distances.push({distance: Math.distanceXY([me.x,me.y],[Player.entity.cursor.x,Player.entity.cursor.y]), name: me.name} );
 		}
 		//	Sort them so the enemy closest to the cursor is first
 		distances.sort(function(a, b){

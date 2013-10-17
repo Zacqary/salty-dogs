@@ -33,7 +33,7 @@ var Input = {
 	initializeEngineReferences: function initializeEngineReferences(){
 		Input.device = TurbulenzEngine.createInputDevice( { } );
 		Input.keyCodes = Input.device.keyCodes;
-		Input.MOUSE_0 =Input.device.mouseCodes.BUTTON_0;
+		Input.MOUSE_0 = Input.device.mouseCodes.BUTTON_0;
 		Input.MOUSE_1 = Input.device.mouseCodes.BUTTON_1;
 		Input.device.addEventListener('mouseover', Input.onMouseOver);
 		Input.device.addEventListener('mouseup', Input.onMouseUp);

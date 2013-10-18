@@ -4,6 +4,7 @@
 var InCharacterLoop = function(){
 	var l = new Loop();
 	l.initialize = function(){
+		Player.loadDefaultMap();
 		this.em = EntityManager.create();
 		this.camera2D = Graphics.Camera2D.create();
 		GameState.setCamera(this.camera2D);
@@ -57,25 +58,11 @@ var InCharacterLoop = function(){
 
 	l.onMouseDown = function(mouseCode, x, y){
 		Player.keyboardReleaseTimer.set(0);
-		if (mouseCode === Input.MOUSE_0)
-	    {
-	        Player.moveButtonDown = true;
-	    }
-		else if (mouseCode === Input.MOUSE_1)
-	    {
-	        Player.attack();
-	    }
+		Player.mouseMap[mouseCode].down();
 	}
 	
 	l.onMouseUp = function(mouseCode, x, y){
-		if (mouseCode === Input.MOUSE_0)
-	    {
-	        Player.moveButtonDown = false;
-	    }
-		else if (mouseCode === Input.MOUSE_1)
-	    {
-	        
-	    }
+	    Player.mouseMap[mouseCode].up();
 	}
 	
 	l.onKeyDown = function(keyCode){
@@ -104,15 +91,19 @@ var InCharacterLoop = function(){
 	l.onKeyUp = function(keyCode){
 		if (keyCode === Input.keyCodes.W) {
 			Player.keyboardMovement -= 1;
+			delete Player.keyData["W"];
 		}
 		if (keyCode === Input.keyCodes.A) {
 			Player.keyboardMovement -= 2;
+			delete Player.keyData["A"];
 		}
 		if (keyCode === Input.keyCodes.S) {
 			Player.keyboardMovement -= 4;
+			delete Player.keyData["S"];
 		}
 		if (keyCode === Input.keyCodes.D) {
 			Player.keyboardMovement -= 8;
+			delete Player.keyData["D"];
 		}
 	}
 	

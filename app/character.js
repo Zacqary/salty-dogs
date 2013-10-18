@@ -28,7 +28,7 @@ var Character = function (params){
 	c.alive = true;
 	c.createSprite({width: 48, height: 64}, 0, -18);
 	c.speed = 8;
-	c.turnSpeed = 64;
+	c.turnSpeed = 2;
 	c.createHitbox(48,28);
 	
 	c.damage = 1;
@@ -364,8 +364,8 @@ var Character = function (params){
 	
 	c.takeDamage = function(damage, other){
 		var d = damage;
-		if (this.retreating) d /= 2;
-		if (this.pushingForward) d *= 2;
+		if (this.retreating) d /= 1.5;
+		if (this.pushingForward) d *= 1.25;
 		else {
 			var buffer = 16;
 			var angle = Math.angleXY(this.getPosition(),this.getWaypoint());
@@ -375,7 +375,7 @@ var Character = function (params){
 			if (result){
 				console.log(result.shape.body.entity);
 				console.log("Blocked!");
-				if (other.pushingForward) d *= 2;
+				if (other.pushingForward) d *= 1.25;
 				d *= 3;
 			}
 		}

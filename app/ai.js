@@ -106,20 +106,19 @@ AI.CombatBehavior = function(me){
 		if (!me.combat.attacker) me.affect("turnSpeed",me.turnSpeed/6);
 		if (Math.abs(diff) < 120){
 			if (diff < 0) {
-				angle = currentAngle - me.turnSpeed;
+				angle = currentAngle - 10;
 			}
-			else angle = currentAngle + me.turnSpeed;
+			else angle = currentAngle + 10;
 		}
 		else {
 			if (diff < 0) {
-				angle = currentAngle + me.turnSpeed;
+				angle = currentAngle + 10;
 			}
-			else angle = currentAngle - me.turnSpeed;
+			else angle = currentAngle - 10;
 		}
-		console.log(diff);
 		angle *= Math.PI/180;
-		approachTarget = Math.lineFromXYAtAngle([stats.enemy.x,stats.enemy.y],84,angle);
-		me.approach(approachTarget[0], approachTarget[1], 32);
+		approachTarget = Math.lineFromXYAtAngle([stats.enemy.x,stats.enemy.y],64,angle);
+		me.approach(approachTarget[0], approachTarget[1], 32, me.turnSpeed);
 		CameraTest.rayCastPoints = [me.getPosition(), approachTarget];
 		me.strafing = true;
 		return angle;

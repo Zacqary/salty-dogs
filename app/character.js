@@ -364,8 +364,8 @@ var Character = function (params){
 	
 	c.takeDamage = function(damage, other){
 		var d = damage;
-		if (this.retreating) d /= 2;
-		if (this.pushingForward) d *= 2;
+		if (this.retreating) d /= 1.5;
+		if (this.pushingForward) d *= 1.25;
 		else {
 			var buffer = 16;
 			var angle = Math.angleXY(this.getPosition(),this.getWaypoint());
@@ -375,7 +375,7 @@ var Character = function (params){
 			if (result){
 				console.log(result.shape.body.entity);
 				console.log("Blocked!");
-				if (other.pushingForward) d *= 2;
+				if (other.pushingForward) d *= 1.25;
 				d *= 3;
 			}
 		}

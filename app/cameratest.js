@@ -118,7 +118,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC.composeDoll();
 			//this.NPC.focus.setMax(15);
 		
-			/*
+			
 			this.NPC2 = this.NPC.clone();
 			this.NPC2.setPosition(130, 90);
 			this.NPC2.setBodyColor("dedefe");
@@ -126,9 +126,11 @@ CameraTest.loadingLoop = function(){
 			this.NPC2.removeMisc("patchleft");
 			this.NPC2.composeDoll();
 			this.NPC2.name = "NPC2";
+			//this.NPC2.addBehavior("CombatBehavior");
 			this.em.add(this.NPC2);
 			
-			this.NPC2.debug = true;
+			
+			this.em.updateAll();
 			/*
 			
 			this.NPC3 = this.NPC.clone();

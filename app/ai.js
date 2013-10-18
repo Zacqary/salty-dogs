@@ -117,7 +117,7 @@ AI.CombatBehavior = function(me){
 			else angle = currentAngle - 10;
 		}
 		angle *= Math.PI/180;
-		approachTarget = Math.lineFromXYAtAngle([stats.enemy.x,stats.enemy.y],84,angle);
+		approachTarget = Math.lineFromXYAtAngle([stats.enemy.x,stats.enemy.y],64,angle);
 		me.approach(approachTarget[0], approachTarget[1], 32, me.turnSpeed);
 		CameraTest.rayCastPoints = [me.getPosition(), approachTarget];
 		me.strafing = true;

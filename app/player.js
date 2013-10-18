@@ -11,6 +11,8 @@ var Player = {
 	keyMap: [],
 	mouseMap: [],
 	
+	combatStats: null,
+	
 }
 
 //	Button Mapping
@@ -64,6 +66,10 @@ Player.loadDefaultMap = function(){
 Player.movementLoop = function(){
 	
 	if (Player.entity) {
+		if (!Player.entity.inCombat){
+			Player.combatStats = null;
+		}
+		
 		// If no keys have been pressed down for at least 1 second
 		if(!Player.keyboardMovement && !Player.keyboardReleaseTimer.get()) {
 			Player.positionMouseCursor(); // Use the mouse to position the cursor
@@ -596,7 +602,7 @@ Player.goToCursor = function(){
 		
 		
 		angle *= Math.PI/180;
-		approachTarget = Math.lineFromXYAtAngle([other.x,other.y],84,angle);
+		approachTarget = Math.lineFromXYAtAngle([other.x,other.y],64,angle);
 		if (Player.cursorOnNPC) {
 			approachTarget = Math.lineFromXYAtAngle([other.x,other.y],40,currentAngle*(Math.PI/180));
 			Player.entity.pushingForward = true;
@@ -604,7 +610,9 @@ Player.goToCursor = function(){
 		else {
 			Player.entity.pushingForward = false;
 		}
-		if (Player.entity.retreating) approachTarget = Math.lineFromXYAtAngle([other.x,other.y],96,angle);
+		if (Player.entity.retreating) {
+			approachTarget = Math.lineFromXYAtAngle([other.x,other.y],90,currentAngle*(Math.PI/180));
+		}
 		CameraTest.drawCircle = approachTarget;
 		speedOverride = Player.entity.turnSpeed;
 		approachRange = 32;
@@ -628,7 +636,8 @@ Player.goToCursor = function(){
 		Attack the player's current combatant
 */
 Player.attack = function(){
-		
+	
+	//	Force a recalculation of the current combatant based on cursor position
 	var other = Player.getCurrentCombatant(true);
 	
 	if (other) Player.entity.swingAtCharacter(other);
@@ -637,48 +646,54 @@ Player.attack = function(){
 /*	getCurrentCombatant
 		Figure out who the player's current combatant is, based on avatar and cursor position
 */
-Player.getCurrentCombatant = function(forceRayTest){
-	var em = Player.entity.manager;
-	//	Figure out whose radius the player is in
-	var imIn = em.radiusSweepTest(Player.entity);
-	//	Now discard the radii that don't belong to hostile characters
-	var candidates = [];
-	for (var i in imIn){
-		if (imIn[i].charType == CHAR_HOSTILE){
-			candidates.push(imIn[i]);
-		}
-	}
-
-	var other = candidates[0]; // The current combatant. If there isn't one, this will return false.
-	if (!forceRayTest) var otherStore = other;
-	
-	//	If the player actually is in an enemy's radius
-	if (candidates.length > 0) {
-		//	Figure out who's closest to the cursor
-		var distances = [];
-		for (var i in candidates){
-			var me = candidates[i];
-			//	Push both the distance and the Entity's name so we can retrieve it later
-			distances.push({distance: Math.distanceXY([me.x,me.y],[Player.entity.cursor.x,Player.entity.cursor.y]), name: me.name} );
-		}
-		//	Sort them so the enemy closest to the cursor is first
-		distances.sort(function(a, b){
-			return a.distance - b.distance;
-		});
-
-		//	Test each enemy until we find the closest enemy that the player can actually touch
-		while (1){
-			other = em.get(distances[0].name);
-			if(em.rayCastTestAB(Player.entity, other)) break;
-			else {
-				distances.splice(0,1);
-				other = false;
-				if (!distances.length) break;
+Player.getCurrentCombatant = function(forceNew){
+	//	If the player has no current combatant, or if a recalculation is being forced...
+	if (forceNew || !Player.combatStats) {
+		var em = Player.entity.manager;
+		//	Figure out whose radius the player is in
+		var imIn = em.radiusSweepTest(Player.entity);
+		//	Now discard the radii that don't belong to hostile characters
+		var candidates = [];
+		for (var i in imIn){
+			if (imIn[i].charType == CHAR_HOSTILE){
+				candidates.push(imIn[i]);
 			}
 		}
-	}
-	if (!forceRayTest && !other) other = otherStore;
+
+		var other = candidates[0]; // The current combatant. If there isn't one, this will return false.
+		if (!forceNew) var otherStore = other;
 	
-	return other;
+		//	If the player actually is in an enemy's radius
+		if (candidates.length > 0) {
+			//	Figure out who's closest to the cursor
+			var distances = [];
+			for (var i in candidates){
+				var me = candidates[i];
+				//	Push both the distance and the Entity's name so we can retrieve it later
+				distances.push({distance: Math.distanceXY([me.x,me.y],[Input.mousePosition.x,Input.mousePosition.y]), name: me.name} );
+			}
+			//	Sort them so the enemy closest to the cursor is first
+			distances.sort(function(a, b){
+				return a.distance - b.distance;
+			});
+
+			//	Test each enemy until we find the closest enemy that the player can actually touch
+			while (1){
+				other = em.get(distances[0].name);
+				if(em.rayCastTestAB(Player.entity, other)) break;
+				else {
+					distances.splice(0,1);
+					other = false;
+					if (!distances.length) break;
+				}
+			}
+		}
+		if (!forceNew && !other) other = otherStore;
+		Player.combatStats = {
+			enemy: other,
+		}
+	}
+	
+	return Player.combatStats.enemy;
 	
 }

@@ -51,10 +51,54 @@ Player.buttons.ATTACK = {
 	}
 }
 
+//	Directional buttons
+Player.buttons.W = {
+	down: function(){
+		Player.keyboardMovement += 1;
+	},
+	up: function(){
+		Player.keyboardMovement -= 1;
+		delete Player.keyData["W"];
+	}
+}
+Player.buttons.A = {
+	down: function(){
+		Player.keyboardMovement += 2;
+	},
+	up: function(){
+		Player.keyboardMovement -= 2;
+		delete Player.keyData["A"];
+	}
+}
+Player.buttons.S = {
+	down: function(){
+		Player.keyboardMovement += 4;
+	},
+	up: function(){
+		Player.keyboardMovement -= 4;
+		delete Player.keyData["S"];
+	}
+}
+Player.buttons.D = {
+	down: function(){
+		Player.keyboardMovement += 8;
+	},
+	up: function(){
+		Player.keyboardMovement -= 8;
+		delete Player.keyData["D"];
+	}
+}
+
+
 //	Default button maps
 Player.loadDefaultMap = function(){
 	Player.mapMouse(Input.MOUSE_0,Player.buttons.MOVE);
 	Player.mapMouse(Input.MOUSE_1,Player.buttons.ATTACK);
+	
+	Player.mapKey(Input.keyCodes.W,Player.buttons.W);
+	Player.mapKey(Input.keyCodes.A,Player.buttons.A);
+	Player.mapKey(Input.keyCodes.S,Player.buttons.S);
+	Player.mapKey(Input.keyCodes.D,Player.buttons.D);
 }
 
 //	Movement
@@ -78,7 +122,7 @@ Player.movementLoop = function(){
 			Player.parseWASD(); // Use the keys to position the cursor
 		}
 		
-		// If the mouse button is down, or keys have been down less than 1 second ago
+		// If the move button is down, or keys have been down less than 1 second ago
 		if (Player.moveButtonDown || Player.keyboardMovement || Player.keyboardReleaseTimer.get()) {
 			Player.goToCursor();
 			

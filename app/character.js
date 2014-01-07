@@ -6,6 +6,7 @@
 	Includes:
 	- Character
 	- Character-related functions for EntityManager
+	- CharacterModel
 	
 */
 
@@ -183,6 +184,11 @@ var Character = function (params){
 	c.setBodyColor = function(color) {
 		this.paperDoll.body.color = color;
 	}
+	
+	c.setBody = function(type, color) {
+		this.paperDoll.body.type = type;
+		this.paperDoll.body.color = color;
+	}
 
 	c.setTorso = function(type, color){
 		this.paperDoll.torso.type = type;
@@ -227,6 +233,8 @@ var Character = function (params){
 		delete this.paperDoll.misc[type];
 	}
 
+	
+
 	//	Character type functions
 	//	========================
 	c.makePlayer = function(){
@@ -269,9 +277,9 @@ var Character = function (params){
 					}
 				},
 				reposition: function(bar){
-					var yOff = 36;
-					if (myBars.focusBar) yOff = 40;
-					bar.setPosition(sprite.x, sprite.y + yOff)
+					var yOff = 18;
+					if (myBars.focusBar) yOff = 22;
+					bar.setPosition(sprite.x - sprite.xOffset, sprite.y - sprite.yOffset + yOff)
 				}
 			},
 		});
@@ -289,7 +297,7 @@ var Character = function (params){
 			spectrum: this.focus,
 			effects: {
 				reposition: function(bar){
-					bar.setPosition(sprite.x, sprite.y + 36)
+					bar.setPosition(sprite.x - sprite.xOffset, sprite.y - sprite.yOffset + 18)
 				}
 			},
 		});
@@ -307,7 +315,7 @@ var Character = function (params){
 			spectrum: this.timers.hit,
 			effects: {
 				reposition: function(bar){
-					bar.setPosition(sprite.x, sprite.y + 44)
+					bar.setPosition(sprite.x - sprite.xOffset, sprite.y - sprite.yOffset + 26)
 				},
 				flash: function(bar, emptySprite, fullSprite, spectrum){
 					if ( (spectrum.get() <= spectrum.getMax() * HIT_CLOCK_GREEN_ZONE) && (spectrum.get() > 0) ){
@@ -563,4 +571,41 @@ EntityManager.prototype.runCharacterBehaviors = function(){
 			entities[i].runMyBehaviors();
 		}
 	}
+}
+
+//	====================================================================================
+
+/*	CharacterModel Class
+		Maps textures to sprites and bounding boxes
+*/
+var CharacterModel = function () { }
+
+CharacterModel.create = function(params){
+	var m = new CharacterModel();
+	
+	m.frames = [];
+	m.frameIndex = [];
+	
+	m.texture = params.texture;
+	
+	return m;
+}
+	
+CharacterModel.defineFrame = function(params){
+	var f = {};
+	
+	f.name = params.name;
+	f.rectangle = params.rectangle;
+	
+	var index = this.frames.length;
+	this.frames.push(f);
+	this.frameIndex[f.name] = index;
+}
+
+CharacterModel.getFrame = function (name){
+	var f = {};
+	f.rectangle = this.frames[this.frameIndex[name]].rectangle;
+	f.width = f.rectangle[2] - f.rectangle[0];
+	f.height = f.rectangle[1] - f.rectangle[3];
+	return f;
 }

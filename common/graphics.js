@@ -84,6 +84,23 @@ var Graphics = {
 		camera.updateViewMatrix();
 	},
 	
+	//	Texture functions
+	//	=================
+	
+	//	loadTexture - Load a texture into the texture manager.
+	loadTexture: function loadTexture(name, extension){
+		extension = extension || ".png";
+		Graphics.textureManager.load("textures/"+name+extension);
+		Graphics.textureManager.map(name, "textures/"+name+extension);
+	},
+	
+	//	loadTextures - Load an array of textures.
+	loadTextures: function loadTextures(textureNames){
+		for (var i in textureNames){
+			Graphics.loadTexture(textureNames[i]);
+		}
+	},
+	
 	/*	makeCompositeTexture
 			Take a bunch of layers and render them on top of one another to create a texture.
 			Layers should be an array of objects that specify name/path and color. They will

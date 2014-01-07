@@ -226,6 +226,8 @@ Graphics.EntitySprite = function(params, parent, xOffset, yOffset){
 	}
 	//	draw - Draws the EntitySprite
 	es.draw = function(){
+		// Temporary shadow code -- buggy
+		/*
 		if (this.parent.charType) {
 			var lightPos = [300,-300];
 			var light = Draw2DSprite.create({
@@ -291,6 +293,7 @@ Graphics.EntitySprite = function(params, parent, xOffset, yOffset){
 			Graphics.draw2D.drawSprite(light);
 			Graphics.draw2D.drawSprite(shadow);
 		}
+		*/
 		Graphics.draw2D.drawSprite(this);
 	}
 	

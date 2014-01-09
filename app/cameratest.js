@@ -10,27 +10,57 @@ CameraTest.initializeExtension = function(){
 						"ls-hblade","ls-hhilt","patch-h","patchleft-h"];
 	Graphics.loadTextures(charTextures);
 	
-	this.modelHData = {
-		down: [0,0,110,256],
-		right: [110,0,295,256],
-		left: [295,0,481,256],
-		up: [481,0,641,256],
-		downRight: [641,0,778,256],
-		downLeft: [778,0,916,256],
-		upRight: [0,258,174,514],
-		upLeft:[174,258,348,514],
-	}
-	this.modelHOffsets = {
-		down: [3,-50],
-		right: [-12,-52],
-		left: [-24,-52],
-		up: [3,-50],
-		downRight: [-6,-50],
-		downLeft: [-6,-50],
-		upRight: [-6,-50],
-		upLeft: [-24,-50],
-		
-	}
+	this.modelH = CharacterModel.create();
+	this.modelH.setFrame({
+		name: "down",
+		rectangle: [0,0,110,256],
+		offsets: [3,-50],
+		direction: 6,
+	});
+	this.modelH.setFrame({
+		name: "right",
+		rectangle: [110,0,295,256],
+		offsets: [-12,-52],
+		direction: 0,
+	});
+	this.modelH.setFrame({
+		name: "left",
+		rectangle: [295,0,481,256],
+		offsets: [-24,-52],
+		direction: 4,
+	});
+	this.modelH.setFrame({
+		name: "up",
+		rectangle: [481,0,641,256],
+		offsets: [3,-50],
+		direction: 2,
+	});
+	this.modelH.setFrame({
+		name: "downRight",
+		rectangle: [641,0,778,256],
+		offsets: [-6,-50],
+		direction: 7,
+	});
+	this.modelH.setFrame({
+		name: "downLeft",
+		rectangle: [778,0,916,256],
+		offsets: [-6,-50],
+		direction: 5,
+	});
+	this.modelH.setFrame({
+		name: "upRight",
+		rectangle: [0,258,174,514],
+		offsets: [-6,-50],
+		direction: 1,
+	});
+	this.modelH.setFrame({
+		name: "upLeft",
+		rectangle: [174,258,348,514],
+		offsets: [-24,-50],
+		direction: 3,
+	});
+	this.avatar.sprite.setHeight(96);
+	this.avatar.setModel(this.modelH);
 
 	this.wall1 = this.em.createEntity({});
 	this.wall1.setPosition(500,-300);
@@ -127,10 +157,6 @@ CameraTest.loadingLoop = function(){
 			this.avatar.setSword("ls-h","aaaaaa");
 			this.avatar.addMisc("patch-h","000033",2);
 			this.avatar.composeDoll();
-			this.avatar.sprite.setHeight(96);
-			this.avatar.sprite.setTextureRectangle(this.modelHData.down);
-			this.avatar.sprite.yOffset = this.modelHOffsets.down[1];
-			this.avatar.sprite.xOffset = this.modelHOffsets.down[0];
 
 			this.NPC.setBodyColor("909099");
 			this.NPC.setTorso("tank","cccc99");
@@ -180,47 +206,6 @@ CameraTest.loadingLoop = function(){
 
 CameraTest.runAfterPlayerMoves = function(){
 	
-	var angle = Math.angleXY([Player.entity.x, Player.entity.y],[Player.entity.cursor.x,Player.entity.cursor.y])*(180/Math.PI);
-	var rect = this.modelHData.down;
-	var offsets = this.modelHOffsets.down;
-	if (angle > 22.5 && angle < 67.5) {
-		rect = this.modelHData.upRight;
-		offsets = this.modelHOffsets.upRight;
-	}
-	else if (angle > 68.5 && angle < 112.5) {
-		rect = this.modelHData.up;
-		offsets = this.modelHOffsets.up;
-	}
-	else if (angle > 112.5 && angle < 157.5) {
-		rect = this.modelHData.upLeft;
-		offsets = this.modelHOffsets.upLeft;
-	}
-	else if (angle > 157.5 && angle < 202.5) {
-		rect = this.modelHData.left;
-		offsets = this.modelHOffsets.left;
-	}
-	else if (angle > 202.5 && angle < 247.5) {
-		rect = this.modelHData.downLeft;
-		offsets = this.modelHOffsets.downLeft;
-	}
-	else if (angle > 247.5 && angle < 292.5) {
-		rect = this.modelHData.down;
-		offsets = this.modelHOffsets.down;
-	}
-	else if (angle > 292.5 && angle < 337.5) {
-		rect = this.modelHData.downRight;
-		offsets = this.modelHOffsets.downRight;
-	}
-	else if (angle > 337.5 || angle < 22.5) {
-		rect = this.modelHData.right;
-		offsets = this.modelHOffsets.right;
-	}
-	this.avatar.sprite.setTextureRectangle(rect);
-	this.avatar.sprite.setWidth((rect[2]-rect[0])*0.43636363);
-	this.avatar.sprite.xOffset = offsets[0];
-	this.avatar.sprite.yOffset = offsets[1];
-	
-	
 	CameraTest.em.updateCharacterCombatStates();
 	CameraTest.em.runCharacterBehaviors();
 	
@@ -228,6 +213,7 @@ CameraTest.runAfterPlayerMoves = function(){
 }
 
 CameraTest.drawExtension = function(){
+	
 	if (CameraTest.rayCastPoints) {
 		var points = CameraTest.rayCastPoints;
 		Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());

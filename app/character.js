@@ -130,9 +130,28 @@ var Character = function (params){
 	}
 	
 	c.drawExtension = function(){
+		if (this.model) {
+			var direction = 6;
+			if (this.heading) {
+				direction = Math.angleToDirection(this.heading);
+			}
+			var frame = this.model.getDirection(direction);
+			var differential = this.sprite.getWidth()/this.activeFrame.width;
+			this.sprite.setWidth(frame.width*differential);
+			this.sprite.setTextureRectangle(frame.rectangle);
+			this.sprite.setOffsets(frame.offsets);
+			this.activeFrame = frame;
+		}
 		for (var i in bars){
 			if (bars[i].visible) bars[i].draw();
 		}
+	}
+	
+	c.setModel = function(model){
+		this.model = model;
+		this.sprite.setTextureRectangle(this.model.getFrame(0).rectangle);
+		this.sprite.setOffsets(this.model.getFrame(0).offsets);
+		this.activeFrame = this.model.getFrame(0);
 	}
 	
 	//	paperDoll manipulation functions
@@ -578,34 +597,47 @@ EntityManager.prototype.runCharacterBehaviors = function(){
 /*	CharacterModel Class
 		Maps textures to sprites and bounding boxes
 */
-var CharacterModel = function () { }
+var CharacterModel = function () { 
+	
+	var frames = [];
+	var frameIndex = [];
+	
+	var directions = [];
+	
+	this.setFrame = function(params){
+		var f = {};
 
-CharacterModel.create = function(params){
-	var m = new CharacterModel();
+		f.name = params.name;
+		f.rectangle = params.rectangle;
+		f.offsets = params.offsets;
+
+		var index = frames.length;
+		frames.push(f);
+		frameIndex[f.name] = index;
+		
+		if (params.direction !== undefined){
+			this.setDirection(params.direction, f.name);
+		}
+	}
+
+	this.getFrame = function (name){
+		var f = frames[name] || frames[frameIndex[name]];
+		f.width = f.rectangle[2] - f.rectangle[0];
+		f.height = f.rectangle[1] - f.rectangle[3];
+		return f;
+	}
 	
-	m.frames = [];
-	m.frameIndex = [];
+	this.setDirection = function(dir, frameName){
+		directions[dir] = frameIndex[frameName];
+		frames[frameIndex[frameName]].direction = dir;
+	}
 	
-	m.texture = params.texture;
+	this.getDirection = function(dir){
+		return this.getFrame(directions[dir])
+	}
 	
-	return m;
-}
-	
-CharacterModel.defineFrame = function(params){
-	var f = {};
-	
-	f.name = params.name;
-	f.rectangle = params.rectangle;
-	
-	var index = this.frames.length;
-	this.frames.push(f);
-	this.frameIndex[f.name] = index;
 }
 
-CharacterModel.getFrame = function (name){
-	var f = {};
-	f.rectangle = this.frames[this.frameIndex[name]].rectangle;
-	f.width = f.rectangle[2] - f.rectangle[0];
-	f.height = f.rectangle[1] - f.rectangle[3];
-	return f;
+CharacterModel.create = function(){
+	return new CharacterModel();
 }

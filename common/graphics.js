@@ -224,6 +224,21 @@ Graphics.EntitySprite = function(params, parent, xOffset, yOffset){
 		this.x = this.parent.x + this.xOffset;
 		this.y = this.parent.y + this.yOffset;
 	}
+	
+	//	setOffsets - Sets the x and y offsets at the same time
+	es.setOffsets = function(x,y){
+		//	Can take a single array argument...
+		if (x.length == 2){
+			this.xOffset = x[0];
+			this.yOffset = x[1];
+		}
+		//	Or two arguments, one for each coordinate...
+		else {
+			this.xOffset = x;
+			this.yOffset = y;
+		}
+	}
+	
 	//	draw - Draws the EntitySprite
 	es.draw = function(){
 		// Temporary shadow code -- buggy

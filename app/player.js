@@ -144,6 +144,7 @@ Player.movementLoop = function(){
 			if (Player.entity.inCombat) {
 				Player.entity.pushingForward = false;
 				var other = Player.getCurrentCombatant();
+				
 				if (!other.strafing){
 					var currentAngle = Math.angleXY([other.x, other.y],[Player.entity.x, Player.entity.y])*(180/Math.PI);
 					var approachTarget = Math.lineFromXYAtAngle([other.x,other.y],64,-currentAngle);
@@ -163,6 +164,13 @@ Player.movementLoop = function(){
 			
 			}
 			
+		}
+		
+		if (Player.entity.inCombat){
+			var other = Player.getCurrentCombatant();
+			//	Make the player face the enemy
+			var heading = Math.angleXY([Player.entity.x, Player.entity.y],[other.x,other.y])*(180/Math.PI);
+			Player.entity.affect("heading",heading);
 		}
 		
 	}
@@ -739,10 +747,6 @@ Player.getCurrentCombatant = function(forceNew){
 			enemy: other,
 		}
 	}
-	
-	//	Make the player face the enemy
-	var heading = Math.angleXY([Player.entity.x, Player.entity.y],[Player.combatStats.enemy.x,Player.combatStats.enemy.y])*(180/Math.PI);
-	Player.entity.affect("heading",heading);
 	
 	return Player.combatStats.enemy;
 	

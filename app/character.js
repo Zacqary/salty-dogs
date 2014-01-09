@@ -136,7 +136,7 @@ var Character = function (params){
 			//	Default direction is down
 			var direction = 6;
 			//	If the character is heading in a direction
-			if (this.heading) {
+			if (this.heading !== undefined) {
 				direction = Math.angleToDirection(this.heading);
 			}
 			var frame = this.model.getDirection(direction);

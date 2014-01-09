@@ -89,9 +89,8 @@ var Graphics = {
 	
 	//	loadTexture - Load a texture into the texture manager.
 	loadTexture: function loadTexture(name, extension){
-		extension = extension || ".png";
-		Graphics.textureManager.load("textures/"+name+extension);
-		Graphics.textureManager.map(name, "textures/"+name+extension);
+		Graphics.textureManager.load(TEXTURE_ROOT+name+TEXTURE_EXT);
+		Graphics.textureManager.map(name, TEXTURE_ROOT+name+TEXTURE_EXT);
 	},
 	
 	//	loadTextures - Load an array of textures.
@@ -113,16 +112,19 @@ var Graphics = {
 			viewportRectangle: undefined
 		});
 		
-		//	Check if the layers specify explicit path or just a texture name.
-		//	If it's just a name, turn this into a path.
+		//	Check if the layers specify texture data, texture path or just a texture name.
 		for (var i in layers){
-			if (!layers[i].path) {
-				layers[i].path = TEXTURE_ROOT + layers[i].name + TEXTURE_EXT;
+			if (!layers[i].texture){
+				//	If it's just a name, turn this into a path.
+				if (!layers[i].path) {
+					layers[i].path = TEXTURE_ROOT + layers[i].name + TEXTURE_EXT;
+				}
+				layers[i].texture = Graphics.textureManager.get(layers[i].path);
 			}
 		}
 		//	Determine how big the texture is. This will only work with
 		//	power of 2 textures, so don't do anything weird.
-		var pixels = Graphics.textureManager.get(layers[0].path).width;
+		var pixels = layers[0].texture.width;
 		
 		//	Create a render target and start drawing to it
 		var target = Graphics.draw2D.createRenderTarget({
@@ -138,7 +140,7 @@ var Graphics = {
 			if (typeof color == "string") color = Graphics.hexToARGB(color);
 			
 			Graphics.draw2D.drawSprite(Draw2DSprite.create({
-				texture: Graphics.textureManager.get(layers[i].path),
+				texture: layers[i].texture,
 				textureRectangle: Math.device.v4Build(0, 0, pixels, pixels),
 				width: pixels,
 				height: pixels,

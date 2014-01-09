@@ -112,6 +112,8 @@ var Character = function (params){
 		if(bars.focusBar) c.createFocusBar();
 		if(bars.hitClockBar) c.createHitClockBar();
 		
+		if (this.model) c.setModel(this.model);
+		
 		return c;
 	}
 	
@@ -131,15 +133,21 @@ var Character = function (params){
 	
 	c.drawExtension = function(){
 		if (this.model) {
+			//	Default direction is down
 			var direction = 6;
+			//	If the character is heading in a direction
 			if (this.heading) {
 				direction = Math.angleToDirection(this.heading);
 			}
 			var frame = this.model.getDirection(direction);
+			//	Determine whether the sprite is currently scaled up or down relative to the model
 			var differential = this.sprite.getWidth()/this.activeFrame.width;
+			//	Update the sprite's width, scaled proportionately
 			this.sprite.setWidth(frame.width*differential);
+			//	Update texture rectangles and offsets
 			this.sprite.setTextureRectangle(frame.rectangle);
 			this.sprite.setOffsets(frame.offsets);
+			
 			this.activeFrame = frame;
 		}
 		for (var i in bars){
@@ -147,6 +155,10 @@ var Character = function (params){
 		}
 	}
 	
+	//	Model functions
+	//	===============
+	
+	//	setModel - Sets a model and initializes it by applying it to the sprite
 	c.setModel = function(model){
 		this.model = model;
 		this.sprite.setTextureRectangle(this.model.getFrame(0).rectangle);
@@ -164,24 +176,48 @@ var Character = function (params){
 		var layers = [];
 		//	Go through all the basic paperDoll components and make them into layers
 		for(var i in paperDollZIndex){
-			if (paperDollZIndex[i].type !== null) {
-				//	If the current component is a sword, create two layers
-				if (paperDollZIndex[i].isSword) {
-					layers.push({name: paperDollZIndex[i].type+'hilt', color: "c7aa09"});
-					layers.push({name: paperDollZIndex[i].type+'blade', color: paperDollZIndex[i].color});
+			var texName = paperDollZIndex[i].type;
+			if (this.model) {
+				if (paperDollZIndex[i].type !== null) {
+					//	If the current component is a sword, create two layers
+					if (paperDollZIndex[i].isSword) {
+						layers.push({texture: this.model.getLayer(texName+'hilt'), color: "c7aa09"});
+						layers.push({texture: this.model.getLayer(texName+'blade'), color: paperDollZIndex[i].color});
+					}
+					else {
+						layers.push({texture: this.model.getLayer(texName), color: paperDollZIndex[i].color});
+					}
+					//	See if there are any miscellaneous objects to layer on top of the current component
+					for (var j in this.paperDoll.misc){
+						me = this.paperDoll.misc[j];
+						if (me.zIndex == i)
+							layers.push({texture: this.model.getLayer(me.type), color: me.color});
+					}
 				}
-				else {
-					layers.push({name: paperDollZIndex[i].type, color: paperDollZIndex[i].color});
-				}
-				//	See if there are any miscellaneous objects to layer on top of the current component
-				for (var j in this.paperDoll.misc){
-					me = this.paperDoll.misc[j];
-					if (me.zIndex == i)
-						layers.push({name: me.type, color: me.color});
+				this.composeTexture(layers);
+			}
+			/*
+			else {
+				if (paperDollZIndex[i].type !== null) {
+					//	If the current component is a sword, create two layers
+					if (paperDollZIndex[i].isSword) {
+						layers.push({name: texName+'hilt', color: "c7aa09"});
+						layers.push({name: texName+'blade', color: paperDollZIndex[i].color});
+					}
+					else {
+						layers.push({name: texName, color: paperDollZIndex[i].color});
+					}
+					//	See if there are any miscellaneous objects to layer on top of the current component
+					for (var j in this.paperDoll.misc){
+						me = this.paperDoll.misc[j];
+						var myName = me.type;
+						if (me.zIndex == i)
+							layers.push({name: myName, color: me.color});
+					}
 				}
 			}
+			*/
 		}
-		this.composeTexture(layers);
 	}
 	
 	//	Setters
@@ -604,6 +640,8 @@ var CharacterModel = function () {
 	
 	var directions = [];
 	
+	var layers = [];
+	
 	this.setFrame = function(params){
 		var f = {};
 
@@ -634,6 +672,15 @@ var CharacterModel = function () {
 	
 	this.getDirection = function(dir){
 		return this.getFrame(directions[dir])
+	}
+	
+	this.setLayer = function(texture, name){
+		name = name || texture.name;
+		layers[name] = texture;
+	}
+	
+	this.getLayer = function(name){
+		return layers[name];
 	}
 	
 }

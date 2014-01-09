@@ -114,6 +114,8 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
 	this.NPC.addBehavior("CombatBehavior");
+	this.NPC.sprite.setHeight(96);
+	this.NPC.setModel(this.modelH);
 	this.em.add(this.NPC);
 
 	this.cursor = this.em.createEntity({permeable: true});
@@ -127,7 +129,6 @@ CameraTest.initializeExtension = function(){
 	});
 	this.cursor.createHitbox(8,24,0,0);
 	this.cursor.useHitboxAsEffectRadius();
-
 	this.cursor.createEffect({
 		types: [ENT_CHARACTER],
 		doThis: function(it, me){
@@ -150,26 +151,37 @@ CameraTest.loadingLoop = function(){
 
 	if (this.loaded){
 			
-			this.avatar.setBody("body-h","bf8000");
-			this.avatar.setHead("hat-h","992370");
-			this.avatar.setTorso("tank-h","cccc99");
-			this.avatar.setLegs("pants-h","77709a");
-			this.avatar.setSword("ls-h","aaaaaa");
-			this.avatar.addMisc("patch-h","000033",2);
+			this.modelH.setLayer(Graphics.textureManager.get("textures/body-h.png"),"body");
+			this.modelH.setLayer(Graphics.textureManager.get("textures/hat-h.png"),"hat");
+			this.modelH.setLayer(Graphics.textureManager.get("textures/tank-h.png"),"tank");
+			this.modelH.setLayer(Graphics.textureManager.get("textures/shirt-h.png"),"shirt");
+			this.modelH.setLayer(Graphics.textureManager.get("textures/pants-h.png"),"pants");
+			this.modelH.setLayer(Graphics.textureManager.get("textures/ls-hhilt.png"),"lshilt");
+			this.modelH.setLayer(Graphics.textureManager.get("textures/ls-hblade.png"),"lsblade");
+			this.modelH.setLayer(Graphics.textureManager.get("textures/patch-h.png"),"patch");
+			this.modelH.setLayer(Graphics.textureManager.get("textures/patchleft-h.png"),"patchleft");
+			
+			this.avatar.setBody("body","bf8000");
+			this.avatar.setHead("hat","992370");
+			this.avatar.setTorso("tank","cccc99");
+			this.avatar.setLegs("pants","77709a");
+			this.avatar.setSword("ls","aaaaaa");
+			this.avatar.addMisc("patch","000033",2);
 			this.avatar.composeDoll();
 
-			this.NPC.setBodyColor("909099");
+			this.NPC.setBody("body","909099");
 			this.NPC.setTorso("tank","cccc99");
 			this.NPC.setLegs("pants","aa5555");
-			this.NPC.setSword("cl","aaaaaa");
+			this.NPC.setSword("ls","aaaaaa");
 			this.NPC.addMisc("patchleft","000033",2);
 			this.NPC.composeDoll();
 			//this.NPC.focus.setMax(15);
 		
 			
 			this.NPC2 = this.NPC.clone();
+			this.NPC2.sprite.setHeight(96);
 			this.NPC2.setPosition(130, 90);
-			this.NPC2.setBodyColor("dedefe");
+			this.NPC2.setBody("body","dedefe");
 			this.NPC2.setHead("hat","992370");
 			this.NPC2.removeMisc("patchleft");
 			this.NPC2.composeDoll();
@@ -199,7 +211,6 @@ CameraTest.loadingLoop = function(){
 			this.NPC4.addBehavior(AI.CombatBehavior);
 			this.em.add(this.NPC4);
 			this.NPC4.debug = true; */
-			
 			
 	}
 }

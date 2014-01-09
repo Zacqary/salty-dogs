@@ -149,6 +149,9 @@ AI.CombatBehavior = function(me){
 				if (Math.abs(newAngle - strategy.angle) < 1) strategy.angle = null;
 			}
 			attackStrategies.standard();
+			
+			var heading = Math.angleXY([me.x, me.y],[stats.enemy.x,stats.enemy.y])*(180/Math.PI);
+			me.affect("heading",heading);
 		
 		}
 		//	If the character is out of combat, reset all of this behavior's stats

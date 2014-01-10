@@ -695,7 +695,7 @@ CharacterModel.create = function(archive, layers){
 				var sprites = [];
 				var layerName = layers[i];
 				//	Start at the left side of the texture
-				var originX = 0;
+				var spriteX = 0;
 				//	For each direction, create a sprite
 				for (var j = 0; j < 8; j++){
 					var frame = Graphics.textureManager.get(layerName+"-"+j+TEXTURE_EXT);
@@ -704,20 +704,22 @@ CharacterModel.create = function(archive, layers){
 						textureRectangle: [0,0,frame.width,frame.height],
 						width: frame.width,
 						height: frame.height,
-						color: [1,1,1,1],
-						origin: [originX,0],
+						x: spriteX,
+						y: 0,
+						color: Math.device.v4BuildOne(),
+						origin: Math.device.v2BuildZero(),
 					}));
 					console.log(frame.width);
 					if (!m.getDirection(j)){
 						m.setFrame({
 							name: makeid(),
-							rectangle: [-originX,0,-originX+frame.width,frame.height],
+							rectangle: [spriteX,0,spriteX+frame.width,frame.height],
 							offsets: offsets[j],
 							direction: j
 						});
 					}
 					//	Move the next sprite to the right side of the previous
-					originX -= frame.width;
+					spriteX += frame.width;
 				}
 				//	Draw all the sprites into the texture
 				Graphics.draw2D.configure({

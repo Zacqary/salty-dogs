@@ -239,5 +239,21 @@ CameraTest.drawExtension = function(){
 		Graphics.debugDraw.drawCircle(points[0],points[1],3,[0,0,1,1]);
 		Graphics.debugDraw.end();
 	}
-
+	
+/*	Graphics.draw2D.configure({
+		scaleMode: 'scale',
+		viewportRectangle: GameState.getCamera().getViewport()
+	});
+	Graphics.draw2D.begin("alpha");
+	Graphics.draw2D.drawSprite(Draw2DSprite.create({
+		texture: CameraTest.bodTex,
+		textureRectangle: [0,0,CameraTest.bodTex.width,CameraTest.bodTex.height],
+		width: CameraTest.bodTex.width,
+		height: CameraTest.bodTex.height,
+		x: 100,
+		y: 100,
+		color: [1,0,0,1],
+		scale: [0.5,0.5]
+	}));
+	Graphics.draw2D.end(); */
 }

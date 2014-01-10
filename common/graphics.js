@@ -29,6 +29,17 @@ var Graphics = {
 		});
 		Graphics.debugDraw.setPhysics2DViewport([0,0,1280,720]);
 		Graphics.WORLD_UP = Math.device.v3Build(0.0, 1.0, 0.0);
+		
+		//	Initialize non-power-of-two drawing
+		Graphics.shaderManager.load("shaders/npot2D.cgfx.json", function(){
+			var npot2D = Graphics.shaderManager.get("shaders/npot2D.cgfx.json").getTechnique('textured2D');
+			Graphics.draw2D = Draw2D.create({
+				graphicsDevice : Graphics.device,
+				blendModes : {
+					"npot2D" : npot2D,
+				},
+			});
+		});
 	},
 	
 	clearEngineReferences: function clearEngineReferences(){
@@ -122,9 +133,9 @@ var Graphics = {
 				layers[i].texture = Graphics.textureManager.get(layers[i].path);
 			}
 		}
-		//	Determine how big the texture is. This will only work with
-		//	power of 2 textures, so don't do anything weird.
-		var pixels = layers[0].texture.width;
+		//	Determine how big the texture is.
+		var pixWidth = layers[0].texture.width;
+		var pixHeight = layers[0].texture.height;
 		
 		//	Create a render target and start drawing to it
 		var target = Graphics.draw2D.createRenderTarget({
@@ -141,9 +152,9 @@ var Graphics = {
 			
 			Graphics.draw2D.drawSprite(Draw2DSprite.create({
 				texture: layers[i].texture,
-				textureRectangle: Math.device.v4Build(0, 0, pixels, pixels),
-				width: pixels,
-				height: pixels,
+				textureRectangle: Math.device.v4Build(0, 0, pixWidth, pixHeight),
+				width: pixWidth,
+				height: pixHeight,
 				color: color,
 				origin: Math.device.v2BuildZero(),
 			}));

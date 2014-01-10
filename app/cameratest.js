@@ -2,16 +2,12 @@ var CameraTest = new InCharacterLoop();
 CameraTest.initializeExtension = function(){
 	Graphics.loadTexture("circle");
 
-	var charTextures = ["body","hat","shirt","tank","pants",
-						"lsblade","lshilt","clblade","clhilt",
-						"patch","patchleft"];
-	Graphics.loadTextures(charTextures);
-	charTextures = ["body-h","hat-h","shirt-h","tank-h","pants-h",
+	var charTextures = ["body-h","hat-h","shirt-h","tank-h","pants-h",
 						"ls-hblade","ls-hhilt","patch-h","patchleft-h"];
 	Graphics.loadTextures(charTextures);
 	
-	this.modelH = CharacterModel.create();
-	this.modelH.setFrame({
+	this.modelH = CharacterModel.create("model-h", ["body","hat"]);
+	/*this.modelH.setFrame({
 		name: "down",
 		rectangle: [0,0,110,256],
 		offsets: [3,-50],
@@ -58,9 +54,9 @@ CameraTest.initializeExtension = function(){
 		rectangle: [174,258,348,514],
 		offsets: [-24,-50],
 		direction: 3,
-	});
+	});*/
 	this.avatar.sprite.setHeight(96);
-	this.avatar.setModel(this.modelH);
+	
 
 	this.wall1 = this.em.createEntity({});
 	this.wall1.setPosition(500,-300);
@@ -115,7 +111,6 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createHitClockBar();
 	this.NPC.addBehavior("CombatBehavior");
 	this.NPC.sprite.setHeight(96);
-	this.NPC.setModel(this.modelH);
 	this.em.add(this.NPC);
 
 	this.cursor = this.em.createEntity({permeable: true});
@@ -145,14 +140,17 @@ CameraTest.initializeExtension = function(){
 	this.em.updateAll();
 }
 CameraTest.loadingLoop = function(){
-	if (!Graphics.textureManager.getNumPendingTextures()) {
+	if ( (!Graphics.textureManager.getNumPendingTextures()) && (!Graphics.shaderManager.getNumPendingShaders()) ) {
 		this.loaded = true;
 	}
 
 	if (this.loaded){
 			
-			this.modelH.setLayer(Graphics.textureManager.get("textures/body-h.png"),"body");
-			this.modelH.setLayer(Graphics.textureManager.get("textures/hat-h.png"),"hat");
+			this.avatar.setModel(this.modelH);
+			this.NPC.setModel(this.modelH);
+			
+			//this.modelH.setLayer(tex,"body");
+			//this.modelH.setLayer(Graphics.textureManager.get("textures/hat-h.png"),"hat");
 			this.modelH.setLayer(Graphics.textureManager.get("textures/tank-h.png"),"tank");
 			this.modelH.setLayer(Graphics.textureManager.get("textures/shirt-h.png"),"shirt");
 			this.modelH.setLayer(Graphics.textureManager.get("textures/pants-h.png"),"pants");
@@ -163,10 +161,10 @@ CameraTest.loadingLoop = function(){
 			
 			this.avatar.setBody("body","bf8000");
 			this.avatar.setHead("hat","992370");
-			this.avatar.setTorso("tank","cccc99");
-			this.avatar.setLegs("pants","77709a");
-			this.avatar.setSword("ls","aaaaaa");
-			this.avatar.addMisc("patch","000033",2);
+			// this.avatar.setTorso("tank","cccc99");
+			// 			this.avatar.setLegs("pants","77709a");
+			// 			this.avatar.setSword("ls","aaaaaa");
+			// 			this.avatar.addMisc("patch","000033",2);
 			this.avatar.composeDoll();
 
 			this.NPC.setBody("body","909099");
@@ -241,4 +239,5 @@ CameraTest.drawExtension = function(){
 		Graphics.debugDraw.drawCircle(points[0],points[1],3,[0,0,1,1]);
 		Graphics.debugDraw.end();
 	}
+
 }

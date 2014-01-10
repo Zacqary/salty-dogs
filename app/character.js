@@ -147,7 +147,6 @@ var Character = function (params){
 			//	Update texture rectangles and offsets
 			this.sprite.setTextureRectangle(frame.rectangle);
 			this.sprite.setOffsets(frame.offsets);
-			
 			this.activeFrame = frame;
 		}
 		for (var i in bars){
@@ -161,9 +160,9 @@ var Character = function (params){
 	//	setModel - Sets a model and initializes it by applying it to the sprite
 	c.setModel = function(model){
 		this.model = model;
-		this.sprite.setTextureRectangle(this.model.getFrame(0).rectangle);
-		this.sprite.setOffsets(this.model.getFrame(0).offsets);
-		this.activeFrame = this.model.getFrame(0);
+		this.sprite.setTextureRectangle(this.model.getFrame(6).rectangle);
+		this.sprite.setOffsets(this.model.getFrame(6).offsets);
+		this.activeFrame = this.model.getFrame(6);
 	}
 	
 	//	paperDoll manipulation functions
@@ -660,8 +659,9 @@ var CharacterModel = function () {
 
 	this.getFrame = function (name){
 		var f = frames[name] || frames[frameIndex[name]];
+		if (!f) return false;
 		f.width = f.rectangle[2] - f.rectangle[0];
-		f.height = f.rectangle[1] - f.rectangle[3];
+		f.height = f.rectangle[3] - f.rectangle[1];
 		return f;
 	}
 	
@@ -685,6 +685,62 @@ var CharacterModel = function () {
 	
 }
 
-CharacterModel.create = function(){
-	return new CharacterModel();
+CharacterModel.create = function(archive, layers){
+	var m = new CharacterModel();
+	Graphics.textureManager.loadArchive(TEXTURE_ROOT+archive+".tar", true, null, function(textures){
+		//	Load the JSON data for offsets
+		Protocol.loadJSON(TEXTURE_ROOT+archive+".json", function(offsets) {
+			//	Create a texture for each layer
+			for (var i in layers) {
+				var sprites = [];
+				var layerName = layers[i];
+				//	Start at the left side of the texture
+				var originX = 0;
+				//	For each direction, create a sprite
+				for (var j = 0; j < 8; j++){
+					var frame = Graphics.textureManager.get(layerName+"-"+j+TEXTURE_EXT);
+					sprites.push(Draw2DSprite.create({
+						texture: frame,
+						textureRectangle: [0,0,frame.width,frame.height],
+						width: frame.width,
+						height: frame.height,
+						color: [1,1,1,1],
+						origin: [originX,0],
+					}));
+					console.log(frame.width);
+					if (!m.getDirection(j)){
+						m.setFrame({
+							name: makeid(),
+							rectangle: [-originX,0,-originX+frame.width,frame.height],
+							offsets: offsets[j],
+							direction: j
+						});
+					}
+					//	Move the next sprite to the right side of the previous
+					originX -= frame.width;
+				}
+				//	Draw all the sprites into the texture
+				Graphics.draw2D.configure({
+					scaleMode: 'scale',
+					viewportRectangle: undefined
+				});
+				var target = Graphics.draw2D.createRenderTarget({
+					name: "newTarget",
+					backBuffer: true,
+				});
+				Graphics.draw2D.setRenderTarget(target);
+				Graphics.draw2D.begin("npot2D");
+				for (var i in sprites){
+					Graphics.draw2D.drawSprite(sprites[i]);
+				}
+				Graphics.draw2D.end();
+				Graphics.draw2D.setBackBuffer();
+				var tex = Graphics.draw2D.getRenderTargetTexture(target);
+
+				m.setLayer(tex, layerName);
+			}	
+		});
+	});
+	
+	return m;
 }

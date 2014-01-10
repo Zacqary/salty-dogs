@@ -29,6 +29,7 @@ var Protocol = {
 	
 	clearEngineReferences: function(){
 		Protocol.requestHandler = null;
+		Protocol.resourceLoader = null;
 		Math.device = null;
 		Graphics.clearEngineReferences();
 		Input.clearEngineReferences();
@@ -47,6 +48,18 @@ var Protocol = {
 		Graphics.device.clear([0.5,0.5,0.5,1]);
 		GameState.draw();
 		Graphics.device.endFrame();
+	},
+	
+	loadJSON: function(src, onLoadFn){
+		var data;
+		Protocol.requestHandler.request({
+			src: src,
+			onload: function(response, status, callContext){
+				onLoadFn(JSON.parse(response));
+				data = response;
+			}
+		});
+		return data;
 	}
 }
 

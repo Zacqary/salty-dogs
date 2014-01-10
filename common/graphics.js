@@ -32,11 +32,13 @@ var Graphics = {
 		
 		//	Initialize non-power-of-two drawing
 		Graphics.shaderManager.load("shaders/npot2D.cgfx.json", function(){
-			var npot2D = Graphics.shaderManager.get("shaders/npot2D.cgfx.json").getTechnique('textured2D');
+			var npot2D = Graphics.shaderManager.get("shaders/npot2D.cgfx.json").getTechnique('opaque');
+			var npot2Dalpha = Graphics.shaderManager.get("shaders/npot2D.cgfx.json").getTechnique('alpha');
 			Graphics.draw2D = Draw2D.create({
 				graphicsDevice : Graphics.device,
 				blendModes : {
-					"npot2D" : npot2D,
+					"npot" : npot2D,
+					"npot-alpha" : npot2Dalpha,
 				},
 			});
 		});

@@ -731,7 +731,7 @@ CharacterModel.create = function(archive, layers){
 					backBuffer: true,
 				});
 				Graphics.draw2D.setRenderTarget(target);
-				Graphics.draw2D.begin("npot2D");
+				Graphics.draw2D.begin("npot-alpha");
 				for (var i in sprites){
 					Graphics.draw2D.drawSprite(sprites[i]);
 				}

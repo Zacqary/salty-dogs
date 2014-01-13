@@ -14,6 +14,7 @@
 	"blanks":
 	{
 		"patch": [1, 2, 3, 4],
-		"patchleft": [0, 1, 2, 3]
+		"patchleft": [0, 1, 2, 3],
+		"lshilt": [3]
 	}
 }

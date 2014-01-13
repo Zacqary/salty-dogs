@@ -697,37 +697,71 @@ CharacterModel.create = function(archive, layers){
 	var m = new CharacterModel();
 	Graphics.textureManager.loadArchive(TEXTURE_ROOT+archive+".tar", true, null, function(textures){
 		//	Load the JSON data for offsets
-		Protocol.assetManager.loadJSON(TEXTURE_ROOT+archive+".json", function(offsets) {
+		Protocol.assetManager.loadJSON(TEXTURE_ROOT+archive+".json", function(params) {
+			//	Store the starting X coordinates for the bottom layer, and apply these to all the others
+			//	This ensures all the textures will line up
+			var spriteXValues = [];
 			//	Create a texture for each layer
 			for (var i in layers) {
+				//	Define a list of sprites that will be drawn next to each other
 				var sprites = [];
+				
 				var layerName = layers[i];
+				
 				//	Start at the left side of the texture
 				var spriteX = 0;
+				
 				//	For each direction, create a sprite
 				for (var j = 0; j < 8; j++){
-					var frame = Graphics.textureManager.get(layerName+"-"+j+TEXTURE_EXT);
-					sprites.push(Draw2DSprite.create({
-						texture: frame,
-						textureRectangle: [0,0,frame.width,frame.height],
-						width: frame.width,
-						height: frame.height,
-						x: spriteX,
-						y: 0,
-						color: Math.device.v4BuildOne(),
-						origin: Math.device.v2BuildZero(),
-					}));
-					console.log(frame.width);
+					//	If this isn't the first layer, spriteX should be defined already
+					if (spriteXValues[j]) spriteX = spriteXValues[j];
+					
+					//	Check if this direction is blanked for the layer
+					//	This is done in multiple lines rather than with a simple
+					//	if(indexOf) to avoid running into undefined "blanks" arrays
+					var blankIndex = -1;
+					if (params.blanks[layerName]) {
+						blankIndex = params.blanks[layerName].indexOf(j);
+					}
+					//	If the direction isn't blanked, proceed
+					if (blankIndex == -1){
+						//	Generate the filename of the layer
+						var path = layerName+"-"+j+TEXTURE_EXT;
+						
+						//	If this texture is missing, log an error
+						if (Graphics.textureManager.isTextureMissing(path)) {
+							console.log("ERROR: "+path+" is missing");
+						}
+						//	Even if the texture is missing, still proceed as normal
+						//	so that the debug texture will be displayed
+						
+						//	Load the texture
+						var frame = Graphics.textureManager.get(layerName+"-"+j+TEXTURE_EXT);
+						
+						//	Create a sprite from the texture, and then push it into the list of sprites to draw
+						sprites.push(Draw2DSprite.create({
+							texture: frame,
+							textureRectangle: [0,0,frame.width,frame.height],
+							width: frame.width,
+							height: frame.height,
+							x: spriteX,
+							y: 0,
+							color: Math.device.v4BuildOne(),
+							origin: Math.device.v2BuildZero(),
+						}));
+					}
+					//	If this is the first layer, define the bounding box for direction and spriteX
 					if (!m.getDirection(j)){
 						m.setFrame({
 							name: makeid(),
 							rectangle: [spriteX,0,spriteX+frame.width,frame.height],
-							offsets: offsets[j],
+							offsets: params.offsets[j],
 							direction: j
 						});
+						//	Store this spriteX value and then move it to the right of the previous frame
+						spriteXValues[j] = spriteX;
+						spriteX += frame.width;
 					}
-					//	Move the next sprite to the right side of the previous
-					spriteX += frame.width;
 				}
 				//	Draw all the sprites into the texture
 				Graphics.draw2D.configure({

@@ -6,7 +6,7 @@ CameraTest.initializeExtension = function(){
 						"ls-hblade","ls-hhilt","patch-h","patchleft-h"];
 	Graphics.loadTextures(charTextures);
 	
-	this.modelH = CharacterModel.create("model-h", ["body","hat"]);
+	this.modelH = CharacterModel.create("model-h", ["body","hat", "tank","shirt","patch","patchleft","pants","lshilt","lsblade"]);
 	/*this.modelH.setFrame({
 		name: "down",
 		rectangle: [0,0,110,256],
@@ -151,20 +151,20 @@ CameraTest.loadingLoop = function(){
 			
 			//this.modelH.setLayer(tex,"body");
 			//this.modelH.setLayer(Graphics.textureManager.get("textures/hat-h.png"),"hat");
-			this.modelH.setLayer(Graphics.textureManager.get("textures/tank-h.png"),"tank");
-			this.modelH.setLayer(Graphics.textureManager.get("textures/shirt-h.png"),"shirt");
-			this.modelH.setLayer(Graphics.textureManager.get("textures/pants-h.png"),"pants");
-			this.modelH.setLayer(Graphics.textureManager.get("textures/ls-hhilt.png"),"lshilt");
-			this.modelH.setLayer(Graphics.textureManager.get("textures/ls-hblade.png"),"lsblade");
-			this.modelH.setLayer(Graphics.textureManager.get("textures/patch-h.png"),"patch");
-			this.modelH.setLayer(Graphics.textureManager.get("textures/patchleft-h.png"),"patchleft");
+			// this.modelH.setLayer(Graphics.textureManager.get("textures/tank-h.png"),"tank");
+			// 			this.modelH.setLayer(Graphics.textureManager.get("textures/shirt-h.png"),"shirt");
+			// 			this.modelH.setLayer(Graphics.textureManager.get("textures/pants-h.png"),"pants");
+			// 			this.modelH.setLayer(Graphics.textureManager.get("textures/ls-hhilt.png"),"lshilt");
+			// 			this.modelH.setLayer(Graphics.textureManager.get("textures/ls-hblade.png"),"lsblade");
+			// 			this.modelH.setLayer(Graphics.textureManager.get("textures/patch-h.png"),"patch");
+			// 			this.modelH.setLayer(Graphics.textureManager.get("textures/patchleft-h.png"),"patchleft");
 			
 			this.avatar.setBody("body","bf8000");
 			this.avatar.setHead("hat","992370");
-			// this.avatar.setTorso("tank","cccc99");
-			// 			this.avatar.setLegs("pants","77709a");
-			// 			this.avatar.setSword("ls","aaaaaa");
-			// 			this.avatar.addMisc("patch","000033",2);
+			this.avatar.setTorso("shirt","cccc99");
+			this.avatar.setLegs("pants","77709a");
+			this.avatar.setSword("ls","aaaaaa");
+			this.avatar.addMisc("patch","000033",2);
 			this.avatar.composeDoll();
 
 			this.NPC.setBody("body","909099");

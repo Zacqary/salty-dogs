@@ -28,6 +28,7 @@ var GameState = new function() {
 		
 		tickCountdowns();
 		
+		this.updateMouseWorldPosition();
 		previousFrameTime = currentTime;
 		currentTime = TurbulenzEngine.time;
 	}
@@ -54,6 +55,16 @@ var GameState = new function() {
 	this.onKeyUp = function(keyCode){
 		if(currentLoop.onKeyUp)
 			currentLoop.onKeyUp(keyCode);
+	}
+	
+	this.updateMouseWorldPosition = function(){
+		var pos = this.getCamera().mouseToWorld();
+		this.mouseWorldPosition.x = pos[0];
+		this.mouseWorldPosition.y = pos[1];
+	}
+	this.mouseWorldPosition = {
+		x: null,
+		y: null
 	}
 	
 	//	Timing

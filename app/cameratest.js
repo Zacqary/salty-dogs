@@ -109,7 +109,7 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createFocusBar();
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
-	this.NPC.addBehavior("CombatBehavior");
+	//this.NPC.addBehavior("CombatBehavior");
 	this.NPC.sprite.setHeight(96);
 	this.em.add(this.NPC);
 
@@ -239,7 +239,15 @@ CameraTest.drawExtension = function(){
 		Graphics.debugDraw.drawCircle(points[0],points[1],3,[0,0,1,1]);
 		Graphics.debugDraw.end();
 	}
-	
+	var other = Player.getTargetedCombatant();
+	if (other) {
+		Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
+		Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
+		Graphics.debugDraw.begin();
+		Graphics.debugDraw.drawCircle(other.x,other.y,24,[1,0,0,1]);
+		Graphics.debugDraw.end();
+	}
+
 /*	Graphics.draw2D.configure({
 		scaleMode: 'scale',
 		viewportRectangle: GameState.getCamera().getViewport()

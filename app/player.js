@@ -117,7 +117,6 @@ Player.buttons.debug = {
 	name: "debug",
 	down: function(){
 		Player.keyData["debug"] = true;
-		console.log("hi");
 	},
 	up: function(){
 		delete Player.keyData["debug"];
@@ -204,7 +203,7 @@ Player.movementLoop = function(){
 		}
 		
 		if (Player.entity.inCombat){
-			var other = Player.getCurrentCombatant();
+			var other = Player.getTargetedCombatant();
 			//	Make the player face the enemy
 			var heading = Math.angleXY([Player.entity.x, Player.entity.y],[other.x,other.y])*(180/Math.PI);
 			Player.entity.affect("heading",heading);
@@ -734,68 +733,10 @@ Player.attack = function(){
 	if (other) Player.entity.swingAtCharacter(other);
 	
 }
-/*	getCurrentCombatant
-		Figure out who the player's current combatant is, based on avatar and cursor position
+/*	getTargetedCombatant
+		Figure out who the player is targeting, based on avatar and cursor position
 */
-Player.getCurrentCombatant = function(forceNew){
-	//	If the player has no current combatant, or if a recalculation is being forced...
-	if (forceNew || !Player.combatStats) {
-		var em = Player.entity.manager;
-		//	Figure out whose radius the player is in
-		var imIn = em.radiusSweepTest(Player.entity);
-		//	Now discard the radii that don't belong to hostile characters
-		var candidates = [];
-		for (var i in imIn){
-			if (imIn[i].charType == CHAR_HOSTILE){
-				candidates.push(imIn[i]);
-			}
-		}
-
-		var other = candidates[0]; // The current combatant. If there isn't one, this will return false.
-		if (!forceNew) var otherStore = other;
-	
-		//	If the player actually is in an enemy's radius
-		if (candidates.length > 0) {
-			//	Figure out who's closest to the cursor
-			var distances = [];
-			for (var i in candidates){
-				var me = candidates[i];
-				//	Push both the distance and the Entity's name so we can retrieve it later
-				distances.push({distance: Math.distanceXY([me.x,me.y],[Input.mousePosition.x,Input.mousePosition.y]), name: me.name} );
-			}
-			//	Sort them so the enemy closest to the cursor is first
-			distances.sort(function(a, b){
-				return a.distance - b.distance;
-			});
-
-			//	Test each enemy until we find the closest enemy that the player can actually touch
-			while (1){
-				other = em.get(distances[0].name);
-				if(em.rayCastTestAB(Player.entity, other)) break;
-				else {
-					distances.splice(0,1);
-					other = false;
-					if (!distances.length) break;
-				}
-			}
-		}
-		if (!forceNew && !other) other = otherStore;
-		Player.combatStats = {
-			enemy: other,
-		}
-	}
-	
-	return Player.combatStats.enemy;
-	
-}
-
-Player.combatantCursor = function(){
-	var debug = false;
-	if (Player.keyData["debug"]){
-		debug = true;
-		delete Player.keyData["debug"];
-	}
-	
+Player.getTargetedCombatant = function(){
 	var em = Player.entity.manager;
 	//	Figure out whose radius the player is in
 	var imIn = em.radiusSweepTest(Player.entity);
@@ -806,8 +747,7 @@ Player.combatantCursor = function(){
 			candidates.push(imIn[i]);
 		}
 	}
-	if (debug) console.log(imIn);
-	
+
 	var other = candidates[0]; // The current combatant. If there isn't one, this will return false.
 
 	//	If the player actually is in an enemy's radius
@@ -817,7 +757,7 @@ Player.combatantCursor = function(){
 		for (var i in candidates){
 			var me = candidates[i];
 			//	Push both the distance and the Entity's name so we can retrieve it later
-			distances.push({distance: Math.distanceXY([me.x,me.y],[Input.mousePosition.x,Input.mousePosition.y]), name: me.name} );
+			distances.push({distance: Math.distanceXY([me.x,me.y],[GameState.mouseWorldPosition.x,GameState.mouseWorldPosition.y]), name: me.name} );
 		}
 		//	Sort them so the enemy closest to the cursor is first
 		distances.sort(function(a, b){
@@ -835,5 +775,20 @@ Player.combatantCursor = function(){
 			}
 		}
 	}
+	
 	return other;
+	
+}
+
+/*	getCurrentCombatant
+		Returns the current combatant, or recalculates it
+*/
+Player.getCurrentCombatant = function(forceNew){
+	//	If the player has no current combatant, or if a recalculation is being forced...
+	if (forceNew || !Player.combatStats) {
+		Player.combatStats = {
+			enemy: Player.getTargetedCombatant(),
+		}
+	}
+	return Player.combatStats.enemy;
 }

@@ -10,6 +10,9 @@ var Player = {
 	
 	keyMap: [],
 	mouseMap: [],
+	keyDown: [],
+	mouseDown: [],
+	
 	
 	combatStats: null,
 	
@@ -29,6 +32,24 @@ Player.mapKey = function(code, obj){
 Player.mapMouse = function(code, obj){
 	Player.mouseMap[code] = obj;
 }
+
+Player.onKeyDown = function(code){
+	Player.keyMap[code].down();
+	Player.keyDown[Player.keyMap[code].name] = true;
+}
+Player.onKeyUp = function(code){
+	Player.keyMap[code].up();
+	Player.keyDown[Player.keyMap[code].name] = false;
+}
+Player.onMouseDown = function(code){
+	Player.mouseMap[code].down();
+	Player.mouseDown[code] = true;
+}
+Player.onMouseUp = function(code){
+	Player.mouseMap[code].up();
+	Player.mouseDown[code] = false;
+}
+
 //	Button Objects
 //	==============
 Player.buttons = {};
@@ -53,6 +74,7 @@ Player.buttons.ATTACK = {
 
 //	Directional buttons
 Player.buttons.W = {
+	name: "W",
 	down: function(){
 		Player.keyboardMovement += 1;
 	},
@@ -62,6 +84,7 @@ Player.buttons.W = {
 	}
 }
 Player.buttons.A = {
+	name: "A",
 	down: function(){
 		Player.keyboardMovement += 2;
 	},
@@ -71,6 +94,7 @@ Player.buttons.A = {
 	}
 }
 Player.buttons.S = {
+	name: "S",
 	down: function(){
 		Player.keyboardMovement += 4;
 	},
@@ -80,12 +104,23 @@ Player.buttons.S = {
 	}
 }
 Player.buttons.D = {
+	name: "D",
 	down: function(){
 		Player.keyboardMovement += 8;
 	},
 	up: function(){
 		Player.keyboardMovement -= 8;
 		delete Player.keyData["D"];
+	}
+}
+Player.buttons.debug = {
+	name: "debug",
+	down: function(){
+		Player.keyData["debug"] = true;
+		console.log("hi");
+	},
+	up: function(){
+		delete Player.keyData["debug"];
 	}
 }
 
@@ -99,6 +134,8 @@ Player.loadDefaultMap = function(){
 	Player.mapKey(Input.keyCodes.A,Player.buttons.A);
 	Player.mapKey(Input.keyCodes.S,Player.buttons.S);
 	Player.mapKey(Input.keyCodes.D,Player.buttons.D);
+	Player.mapKey(Input.keyCodes.P,Player.buttons.debug);
+	console.log(Player.keyMap);
 }
 
 //	Movement
@@ -243,11 +280,11 @@ Player.parseWASD = function(){
 			//	If the player starts to the left of the enemy
 			if ((Player.keyData["W"].currentAngle > 135) && (Player.keyData["W"].currentAngle < 240)){
 				//	If the player is near the bottom-left, and also holding D, advance
-				if (currentAngle > 210 && Input.keyDown[Input.keyCodes.D]){
+				if (currentAngle > 210 && Player.keyDown["D"]){
 					curPos = [other.x,other.y];
 				}
 				//	If the player is near the top-left, and also holding A, retreat
-				if (currentAngle < 180 && Input.keyDown[Input.keyCodes.A]){
+				if (currentAngle < 180 && Player.keyDown["A"]){
 					curPos = cursorRetreat(Player.keyData["W"].currentAngle);
 				}
 				//	Otherwise, rotate clockwise
@@ -262,13 +299,13 @@ Player.parseWASD = function(){
 			//	If the player starts below the enemy
 			else if ((Player.keyData["W"].currentAngle >= 240) && (Player.keyData["W"].currentAngle < 300)){
 				//	Bottom-right and holding D, counterclockwise
-				if (currentAngle >= 270 && Input.keyDown[Input.keyCodes.D]) {
+				if (currentAngle >= 270 && Player.keyDown["D"]) {
 					curPos = cursorCounterClockwise(curPos);
 					//	Don't preserve this angle if the player releases the rotation key
 					Player.keyData["W"].currentAngle = currentAngle;
 				}
 				//	Bottom-left and holding A, clockwise
-				else if (currentAngle <= 270 && Input.keyDown[Input.keyCodes.A]) {
+				else if (currentAngle <= 270 && Player.keyDown["A"]) {
 					curPos = cursorClockwise(curPos);
 					Player.keyData["W"].currentAngle = currentAngle;
 				}
@@ -282,11 +319,11 @@ Player.parseWASD = function(){
 			//	If the player starts to the right
 			else if ((Player.keyData["W"].currentAngle >= 300) || (Player.keyData["W"].currentAngle < 45)){
 				//	Bottom-right and holding A, advance
-				if (currentAngle >= 300 && Input.keyDown[Input.keyCodes.A]){
+				if (currentAngle >= 300 && Player.keyDown["A"]){
 					curPos = [other.x,other.y];
 				}
 				//	Top-right and holding D, retreat
-				else if (currentAngle < 45 && Input.keyDown[Input.keyCodes.D]){
+				else if (currentAngle < 45 && Player.keyDown["D"]){
 					curPos = cursorRetreat(Player.keyData["W"].currentAngle);
 				}
 				//	Otherwise, counterclockwise
@@ -316,11 +353,11 @@ Player.parseWASD = function(){
 			//	Below
 			else if ((Player.keyData["A"].currentAngle >= 225) && (Player.keyData["A"].currentAngle < 330)){
 				//	Bottom-right and holding W, advance
-				if (currentAngle > 300 && Input.keyDown[Input.keyCodes.W]){
+				if (currentAngle > 300 && Player.keyDown["W"]){
 					curPos = [other.x,other.y];
 				}
 				//	Bottom-left and holding S, retreat
-				else if (currentAngle < 270 && Input.keyDown[Input.keyCodes.S]){
+				else if (currentAngle < 270 && Player.keyDown["S"]){
 					curPos = cursorRetreat(Player.keyData["A"].currentAngle);
 				}
 				//	Otherwise, clockwise
@@ -335,12 +372,12 @@ Player.parseWASD = function(){
 			//	Right
 			else if ((Player.keyData["A"].currentAngle >= 330) || (Player.keyData["A"].currentAngle < 30)){
 				//	Top-right and holding W, counterclockwise
-				if (currentAngle < 330 && Input.keyDown[Input.keyCodes.W]){
+				if (currentAngle < 330 && Player.keyDown["W"]){
 					curPos = cursorCounterClockwise(curPos);
 					Player.keyData["A"].currentAngle = currentAngle;
 				}
 				//	Bottom-right and holding S, clockwise
-				else if (currentAngle >= 315 && Input.keyDown[Input.keyCodes.S]){
+				else if (currentAngle >= 315 && Player.keyDown["S"]){
 					curPos = cursorClockwise(curPos);
 					Player.keyData["A"].currentAngle = currentAngle;
 				}
@@ -353,11 +390,11 @@ Player.parseWASD = function(){
 			//	Above
 			else if((Player.keyData["A"].currentAngle >= 30) && (Player.keyData["A"].currentAngle <= 135)){
 				//	Top-right and holding S, advance
-				if (currentAngle < 60 && Input.keyDown[Input.keyCodes.S]){
+				if (currentAngle < 60 && Player.keyDown["S"]){
 					curPos = [other.x,other.y];
 				}
 				//	Top-left and holding W, retreat
-				if (currentAngle > 90 && Input.keyDown[Input.keyCodes.W]){
+				if (currentAngle > 90 && Player.keyDown["W"]){
 					curPos = cursorRetreat(Player.keyData["A"].currentAngle);
 				}
 				//	Otherwise, counterclockwise
@@ -377,11 +414,11 @@ Player.parseWASD = function(){
 			//	Left
 			if ((Player.keyData["S"].currentAngle > 120) && (Player.keyData["S"].currentAngle < 225)){
 				//	Top-left and holding D, advance
-				if ((currentAngle < 135) && Input.keyDown[Input.keyCodes.D]){
+				if ((currentAngle < 135) && Player.keyDown["D"]){
 					curPos = [other.x,other.y];
 				}
 				//	Bottom-left and holding A, retreat
-				else if ((currentAngle > 180) && Input.keyDown[Input.keyCodes.A]){
+				else if ((currentAngle > 180) && Player.keyDown["A"]){
 					curPos = cursorRetreat(Player.keyData["S"].currentAngle);
 				}
 				//	Otherwise, counterclockwise
@@ -401,11 +438,11 @@ Player.parseWASD = function(){
 			//	Right
 			else if ((Player.keyData["S"].currentAngle >= 315) || (Player.keyData["S"].currentAngle < 60)){
 				//	Top-right and holding A, advance
-				if ((currentAngle < 60) && Input.keyDown[Input.keyCodes.A]){
+				if ((currentAngle < 60) && Player.keyDown["A"]){
 					curPos = [other.x,other.y];
 				}
 				//	Bottom-right and holding D, retreat
-				else if ((currentAngle >= 315) && Input.keyDown[Input.keyCodes.D]){
+				else if ((currentAngle >= 315) && Player.keyDown["D"]){
 					curPos = cursorRetreat(Player.keyData["S"].currentAngle);
 				}
 				//	Otherwise, clockwise
@@ -420,12 +457,12 @@ Player.parseWASD = function(){
 			//	Above
 			else if((Player.keyData["S"].currentAngle >= 60) && (Player.keyData["S"].currentAngle <= 120)){
 				//	Top-left and holding A, counterclockwise
-				if (currentAngle >= 90 && Input.keyDown[Input.keyCodes.A]){
+				if (currentAngle >= 90 && Player.keyDown["A"]){
 					curPos = cursorCounterClockwise(curPos);
 					Player.keyData["S"].currentAngle = currentAngle;
 				}
 				//	Top-left and holding D, clockwise
-				else if (currentAngle <= 90 && Input.keyDown[Input.keyCodes.D]){
+				else if (currentAngle <= 90 && Player.keyDown["D"]){
 					curPos = cursorClockwise(curPos);
 					Player.keyData["S"].currentAngle = currentAngle;
 				}
@@ -443,12 +480,12 @@ Player.parseWASD = function(){
 			//	Left
 		 	if ((Player.keyData["D"].currentAngle > 150) && (Player.keyData["D"].currentAngle < 210)){
 				//	Top-left and holding W, clockwise
-				if (currentAngle <= 180 && Input.keyDown[Input.keyCodes.W]){
+				if (currentAngle <= 180 && Player.keyDown["W"]){
 					curPos = cursorClockwise(curPos);
 					Player.keyData["D"].currentAngle = currentAngle;
 				}
 				//	Bottom-left and holding S, counterclockwise
-				else if (currentAngle >= 180 && Input.keyDown[Input.keyCodes.S]){
+				else if (currentAngle >= 180 && Player.keyDown["S"]){
 					curPos = cursorCounterClockwise(curPos);
 					Player.keyData["D"].currentAngle = currentAngle;
 				}
@@ -461,11 +498,11 @@ Player.parseWASD = function(){
 			//	Below
 			else if ((Player.keyData["D"].currentAngle >= 210) && (Player.keyData["D"].currentAngle < 315)){
 				//	Bottom-left and holding W, advance
-				if ((currentAngle < 240) && Input.keyDown[Input.keyCodes.W]){
+				if ((currentAngle < 240) && Player.keyDown["W"]){
 					curPos = [other.x,other.y];
 				}
 				//	Bottom-right and holding S, retreat
-				else if ((currentAngle > 270) && Input.keyDown[Input.keyCodes.S]){
+				else if ((currentAngle > 270) && Player.keyDown["S"]){
 					curPos = cursorRetreat(Player.keyData["D"].currentAngle);
 				}
 				//	Otherwise, counterclockwise
@@ -484,11 +521,11 @@ Player.parseWASD = function(){
 			//	Above
 			else if ((Player.keyData["D"].currentAngle > 45) && (Player.keyData["D"].currentAngle < 150)){
 				//	Top-left and holding S, advance
-				if ((currentAngle > 90) && Input.keyDown[Input.keyCodes.S]){
+				if ((currentAngle > 90) && Player.keyDown["S"]){
 					curPos = [other.x,other.y];
 				}
 				//	Top-right and holding W, retreat
-				if ((currentAngle < 90) && Input.keyDown[Input.keyCodes.W]){
+				if ((currentAngle < 90) && Player.keyDown["W"]){
 					curPos = cursorRetreat(Player.keyData["D"].currentAngle);
 				}
 				//	Otherwise, clockwise
@@ -506,7 +543,7 @@ Player.parseWASD = function(){
 		//	======================
 
 		//	Initialize key data
-		if (Input.keyDown[Input.keyCodes.W]){
+		if (Player.keyDown["W"]){
 			if (!Player.keyData["W"]){
 				Player.keyData["W"] = {
 					key: "W",
@@ -516,7 +553,7 @@ Player.parseWASD = function(){
 			}
 		}
 		
-		if (Input.keyDown[Input.keyCodes.A]){
+		if (Player.keyDown["A"]){
 			if (!Player.keyData["A"]){
 				Player.keyData["A"] = {
 					key: "A",
@@ -526,7 +563,7 @@ Player.parseWASD = function(){
 			}
 		}
 		
-		if (Input.keyDown[Input.keyCodes.D]){
+		if (Player.keyDown["D"]){
 			if (!Player.keyData["D"]){
 				Player.keyData["D"] = {
 					key: "D",
@@ -535,7 +572,7 @@ Player.parseWASD = function(){
 				}
 			}
 		}
-		if (Input.keyDown[Input.keyCodes.S]){
+		if (Player.keyDown["S"]){
 			if (!Player.keyData["S"]){
 				Player.keyData["S"] = {
 					key: "S",
@@ -571,16 +608,16 @@ Player.parseWASD = function(){
 	
 	else {
 		// Move based on direction
-		if (Input.keyDown[Input.keyCodes.W]){
+		if (Player.keyDown["W"]){
 			curPos[1] -= delta;
 		}
-		if (Input.keyDown[Input.keyCodes.A]){
+		if (Player.keyDown["A"]){
 			curPos[0] -= delta;
 		}
-		if (Input.keyDown[Input.keyCodes.D]){
+		if (Player.keyDown["D"]){
 			curPos[0] += delta;
 		}
-		if (Input.keyDown[Input.keyCodes.S]){
+		if (Player.keyDown["S"]){
 			curPos[1] += delta;
 		}
 	}
@@ -750,4 +787,53 @@ Player.getCurrentCombatant = function(forceNew){
 	
 	return Player.combatStats.enemy;
 	
+}
+
+Player.combatantCursor = function(){
+	var debug = false;
+	if (Player.keyData["debug"]){
+		debug = true;
+		delete Player.keyData["debug"];
+	}
+	
+	var em = Player.entity.manager;
+	//	Figure out whose radius the player is in
+	var imIn = em.radiusSweepTest(Player.entity);
+	//	Now discard the radii that don't belong to hostile characters
+	var candidates = [];
+	for (var i in imIn){
+		if (imIn[i].charType == CHAR_HOSTILE){
+			candidates.push(imIn[i]);
+		}
+	}
+	if (debug) console.log(imIn);
+	
+	var other = candidates[0]; // The current combatant. If there isn't one, this will return false.
+
+	//	If the player actually is in an enemy's radius
+	if (candidates.length > 0) {
+		//	Figure out who's closest to the cursor
+		var distances = [];
+		for (var i in candidates){
+			var me = candidates[i];
+			//	Push both the distance and the Entity's name so we can retrieve it later
+			distances.push({distance: Math.distanceXY([me.x,me.y],[Input.mousePosition.x,Input.mousePosition.y]), name: me.name} );
+		}
+		//	Sort them so the enemy closest to the cursor is first
+		distances.sort(function(a, b){
+			return a.distance - b.distance;
+		});
+
+		//	Test each enemy until we find the closest enemy that the player can actually touch
+		while (1){
+			other = em.get(distances[0].name);
+			if(em.rayCastTestAB(Player.entity, other)) break;
+			else {
+				distances.splice(0,1);
+				other = false;
+				if (!distances.length) break;
+			}
+		}
+	}
+	return other;
 }

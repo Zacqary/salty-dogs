@@ -58,53 +58,24 @@ var InCharacterLoop = function(){
 
 	l.onMouseDown = function(mouseCode, x, y){
 		Player.keyboardReleaseTimer.set(0);
-		Player.mouseMap[mouseCode].down();
+		Player.onMouseDown(mouseCode);
 	}
 	
 	l.onMouseUp = function(mouseCode, x, y){
-	    Player.mouseMap[mouseCode].up();
+	    Player.onMouseUp(mouseCode);
 	}
 	
 	l.onKeyDown = function(keyCode){
 		var startKB;
 		if (!Player.keyboardMovement) startKB = true;
-		if (keyCode === Input.keyCodes.W) {
-			Player.keyboardMovement += 1;
-		}
-		if (keyCode === Input.keyCodes.A) {
-			Player.keyboardMovement += 2;
-		}
-		if (keyCode === Input.keyCodes.S) {
-			Player.keyboardMovement += 4;
-		}
-		if (keyCode === Input.keyCodes.D) {
-			Player.keyboardMovement += 8;
-		}
 		if ( (startKB) && (Player.keyboardMovement) ){
 			Player.entity.cursor.setPosition(Player.entity.x, Player.entity.y);
 		}
-		if (keyCode === Input.keyCodes.K) {
-			Player.attack();
-		}
+		Player.onKeyDown(keyCode);
 	}
 	
 	l.onKeyUp = function(keyCode){
-		if (keyCode === Input.keyCodes.W) {
-			Player.keyboardMovement -= 1;
-			delete Player.keyData["W"];
-		}
-		if (keyCode === Input.keyCodes.A) {
-			Player.keyboardMovement -= 2;
-			delete Player.keyData["A"];
-		}
-		if (keyCode === Input.keyCodes.S) {
-			Player.keyboardMovement -= 4;
-			delete Player.keyData["S"];
-		}
-		if (keyCode === Input.keyCodes.D) {
-			Player.keyboardMovement -= 8;
-			delete Player.keyData["D"];
-		}
+		Player.onKeyUp(keyCode);
 	}
 	
 	return l;

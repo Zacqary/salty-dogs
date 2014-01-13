@@ -1,7 +1,7 @@
 var Player = {
 	
 	keyboardMovement: 0,
-	keyboardReleaseTimer: new Countdown(0,1),
+	keyboardReleaseTimer: new Countdown(0,0.36),
 	keyData: [],
 	
 	moveButtonDown: false,
@@ -34,20 +34,28 @@ Player.mapMouse = function(code, obj){
 }
 
 Player.onKeyDown = function(code){
-	Player.keyMap[code].down();
-	Player.keyDown[Player.keyMap[code].name] = true;
+	if (Player.keyMap[code]) {
+		Player.keyMap[code].down();
+		Player.keyDown[Player.keyMap[code].name] = true;
+	}
 }
 Player.onKeyUp = function(code){
-	Player.keyMap[code].up();
-	Player.keyDown[Player.keyMap[code].name] = false;
+	if (Player.keyMap[code]) {
+		Player.keyMap[code].up();
+		Player.keyDown[Player.keyMap[code].name] = false;
+	}
 }
 Player.onMouseDown = function(code){
-	Player.mouseMap[code].down();
-	Player.mouseDown[code] = true;
+	if (Player.mouseMap[code]) {
+		Player.mouseMap[code].down();
+		Player.mouseDown[code] = true;
+	}
 }
 Player.onMouseUp = function(code){
-	Player.mouseMap[code].up();
-	Player.mouseDown[code] = false;
+	if (Player.mouseMap[code]) {
+		Player.mouseMap[code].up();
+		Player.mouseDown[code] = false;
+	}
 }
 
 //	Button Objects
@@ -134,7 +142,6 @@ Player.loadDefaultMap = function(){
 	Player.mapKey(Input.keyCodes.S,Player.buttons.S);
 	Player.mapKey(Input.keyCodes.D,Player.buttons.D);
 	Player.mapKey(Input.keyCodes.P,Player.buttons.debug);
-	console.log(Player.keyMap);
 }
 
 //	Movement

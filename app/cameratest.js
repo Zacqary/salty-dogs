@@ -109,12 +109,13 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createFocusBar();
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
-	//this.NPC.addBehavior("CombatBehavior");
+	this.NPC.addBehavior("CombatBehavior");
 	this.NPC.sprite.setHeight(96);
+	this.NPC.focus.setMax(5);
 	this.em.add(this.NPC);
 
 	this.cursor = this.em.createEntity({permeable: true});
-	this.cursor.range = 128;
+	this.cursor.range = 64;
 	this.cursor.createSprite({
 		texture: Graphics.textureManager.get("textures/circle.png"),
 		width: 64,
@@ -184,7 +185,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC2.removeMisc("patchleft");
 			this.NPC2.composeDoll();
 			this.NPC2.name = "NPC2";
-			//this.NPC2.addBehavior("CombatBehavior");
+			this.NPC2.addBehavior("CombatBehavior");
 			this.em.add(this.NPC2);
 			
 			

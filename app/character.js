@@ -435,8 +435,6 @@ var Character = function (params){
 			
 			var result = this.manager.rayCastTestXY(this,endpoint);
 			if (result){
-				console.log(result.shape.body.entity);
-				console.log("Blocked!");
 				if (other.pushingForward) d *= 1.25;
 				d *= 3;
 			}

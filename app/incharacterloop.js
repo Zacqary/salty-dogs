@@ -68,10 +68,10 @@ var InCharacterLoop = function(){
 	l.onKeyDown = function(keyCode){
 		var startKB;
 		if (!Player.keyboardMovement) startKB = true;
+		Player.onKeyDown(keyCode);
 		if ( (startKB) && (Player.keyboardMovement) ){
 			Player.entity.cursor.setPosition(Player.entity.x, Player.entity.y);
 		}
-		Player.onKeyDown(keyCode);
 	}
 	
 	l.onKeyUp = function(keyCode){

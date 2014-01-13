@@ -657,6 +657,14 @@ var CharacterModel = function () {
 		}
 	}
 
+	this.getFrames = function(){
+		return frames;
+	}
+	
+	this.getFrameIndex = function(){
+		return frameIndex;
+	}
+	
 	this.getFrame = function (name){
 		var f = frames[name] || frames[frameIndex[name]];
 		if (!f) return false;
@@ -689,7 +697,7 @@ CharacterModel.create = function(archive, layers){
 	var m = new CharacterModel();
 	Graphics.textureManager.loadArchive(TEXTURE_ROOT+archive+".tar", true, null, function(textures){
 		//	Load the JSON data for offsets
-		Protocol.loadJSON(TEXTURE_ROOT+archive+".json", function(offsets) {
+		Protocol.assetManager.loadJSON(TEXTURE_ROOT+archive+".json", function(offsets) {
 			//	Create a texture for each layer
 			for (var i in layers) {
 				var sprites = [];

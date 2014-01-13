@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Turbulenz Limited
+// Copyright (c) 2012 Turbulenz Limited	
 
 float4 clipSpace;
 sampler2D texture = sampler_state
@@ -36,6 +36,7 @@ float4 fp_draw2D(float4 InColor : COLOR,
 //
 // Techniques
 //
+// These are copied and pasted from draw2D.cgfx and replace what was originally here
 technique opaque
 {
     pass

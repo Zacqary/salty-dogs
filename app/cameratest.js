@@ -140,7 +140,7 @@ CameraTest.initializeExtension = function(){
 	this.em.updateAll();
 }
 CameraTest.loadingLoop = function(){
-	if ( (!Graphics.textureManager.getNumPendingTextures()) && (!Graphics.shaderManager.getNumPendingShaders()) ) {
+	if ( (!Protocol.assetManager.getNumPendingAssets()) ) {
 		this.loaded = true;
 	}
 

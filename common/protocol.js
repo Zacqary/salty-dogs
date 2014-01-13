@@ -5,6 +5,7 @@
 	
 	Includes:
 	- Protocol
+	- AssetManager
 	- Generic global functions
 	
 */
@@ -15,14 +16,16 @@
 var Protocol = {
 
 	initializeEngineReferences: function(){
-		
+	
 		Protocol.requestHandler = RequestHandler.create( { } );
 		
 		Math.device = TurbulenzEngine.createMathDevice( { } );
 		Graphics.initializeEngineReferences();
 		Input.initializeEngineReferences();
 		Physics.initializeEngineReferences();
-	
+		
+		Protocol.assetManager = AssetManager.create();
+		
 		Protocol.intervalID = TurbulenzEngine.setInterval(Protocol.loop, 1000 / INITIAL_FRAMERATE);
 		
 	},
@@ -49,18 +52,41 @@ var Protocol = {
 		GameState.draw();
 		Graphics.device.endFrame();
 	},
+
+}
+var AssetManager = function(){
 	
-	loadJSON: function(src, onLoadFn){
+	var pendingJSON = 0;
+	
+	this.loadJSON = function(src, onLoadFn){
+		pendingJSON++;
 		var data;
 		Protocol.requestHandler.request({
 			src: src,
 			onload: function(response, status, callContext){
+				pendingJSON--;
 				onLoadFn(JSON.parse(response));
 				data = response;
 			}
 		});
 		return data;
+	};
+	
+	this.getNumPendingJSON = function(){
+		return pendingJSON;
 	}
+	
+	this.getNumPendingAssets = function(){
+		var pending = pendingJSON;
+		pending += Graphics.textureManager.getNumPendingTextures();
+		pending += Graphics.shaderManager.getNumPendingShaders();
+		return pending;
+	}
+	
+}
+AssetManager.create = function(){
+	var m = new AssetManager();
+	return m;
 }
 
 //	randomNumber - Generates a random number

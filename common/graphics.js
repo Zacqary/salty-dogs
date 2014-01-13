@@ -42,6 +42,7 @@ var Graphics = {
 				},
 			});
 		});
+		
 	},
 	
 	clearEngineReferences: function clearEngineReferences(){
@@ -173,7 +174,6 @@ var Graphics = {
 	},
 	
 }
-
 
 /*	Camera2D Class
 		A 2D camera that will take the positions of a bunch of 2D Entities, and then

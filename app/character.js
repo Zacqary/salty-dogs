@@ -440,6 +440,8 @@ var Character = function (params){
 			}
 		}
 		
+		this.combat.lastAttacker = other;
+		
 		console.log(d);
 		this.focus.plus(-d);
 	}

@@ -50,49 +50,58 @@ AI.CombatBehavior = function(me){
 	var attackStrategies = {
 		
 		standard: function(){
-			//	If this character has enough stamina to attack, and enemy isn't currently attacking
-			if ( (me.stamina.get() > 1) && (!stats.enemy.timers.hit.get()) ) {
-				//	Reset the over-swing tracker
-				stats.overSwing = false;
-				//	If the character is ready to attack again
-				if (!stats.delay.get()) {
-					//	If the character is in the middle of an attack chain, keep attacking
-					if (me.timers.hit.get()) {
-						attack();
-					}
-					//	Otherwise, determine whether to start the attack chain
-					else {
-						//	Get the percentages of the character's focus and stamina
-						var focusPercent = me.focus.get() / me.focus.getMax();
-						var staminaPercent = me.stamina.get() / me.stamina.getMax();
-						//	Measure the difference between the two to determine whether to start
-						var maxDelta = (focusPercent * 40) + 15;
-						if (stats.restartDelta > maxDelta/100) stats.restartDelta = maxDelta/100;
-						if ( (focusPercent <= staminaPercent - stats.restartDelta) || (staminaPercent == 1) ){
-							stats.restartDelta = 0;
+			//	If there's a previous attacker, and it's not this character
+			var lastAttacker = stats.enemy.combat.lastAttacker;
+			if (lastAttacker && lastAttacker != me) {
+				//	Check if the previous attacker is currently attacking
+				var lastAttackerTimer = lastAttacker.timers.hit.get();
+			}
+			//	If neither the enemy isn't attacking, nor is another character attacking them
+			if ( !stats.enemy.timers.hit.get() && !lastAttackerTimer ) {
+				//	If this character has enough stamina to attack
+				if (me.stamina.get() > 1) {
+					//	Reset the over-swing tracker
+					stats.overSwing = false;
+					//	If the character is ready to attack again
+					if (!stats.delay.get()) {
+						//	If the character is in the middle of an attack chain, keep attacking
+						if (me.timers.hit.get()) {
 							attack();
+						}
+						//	Otherwise, determine whether to start the attack chain
+						else {
+							//	Get the percentages of the character's focus and stamina
+							var focusPercent = me.focus.get() / me.focus.getMax();
+							var staminaPercent = me.stamina.get() / me.stamina.getMax();
+							//	Measure the difference between the two to determine whether to start
+							var maxDelta = (focusPercent * 40) + 15;
+							if (stats.restartDelta > maxDelta/100) stats.restartDelta = maxDelta/100;
+							if ( (focusPercent <= staminaPercent - stats.restartDelta) || (staminaPercent == 1) ){
+								stats.restartDelta = 0;
+								attack();
+							}
 						}
 					}
 				}
-			}
-			//	If this character doesn't have the stamina or opening to attack
-			else {
-				//	If the character is out of stamina, 1 in 4 chance that they'll over-swing
-				if (!stats.delay.get() && !stats.enemy.timers.hit.get() && !stats.overSwing){
-					if (randomNumber(0,4) == 4) {
-						attack();
+				//	If this character doesn't have the stamina or opening to attack
+				else {
+					//	If the character is out of stamina, 1 in 4 chance that they'll over-swing
+					if (!stats.delay.get() && !stats.overSwing){
+						if (randomNumber(0,4) == 4) {
+							attack();
+						}
+						stats.overSwing = true;
 					}
-					stats.overSwing = true;
-				}
-				//	Recalculate the character's restartDelta for when they're able to attack again
-				if (!stats.restartDelta) {
-					var focusPercent = me.focus.get() / me.focus.getMax();
-					var maxDelta = (focusPercent * 40) + 15;
+					//	Recalculate the character's restartDelta for when they're able to attack again
+					if (!stats.restartDelta) {
+						var focusPercent = me.focus.get() / me.focus.getMax();
+						var maxDelta = (focusPercent * 40) + 15;
 
-					stats.restartDelta = randomNumber(5,maxDelta)/100;
+						stats.restartDelta = randomNumber(5,maxDelta)/100;
+					}
+					//	Randomize the character's reaction time
+					stats.delay.set(randomNumber(2,5)/60);
 				}
-				//	Randomize the character's reaction time
-				stats.delay.set(randomNumber(2,5)/60);
 			}
 		},
 		

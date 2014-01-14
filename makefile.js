@@ -31,6 +31,7 @@
 
 /*{{ javascript("config/config.js") }}*/
 
+/*{{ javascript("app/debug.js") }}*/
 /*{{ javascript("app/ai.js") }}*/
 /*{{ javascript("app/character.js") }}*/
 /*{{ javascript("app/incharacterloop.js") }}*/

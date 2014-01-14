@@ -53,6 +53,9 @@ var InCharacterLoop = function(){
 		Player.entity.cursor.zIndex = Player.entity.zIndex - 1;
 		this.em.drawAll(true);
 		
+		//	Pathfinding debug draw
+		if (Debug.pathToDraw) Debug.drawPath(Debug.pathToDraw);
+		
 		if (this.drawExtension) this.drawExtension();
 	}
 

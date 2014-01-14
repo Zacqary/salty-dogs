@@ -174,7 +174,6 @@ AI.CombatBehavior = function(me){
 	
 } 
 
-
 AI.PathfindingBehavior = function(me){
 	
 	var collisionTimer = new Countdown(0.2);
@@ -187,7 +186,7 @@ AI.PathfindingBehavior = function(me){
 		}
 		
 		if (!me.hasWaypoint(me.aiGoals.movement)){
-			me.addWaypoint(me.aiGoals.movement, 64);
+			me.addWaypoint({x: me.aiGoals.movement[0], y: me.aiGoals.movement[1], range: 64});
 		}
 		
 		var distanceToPoint = new Spectrum(64);
@@ -199,9 +198,9 @@ AI.PathfindingBehavior = function(me){
 				return;
 			}
 		}
-	/*	if(me.manager.hitboxProjectionTest(me, me.getWaypoint())){
+		if(me.manager.hitboxProjectionTest(me, me.getWaypoint())){
 			correctPath();
-		}*/
+		}
 		else if(me.collision) {
 			if (!collisionTimer.get()){
 				collisionTimer.maxOut();
@@ -243,10 +242,10 @@ AI.PathfindingBehavior = function(me){
 	*/
 	var pushPath = function(path){
 		me.waypoints = [];
-		PathfindingTest.drawPath = [];
+		Debug.pathToDraw = [];
 		for (var i in path){
-			me.addWaypoint(path[i]);
-			PathfindingTest.drawPath.push(path[i]);
+			me.addWaypoint({x: path[i][0], y: path[i][1], pathfinding: true});
+			Debug.pathToDraw.push(path[i]);
 		}
 	}
 	
@@ -360,3 +359,32 @@ AI.PathfindingBehavior = function(me){
 	}
 }
 
+/*	ChaseBehavior
+		Have the character chase a moving target
+*/
+AI.ChaseBehavior = function(me){
+	//	Track the target once every 0.3 seconds
+	var updateTimer = new Countdown(0.3);
+	
+	this.run = function(){
+		if (!me.aiGoals.follow) return;
+		if (me.inCombat) return;
+		
+		//	Recalculate the target's position if it's not a movement goal, or
+		//	whenever updateTimer runs out
+		if(!me.aiGoals.movement || !updateTimer.get()){
+			//	If the target has moved since the last check
+			if (me.aiGoals.movement != [me.aiGoals.follow.x, me.aiGoals.follow.y]) {
+				//	Set the movement goal to the target's position
+				me.setMovementAIGoal(me.aiGoals.follow.x, me.aiGoals.follow.y);
+				//	Clear this character's waypoints, unless they're pathfinding around an object
+				if ( (me.waypoints.length < 2) || (!me.waypoints[1].pathfinding) ){
+					me.waypoints = [];
+				}
+			}
+			//	Reset the updateTimer
+			updateTimer.maxOut();
+		}
+	}
+	
+}

@@ -81,6 +81,24 @@ CameraTest.initializeExtension = function(){
 	this.wall4.createHitbox(1,620,0,0);
 	this.wall4.hitbox.sleep();
 	this.wall4.hitbox.setAsStatic();
+	
+	this.wall5 = this.em.createEntity({});
+	this.wall5.setPosition(400,100);
+	this.wall5.createHitbox(50,150,0,0);
+	this.wall5.hitbox.sleep();
+	this.wall5.hitbox.setAsStatic();
+
+	this.wall6 = this.em.createEntity({});
+	this.wall6.setPosition(400,-100);
+	this.wall6.createHitbox(50,150,0,0);
+	this.wall6.hitbox.sleep();
+	this.wall6.hitbox.setAsStatic();
+	
+	this.wall7 = this.em.createEntity({});
+	this.wall7.setPosition(100,50);
+	this.wall7.createHitbox(50,400,0,0);
+	this.wall7.hitbox.sleep();
+	this.wall7.hitbox.setAsStatic();
 
 	//this.avatar.setPosition(0,120);
 	this.avatar.createStaminaBar();
@@ -89,7 +107,7 @@ CameraTest.initializeExtension = function(){
 	
 	this.NPC = Character.create({});
 	this.NPC.name = "NPC1";
-	this.NPC.setPosition(200,0);
+	this.NPC.setPosition(480,0);
 	this.NPC.makeHostile();
 	this.NPC.createEffectRadius(80);
 	this.NPC.createEffect({
@@ -110,6 +128,7 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
 	this.NPC.addBehavior("CombatBehavior");
+	this.NPC.addBehavior("PathfindingBehavior");
 	this.NPC.sprite.setHeight(96);
 	this.NPC.focus.setMax(5);
 	this.em.add(this.NPC);
@@ -174,9 +193,12 @@ CameraTest.loadingLoop = function(){
 			this.NPC.setSword("ls","aaaaaa");
 			this.NPC.addMisc("patchleft","000033",2);
 			this.NPC.composeDoll();
-			//this.NPC.focus.setMax(15);
-		
+			this.NPC.setMovementAIGoal(this.NPC.x, this.NPC.y);
 			
+			this.NPC.addBehavior("ChaseBehavior");
+			this.NPC.aiGoals.follow = Player.entity;
+			
+		/*	
 			this.NPC2 = this.NPC.clone();
 			this.NPC2.sprite.setHeight(96);
 			this.NPC2.setPosition(130, 90);
@@ -186,7 +208,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC2.composeDoll();
 			this.NPC2.name = "NPC2";
 			this.NPC2.addBehavior("CombatBehavior");
-			this.em.add(this.NPC2);
+			this.em.add(this.NPC2); */
 			
 			
 			this.em.updateAll();
@@ -216,9 +238,9 @@ CameraTest.loadingLoop = function(){
 
 CameraTest.runAfterPlayerMoves = function(){
 	
+	
 	CameraTest.em.updateCharacterCombatStates();
 	CameraTest.em.runCharacterBehaviors();
-	
 	
 }
 

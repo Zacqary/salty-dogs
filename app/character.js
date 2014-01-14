@@ -28,7 +28,7 @@ var Character = function (params){
 	c.charType = CHAR_NEUTRAL;
 	c.alive = true;
 	c.createSprite({width: 48, height: 64}, 0, -18);
-	c.speed = 8;
+	c.speed = 6;
 	c.turnSpeed = 2;
 	c.createHitbox(48,28);
 	
@@ -145,6 +145,12 @@ var Character = function (params){
 			//	Update the sprite's width, scaled proportionately
 			this.sprite.setWidth(frame.width*differential);
 			//	Update texture rectangles and offsets
+			if(frame.rectangle === undefined){
+				console.log("Frame.rectangle is undefined");
+				console.log(frame);
+				console.log("Direction: "+direction);
+				console.log("Heading: "+this.heading);
+			}
 			this.sprite.setTextureRectangle(frame.rectangle);
 			this.sprite.setOffsets(frame.offsets);
 			this.activeFrame = frame;
@@ -548,8 +554,8 @@ var Character = function (params){
 		myWaypoint = Math.vNeg(myWaypoint);
 
 		//	Apply the waypoints 
-		other.overwriteWaypoint(0, oWaypoint[0],oWaypoint[1], slowRange, speed, 0.3);
-		this.overwriteWaypoint(0, myWaypoint[0],myWaypoint[1], slowRange, speed, 0.3);
+		other.overwriteWaypoint(0, {x: oWaypoint[0], y: oWaypoint[1], range: slowRange, override: speed, timer: 0.3});
+		this.overwriteWaypoint(0, {x: myWaypoint[0], y: myWaypoint[1], range: slowRange, override: speed, timer: 0.3});
 		
 		//	If this character just started attacking, reset the hit counter
 		if (!this.combat.attacker) {

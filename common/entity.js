@@ -394,38 +394,12 @@ Entity.prototype.approach = function(targetX, targetY, range, speedOverride){
 /*	addWaypoint, overwriteWaypoint, and nextWaypoint
 		Manipulates this Entity's array of waypoints
 */
-Entity.prototype.addWaypoint = function(x, y, range, override, timer){
-	if (x.length) {
-		timer = override;
-		override = range;
-		range = y;
-		y = x[1];
-		x = x[0];
-	}
-	this.waypoints.push({
-		x: x,
-		y: y,
-		range: range,
-		override: override,
-		timer: timer,
-	});
+Entity.prototype.addWaypoint = function(params){
+	this.waypoints.push(params);
 }
 
-Entity.prototype.overwriteWaypoint = function(index, x, y, range, override, timer){
-	if (x.length) {
-		timer = override;
-		override = range;
-		range = y;
-		y = x[1];
-		x = x[0];
-	}
-	this.waypoints.splice(index,1,{
-		x: x,
-		y: y,
-		range: range,
-		override: override,
-		timer: timer,
-	});
+Entity.prototype.overwriteWaypoint = function(index, params){
+	this.waypoints.splice(index,1,params);
 }
 
 Entity.prototype.nextWaypoint = function(){

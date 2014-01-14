@@ -1,7 +1,7 @@
 var Player = {
 	
 	keyboardMovement: 0,
-	keyboardReleaseTimer: new Countdown(0,0.36),
+	keyboardReleaseTimer: new Countdown(0,0.25),
 	keyData: [],
 	
 	moveButtonDown: false,

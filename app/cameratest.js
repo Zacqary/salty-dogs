@@ -115,7 +115,7 @@ CameraTest.initializeExtension = function(){
 	this.em.add(this.NPC);
 
 	this.cursor = this.em.createEntity({permeable: true});
-	this.cursor.range = 64;
+	this.cursor.range = 48;
 	this.cursor.createSprite({
 		texture: Graphics.textureManager.get("textures/circle.png"),
 		width: 64,

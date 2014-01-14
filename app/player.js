@@ -663,6 +663,10 @@ Player.goToCursor = function(){
 		Player.entity.strafing = true;
 		// Check to see if the player is moving towards or away their foe
 		var other = Player.getCurrentCombatant();
+		if (!other) {
+			console.log("Player.getCurrentCombatant failed");
+			return;
+		}
 		// Compare the distance between foe/player and foe/cursor
 		var currentDistance = Math.distanceXY(Player.entity.getPosition(), other.getPosition());
 		var targetDistance = Math.distanceXY(Player.entity.cursor.getPosition(), other.getPosition());

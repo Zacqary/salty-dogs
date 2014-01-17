@@ -120,8 +120,8 @@ var guid = function() {
 }
 
 var arraysEqual = function(a, b){
-	if (a === undefined || b === undefined) return false;
-	if (a.length != b.length) return false;
+	if (!Array.isArray(a) || !Array.isArray(b)) return false;
+	else if (a.length != b.length) return false;
 	var truth = 0;
 	for (var i in a){
 		if (a[i] == b[i]) truth++;

@@ -177,6 +177,8 @@ AI.CombatBehavior = function(me){
 AI.PathfindingBehavior = function(me){
 	
 	var collisionTimer = new Countdown(0.2);
+	var stuckTimer = new Countdown(0.2);
+	var stuckPos = null;
 	
 	this.run = function(){
 		if (!me.aiGoals.movement) return;
@@ -211,7 +213,20 @@ AI.PathfindingBehavior = function(me){
 				}
 			}
 		}
-
+		if (!stuckTimer.get()) {
+			var pos = me.getPosition();
+			for (var i in pos){
+				pos[i] = Math.floor(pos[i]);
+			}
+			if (!arraysEqual(pos,stuckPos)){
+				stuckPos = pos;
+			}
+			else {
+				//console.log("Stuck");
+				me.waypoints = [];
+			}
+			stuckTimer.maxOut();
+		}
 		
 	}
 	

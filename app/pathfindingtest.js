@@ -110,19 +110,7 @@ PathfindingTest.loadingLoop = function(){
 
 PathfindingTest.runAfterPlayerMoves = function(){
 	
-	var arbiters = this.em.getWorld().dynamicArbiters;
-	if (arbiters.length){
-		for (var i in arbiters){
-			var me = arbiters[i];
-			if(me.contacts[0].getPenetration() > 0) {
-				var normal = Math.vNeg(me.getNormal());
-				
-
-				me.bodyA.entity.affect("collision", me.getNormal());
-				me.bodyB.entity.affect("collision", Math.vNeg(me.getNormal()));
-			}
-		}
-	}
+	PathfindingTest.em.detectCollisions();
 	
 	PathfindingTest.em.runCharacterBehaviors();
 	for (var i in this.NPCs){

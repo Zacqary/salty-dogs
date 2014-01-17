@@ -283,7 +283,6 @@ AI.PathfindingBehavior = function(me){
 				negAngle = Math.unitVectorToAngle([-backAway[1],-backAway[0]]);
 				negAngle -= Math.PI/2;
 			}
-			console.log(negAngle * 180/Math.PI);
 			//	Find the point to back up to
 			var startPoint = Math.lineFromXYAtAngle(me.getPosition(),64, negAngle);
 			//	Then convert this point to a tile
@@ -333,30 +332,95 @@ AI.PathfindingBehavior = function(me){
 			var processedPath = [];
 			//	Keep track of the direction that the path is moving in
 			var direction = [0,0];
+			//	Optimize the path to remove redundant tiles
+			path = optimizePath(path);
 			//	For every tile...
 			for (var i = 0; i < path.length; i++){
-				var newDir = [];
-				//	If this isn't the last tile, measure the difference between this tile and the next one
-				if (i < path.length-1) {
-					newDir = [
-						(path[i+1][0] - path[i][0]),
-						(path[i+1][1] - path[i][1]),
-					];
-				}
-				//	If the direction has changed, don't ignore this tile
-				if (!arraysEqual(newDir,direction)) {
-					direction = newDir;
-					var point = [];
-					//	Convert the tile to world coordinates
-					point[0] = ( (tileSize/2) + (tileSize*path[i][0]) ) + gridOrigin[0];
-					point[1] = ( (tileSize/2) + (tileSize*path[i][1]) ) + gridOrigin[1];
-					processedPath.push(point);
-				}
+				var point = [];
+				//	Convert the tile to world coordinates 
+				point[0] = ( (tileSize/2) + (tileSize*path[i][0]) ) + gridOrigin[0];
+				point[1] = ( (tileSize/2) + (tileSize*path[i][1]) ) + gridOrigin[1];
+				processedPath.push(point);
 			}
 
 			return processedPath;
 		}	
 	}
+	
+	var optimizePath = function(path, iteration){
+		var p = [];
+		//	Calculate the direction of each tile on the path
+		var directions = [];
+		//	For every tile...
+		for (var i = 0; i < path.length; i++){
+			var newDir = [];
+			//	If this isn't the last tile, measure the difference between this tile and the next one
+			if (i < path.length-1) {
+				newDir = [
+					(path[i+1][0] - path[i][0]),
+					(path[i+1][1] - path[i][1]),
+				];
+			}
+			//	Record the direction
+			directions.push(newDir);
+		}
+		//	Add the starting tile
+		p.push(path[0]);
+		//	If this is the first iteration, remove redundant horizontal or vertical lines
+		if (!iteration) {
+			//	Now take a look at the direction of each tile to see whether it should be added
+			for (var i in directions){
+				if (i > 0) {
+					//	Check if this tile is moving in the same direction as the previous one
+					var me = directions[i];
+					var prev = directions[i-1];
+					if (!arraysEqual(me,prev)) {
+						//	If not, add it
+						p.push(path[i]);
+					}
+				}
+			}
+		}
+		//	If this is another iteration, remove redundant diagonal lines by detecting patterns
+		else {
+			//	Detect the start of a repeating pattern
+			var patternStart = directions[0];
+			//	Look at the direction of each tile
+			for (var i in directions){
+				var reset = false;
+				if (i > 0) {
+					//	Skip any tile with a direction greater than 1; these are probably already optimized
+					if (Math.abs(directions[i][0]) <= 1 && Math.abs(directions[i][1]) <= 1) {
+						var me = directions[i];
+						//	If this is the start of a new pattern, record it
+						if (!patternStart) patternStart = me;
+						//	If this tile's direction is not the same as the start of the pattern
+						else if (!arraysEqual(me,patternStart)){
+							//	Check back iteration+1 tiles
+							var prev = directions[i-(iteration+1)];
+							//	If this tile's direction isn't the same, the pattern is probably over
+							if (!arraysEqual(me,prev)){
+								reset = true;
+							}
+						}
+					}
+					else reset = true;
+					//	If there's no more repeating pattern
+					if (reset) {
+						patternStart = null;
+						p.push(path[i]);
+					}
+				}
+			}
+		}
+		//	Add the ending tile
+		p.push(path[path.length-1]);
+		
+		if (!iteration) p = optimizePath(p,1);
+		
+		return p;
+	}
+	
 }
 
 /*	ChaseBehavior

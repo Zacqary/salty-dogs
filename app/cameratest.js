@@ -109,7 +109,7 @@ CameraTest.initializeExtension = function(){
 	this.NPC.name = "NPC1";
 	this.NPC.setPosition(480,0);
 	this.NPC.makeHostile();
-	this.NPC.createEffectRadius(80);
+	//this.NPC.createEffectRadius(80);
 	this.NPC.createEffect({
 		types: [ENT_CHARACTER],
 		doThis: function(it, me){
@@ -127,8 +127,9 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createFocusBar();
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
-	this.NPC.addBehavior("CombatBehavior");
+	//this.NPC.addBehavior("CombatBehavior");
 	this.NPC.addBehavior("PathfindingBehavior");
+	this.NPC.addBehavior("ChaseBehavior");
 	this.NPC.sprite.setHeight(96);
 	this.NPC.focus.setMax(5);
 	this.em.add(this.NPC);
@@ -195,7 +196,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC.composeDoll();
 			this.NPC.setMovementAIGoal(this.NPC.x, this.NPC.y);
 			
-			this.NPC.addBehavior("ChaseBehavior");
+			
 			this.NPC.aiGoals.follow = Player.entity;
 			
 		/*	
@@ -237,8 +238,7 @@ CameraTest.loadingLoop = function(){
 }
 
 CameraTest.runAfterPlayerMoves = function(){
-	
-	
+
 	CameraTest.em.updateCharacterCombatStates();
 	CameraTest.em.runCharacterBehaviors();
 	

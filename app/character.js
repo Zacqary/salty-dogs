@@ -454,7 +454,17 @@ var Character = function (params){
 
 	//	Character actions
 	//	=================
-
+	
+	c.aPC = c.approachCurrentWaypoint;
+	c.approachCurrentWaypoint = function(){
+		w = this.waypoints[0];
+		if (!w.disableHeading && !this.inCombat) {
+			var heading = Math.angleXY([this.x, this.y],[w.x,w.y])*(180/Math.PI);
+			this.affect("heading",heading);
+		}
+		this.aPC();
+	}
+	
 	/*	swingAtCharacter
 			Try to attack another character, fail if there's not enough stamina
 	*/
@@ -554,8 +564,8 @@ var Character = function (params){
 		myWaypoint = Math.vNeg(myWaypoint);
 
 		//	Apply the waypoints 
-		other.overwriteWaypoint(0, {x: oWaypoint[0], y: oWaypoint[1], range: slowRange, override: speed, timer: 0.3});
-		this.overwriteWaypoint(0, {x: myWaypoint[0], y: myWaypoint[1], range: slowRange, override: speed, timer: 0.3});
+		other.overwriteWaypoint(0, {x: oWaypoint[0], y: oWaypoint[1], range: slowRange, override: speed, timer: 0.3, disableHeading: true});
+		this.overwriteWaypoint(0, {x: myWaypoint[0], y: myWaypoint[1], range: slowRange, override: speed, timer: 0.3, disableHeading: true});
 		
 		//	If this character just started attacking, reset the hit counter
 		if (!this.combat.attacker) {

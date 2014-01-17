@@ -375,12 +375,16 @@ AI.ChaseBehavior = function(me){
 		if(!me.aiGoals.movement || !updateTimer.get()){
 			//	If the target has moved since the last check
 			if (me.aiGoals.movement != [me.aiGoals.follow.x, me.aiGoals.follow.y]) {
-				//	Set the movement goal to the target's position
-				me.setMovementAIGoal(me.aiGoals.follow.x, me.aiGoals.follow.y);
 				//	Clear this character's waypoints, unless they're pathfinding around an object
 				if ( (me.waypoints.length < 2) || (!me.waypoints[1].pathfinding) ){
-					me.waypoints = [];
+					//	Don't clear the waypoints until the update phase, otherwise the character
+					//	will be without waypoints for a frame and "flicker" to the default direction
+					me.addUpdateFunction(function() { 
+						me.waypoints = []; 
+					});
 				}
+				//	Set the movement goal to the target's position
+				me.setMovementAIGoal(me.aiGoals.follow.x, me.aiGoals.follow.y);
 			}
 			//	Reset the updateTimer
 			updateTimer.maxOut();

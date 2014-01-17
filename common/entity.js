@@ -94,6 +94,25 @@ Entity.prototype.update = function(){
 	this.updatePosition();
 	
 	if (this.updateExtension) this.updateExtension();
+	
+	//	Run anything that's not supposed to happen until the final update phase
+	if (this.updateFunctions) {
+		for (var i in this.updateFunctions) {
+			this.updateFunctions[i]();
+		}
+		//	Delete the one-time update functions
+		delete this.updateFunctions;
+	}
+}
+
+/*	addUpdateFunction
+		Reserve some code for a one-time trigger during the update phase.
+		Used in case a function called before e.g. waypoints or physics
+		needs to wait until after these are finished before executing.
+*/
+Entity.prototype.addUpdateFunction = function(fun){
+	if (!this.updateFunctions) this.updateFunctions = [];
+	this.updateFunctions.push(fun);
 }
 
 //	Position

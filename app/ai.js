@@ -211,7 +211,9 @@ AI.PathfindingBehavior = function(me){
 		}
 		//	If there's an obstacle blocking the character's waypoint, path around it
 		if(me.manager.hitboxProjectionTest(me, me.getWaypoint())){
-			correctPath();
+			//	This function was buggy. I'm not sure why it was here in the first place
+			//	but I'll keep it commented out just in case I figure it out again.
+			//correctPath();
 		}
 		else if(me.collision) {
 			//	Only check collisions every 0.2 seconds

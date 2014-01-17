@@ -24,7 +24,7 @@ var InCharacterLoop = function(){
 		this.em.applyAllEffects();
 		
 		Player.movementLoop();
-		
+		this.em.detectCollisions();
 		if(this.runAfterPlayerMoves) this.runAfterPlayerMoves();
 		
 		this.em.allToCurrentWaypoint();

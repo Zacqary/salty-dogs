@@ -93,8 +93,6 @@ Entity.prototype.update = function(){
 	this.movement = null; 
 	this.updatePosition();
 	
-	if (this.updateExtension) this.updateExtension();
-	
 	//	Run anything that's not supposed to happen until the final update phase
 	if (this.updateFunctions) {
 		for (var i in this.updateFunctions) {
@@ -103,6 +101,8 @@ Entity.prototype.update = function(){
 		//	Delete the one-time update functions
 		delete this.updateFunctions;
 	}
+	
+	if (this.updateExtension) this.updateExtension();
 }
 
 /*	addUpdateFunction
@@ -633,6 +633,28 @@ var EntityManager = function(){
 					it.applyMyEffect(me);
 			}
 		}
+	}
+	
+	/*	detectCollisions
+			Detect if Entities are colliding, and t hen mark them as such.
+	*/
+	this.detectCollisions = function(){
+		var detect = function(arbiters) {
+			if (arbiters.length){
+				for (var i in arbiters){
+					var me = arbiters[i];
+					if(me.contacts[0].getPenetration() > 0) {
+						var normal = Math.vNeg(me.getNormal());
+
+
+						me.bodyA.entity.affect("collision", me.getNormal());
+						me.bodyB.entity.affect("collision", Math.vNeg(me.getNormal()));
+					}
+				}
+			}
+		}
+		detect(world.dynamicArbiters);
+		detect(world.staticArbiters);
 	}
 	
 	/*	radiusSweepTest

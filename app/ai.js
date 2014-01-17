@@ -181,51 +181,73 @@ AI.PathfindingBehavior = function(me){
 	var stuckPos = null;
 	
 	this.run = function(){
+		//	Only run this behavior if the character has a movement goal
 		if (!me.aiGoals.movement) return;
+		//	If the movement goal is closer than the character's "speed" value,
+		//	consider the goal achieved
 		if (Math.distanceXY(me.getPosition(),me.aiGoals.movement) < me.speed){
 			me.aiGoals.movement = null;
 			return;
 		}
 		
+		//	If this character's movement goal is not a waypoint, add it
 		if (!me.hasWaypoint(me.aiGoals.movement)){
 			me.addWaypoint({x: me.aiGoals.movement[0], y: me.aiGoals.movement[1], range: 64});
 		}
 		
+		//	Check for obstacles between the character and their waypoint
+		//	but only within 64 pixels of the character's current position
 		var distanceToPoint = new Spectrum(64);
 		distanceToPoint.set(Math.distanceXY(me.getPosition(),me.getWaypoint()));
 		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceToPoint.get())){
+			//	Try to correct the path for 4 iterations
 			if (!correctPath(4)) {
+				//	If that doesn't work, the character's probably not
+				//	going to reach their goal, so get rid of it
 				me.waypoints = [];
 				me.aiGoals.movement = null;
 				return;
 			}
 		}
+		//	If there's an obstacle blocking the character's waypoint, path around it
 		if(me.manager.hitboxProjectionTest(me, me.getWaypoint())){
 			correctPath();
 		}
 		else if(me.collision) {
+			//	Only check collisions every 0.2 seconds
+			//	Otherwise this will be recalculating too much
 			if (!collisionTimer.get()){
+				//	Reset collisionTimer
 				collisionTimer.maxOut();
+				//	Try to correct the path for 4 iterations
 				if (!correctPath(4, me.collision)) {
+					//	If that doesn't work, the character's probably not
+					//	going to reach their goal, so get rid of it
 					me.waypoints = [];
 					me.aiGoals.movement = null;
 					return;
 				}
 			}
 		}
+		//	Every 0.2 seconds, check if the character is stuck
 		if (!stuckTimer.get()) {
+			//	Reset stuckTimer
+			stuckTimer.maxOut();
+			//	Convert the character's position to single pixels
+			//	Otherwise tiny movements from friction will give us a false negative on being stuck
 			var pos = me.getPosition();
 			for (var i in pos){
 				pos[i] = Math.floor(pos[i]);
 			}
+			//	Check if the character is in the same spot they were 0.2 seconds ago
 			if (!arraysEqual(pos,stuckPos)){
+				//	If not, update stuckPos
 				stuckPos = pos;
 			}
 			else {
-				//console.log("Stuck");
+				//	Otherwise, clear the character's waypoints in an attempt to unstick them
 				me.waypoints = [];
 			}
-			stuckTimer.maxOut();
 		}
 		
 	}

@@ -133,7 +133,8 @@ CameraTest.initializeExtension = function(){
 	this.NPC.sprite.setHeight(96);
 	this.NPC.focus.setMax(5);
 	this.em.add(this.NPC);
-
+	
+	
 	this.cursor = this.em.createEntity({permeable: true});
 	this.cursor.range = 48;
 	this.cursor.createSprite({
@@ -197,6 +198,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC.setMovementAIGoal(this.NPC.x, this.NPC.y);
 			
 			
+			this.NPC.makePathfindingGrid(-200, -300, 1200, 300);
 			this.NPC.aiGoals.follow = Player.entity;
 			
 		/*	

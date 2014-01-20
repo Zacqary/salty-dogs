@@ -197,9 +197,10 @@ AI.PathfindingBehavior = function(me){
 		
 		//	Check for obstacles between the character and their waypoint
 		//	but only within 64 pixels of the character's current position
-		var distanceToPoint = new Spectrum(64);
-		distanceToPoint.set(Math.distanceXY(me.getPosition(),me.getWaypoint()));
-		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceToPoint.get())){
+		var distanceToPoint = Math.distanceXY(me.getPosition(),me.getWaypoint());
+		var distanceThreshold = new Spectrum(64);
+		distanceThreshold.set(distanceToPoint);
+		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceThreshold.get())){
 			//	Try to correct the path for 4 iterations
 			if (!correctPath(4)) {
 				//	If that doesn't work, the character's probably not
@@ -209,13 +210,25 @@ AI.PathfindingBehavior = function(me){
 				return;
 			}
 		}
-		//	If there's an obstacle blocking the character's waypoint, path around it
-		if(me.manager.hitboxProjectionTest(me, me.getWaypoint())){
-			//	This function was buggy. I'm not sure why it was here in the first place
-			//	but I'll keep it commented out just in case I figure it out again.
-			//correctPath();
+		else if (distanceToPoint > 400){
+			console.log(distanceToPoint);
+			if (!me.waypoints[0].pathfinding && me.pathfindingGrid) {
+				var path = pathTo(me.aiGoals.movement);
+				if (path) {
+					pushPath(path);
+				}
+			}
 		}
-		else if(me.collision) {
+		
+		/*
+		// If there's an obstacle blocking the character's waypoint, path around it
+		if(me.manager.hitboxProjectionTest(me, me.getWaypoint())){
+				This function was buggy. I'm not sure why it was here in the first place
+				but I'll keep it commented out just in case I figure it out again.
+			correctPath();
+		}
+		*/
+		if(me.collision) {
 			//	Only check collisions every 0.2 seconds
 			//	Otherwise this will be recalculating too much
 			if (!collisionTimer.get()){
@@ -231,6 +244,7 @@ AI.PathfindingBehavior = function(me){
 				}
 			}
 		}
+		
 		//	Every 0.2 seconds, check if the character is stuck
 		if (!stuckTimer.get()) {
 			//	Reset stuckTimer
@@ -387,9 +401,60 @@ AI.PathfindingBehavior = function(me){
 				point[1] = ( (tileSize/2) + (tileSize*path[i][1]) ) + gridOrigin[1];
 				processedPath.push(point);
 			}
-
+			
+			delete grid;
+			delete finder;
 			return processedPath;
 		}	
+	}
+	
+	var pathTo = function(target){
+		
+		//	Convert the target point to a tile on the grid
+		var targetOnGrid = [target[0] - me.pathfindingGrid.origin[0], target[1] - me.pathfindingGrid.origin[1]];
+		var targetTile = [Math.round(targetOnGrid[0]/me.pathfindingGrid.tileSize),Math.round(targetOnGrid[1]/me.pathfindingGrid.tileSize)];
+		//	Make sure the target tile is within the bounds of the grid
+		if (targetTile[0] > me.pathfindingGrid.width - 1) targetTile[0] = me.pathfindingGrid.width - 1;
+		if (targetTile[1] > me.pathfindingGrid.height - 1) targetTile[1] = me.pathfindingGrid.height - 1;
+		
+		//	Convert the character's position to a tile on the grid
+		var startOnGrid = [me.x - me.pathfindingGrid.origin[0], me.y - me.pathfindingGrid.origin[1]];
+		var startTile = [Math.round(startOnGrid[0]/me.pathfindingGrid.tileSize),Math.round(startOnGrid[1]/me.pathfindingGrid.tileSize)];
+		//	Make sure the start tile is within the bounds of the grid
+		if (startTile[0] > me.pathfindingGrid.width - 1) startTile[0] = me.pathfindingGrid.width - 1;
+		if (startTile[1] > me.pathfindingGrid.height - 1) startTile[1] = me.pathfindingGrid.height - 1;
+		
+		var finder = new PF.AStarFinder({
+			allowDiagonal: true,
+			dontCrossCorners: true,
+			heuristic: PF.Heuristic.euclidean,
+		});
+		var grid = new PF.Grid(me.pathfindingGrid.width, me.pathfindingGrid.height, me.pathfindingGrid.matrix);
+		var path = finder.findPath(startTile[0],startTile[1],targetTile[0],targetTile[1], grid);
+		
+		if (path.length == 0) return false;
+		
+		else {
+			path.splice(0,1);
+			//	Process this path by converting it to waypoints, and eliminating redundant ones
+			var processedPath = [];
+			//	Keep track of the direction that the path is moving in
+			var direction = [0,0];
+			//	Optimize the path to remove redundant tiles
+			path = optimizePath(path);
+			//	For every tile...
+			for (var i = 0; i < path.length; i++){
+				var point = [];
+				//	Convert the tile to world coordinates 
+				point[0] = ( (me.pathfindingGrid.tileSize/2) + (me.pathfindingGrid.tileSize*path[i][0]) ) + me.pathfindingGrid.origin[0];
+				point[1] = ( (me.pathfindingGrid.tileSize/2) + (me.pathfindingGrid.tileSize*path[i][1]) ) + me.pathfindingGrid.origin[1];
+				processedPath.push(point);
+			}
+			
+			delete grid;
+			delete finder;
+			return processedPath;
+		}
 	}
 	
 	var optimizePath = function(path, iteration){
@@ -462,9 +527,6 @@ AI.PathfindingBehavior = function(me){
 		p.push(path[path.length-1]);
 		
 		if (!iteration) p = optimizePath(p,1);
-		
-		delete grid;
-		delete finder;
 		
 		return p;
 	}

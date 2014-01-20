@@ -219,7 +219,6 @@ AI.PathfindingBehavior = function(me){
 			//	Only check collisions every 0.2 seconds
 			//	Otherwise this will be recalculating too much
 			if (!collisionTimer.get()){
-				console.log("Collision");
 				//	Reset collisionTimer
 				collisionTimer.maxOut();
 				//	Try to correct the path for 4 iterations
@@ -248,9 +247,14 @@ AI.PathfindingBehavior = function(me){
 				stuckPos = pos;
 			}
 			else {
-				//	Otherwise, clear the character's waypoints in an attempt to unstick them
+				//	Otherwise, attempt to unstick the character
 				console.log("Stuck "+pos);
+				//	Clear the waypoints
 				me.waypoints = [];
+				//	Go off in a random direction
+				var dir = _.random(0,360)*(Math.PI/180);
+				var location = Math.lineFromXYAtAngle(me.getPosition(),16,dir);
+				me.addWaypoint({x: location[0], y: location[1]});
 			}
 		}
 		

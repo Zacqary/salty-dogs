@@ -150,6 +150,7 @@ var Character = function (params){
 				console.log(frame);
 				console.log("Direction: "+direction);
 				console.log("Heading: "+this.heading);
+				return;
 			}
 			this.sprite.setTextureRectangle(frame.rectangle);
 			this.sprite.setOffsets(frame.offsets);

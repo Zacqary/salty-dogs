@@ -256,7 +256,7 @@ AI.PathfindingBehavior = function(me){
 				pos[i] = Math.floor(pos[i]);
 			}
 			//	Check if the character is in the same spot they were 0.2 seconds ago
-			if (!arraysEqual(pos,stuckPos)){
+			if (!_.isEqual(pos,stuckPos)){
 				//	If not, update stuckPos
 				stuckPos = pos;
 			}
@@ -484,7 +484,7 @@ AI.PathfindingBehavior = function(me){
 					//	Check if this tile is moving in the same direction as the previous one
 					var me = directions[i];
 					var prev = directions[i-1];
-					if (!arraysEqual(me,prev)) {
+					if (!_.isEqual(me,prev)) {
 						//	If not, add it
 						p.push(path[i]);
 					}
@@ -505,11 +505,11 @@ AI.PathfindingBehavior = function(me){
 						//	If this is the start of a new pattern, record it
 						if (!patternStart) patternStart = me;
 						//	If this tile's direction is not the same as the start of the pattern
-						else if (!arraysEqual(me,patternStart)){
+						else if (!_.isEqual(me,patternStart)){
 							//	Check back iteration+1 tiles
 							var prev = directions[i-(iteration+1)];
 							//	If this tile's direction isn't the same, the pattern is probably over
-							if (!arraysEqual(me,prev)){
+							if (!_.isEqual(me,prev)){
 								reset = true;
 							}
 						}

@@ -119,17 +119,6 @@ var guid = function() {
          s4() + '-' + s4() + s4() + s4();
 }
 
-var arraysEqual = function(a, b){
-	if (!Array.isArray(a) || !Array.isArray(b)) return false;
-	else if (a.length != b.length) return false;
-	var truth = 0;
-	for (var i in a){
-		if (a[i] == b[i]) truth++;
-	}
-	if (truth == a.length) return true;
-	else return false;
-}
-
 // objSize - Gets the number of properties in an object
 var objSize = function(obj) {
     var size = 0, key;

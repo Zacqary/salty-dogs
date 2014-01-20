@@ -248,7 +248,7 @@ AI.PathfindingBehavior = function(me){
 			}
 			else {
 				//	Otherwise, attempt to unstick the character
-				console.log("Stuck "+pos);
+				//console.log("Stuck "+pos);
 				//	Clear the waypoints
 				me.waypoints = [];
 				//	Go off in a random direction
@@ -462,6 +462,9 @@ AI.PathfindingBehavior = function(me){
 		p.push(path[path.length-1]);
 		
 		if (!iteration) p = optimizePath(p,1);
+		
+		delete grid;
+		delete finder;
 		
 		return p;
 	}

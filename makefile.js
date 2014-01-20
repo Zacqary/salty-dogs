@@ -19,6 +19,7 @@
 /*{{ javascript('jslib/utilities.js') }}*/
 /*{{ javascript('jslib/vmath.js') }}*/
 
+/*{{ javascript("common/underscore.js") }}*/
 /*{{ javascript("common/protocol.js") }}*/
 /*{{ javascript("common/math.js") }}*/
 /*{{ javascript("common/graphics.js") }}*/

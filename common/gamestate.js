@@ -85,6 +85,7 @@ var GameState = new function() {
 	var tickCountdowns = function(){
 		for (var i in countdowns){
 			countdowns[i].tick();
+			if (!countdowns[i].get()) countdowns[i].onZero();
 		}
 	}
 	
@@ -103,9 +104,22 @@ var GameState = new function() {
 /*	Countdown - extends Spectrum
 		A Spectrum specialized for countdown timers, automatically ticked each frame by GameState
 */
-var Countdown = function Countdown(current, a, b){
+var Countdown = function Countdown(current, a, b, onZero){
+	if (_.isFunction(a)){
+		onZero = a;
+		a = undefined;
+	}
+	else if (_.isFunction(a)){
+		onZero = b;
+		b = undefined;
+	}
+	
 	var c = new Spectrum(current, a, b);
 	var frozen = false;
+	
+	c.onZero = function(){
+		if (onZero) onZero();
+	}
 	
 	c.maxOut = function(){
 		c.set(c.getMax());

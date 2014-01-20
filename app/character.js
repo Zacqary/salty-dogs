@@ -451,7 +451,21 @@ var Character = function (params){
 		console.log(d);
 		this.focus.plus(-d);
 	}
-
+	
+	/*	headingTimer and affectHeading
+			This system only allows the character's heading value to change
+			every 0.1 seconds. Simply using affect("heading") causes flickering
+			between directions when AI characters are following waypoints.
+	*/
+	c.headingTimer = new Countdown(0.1, function(){
+		c.heading = c.headingBuffer;
+		c.headingTimer.maxOut();
+	});
+	c.affectHeading = function(dir){
+		//this.heading = dir;
+		this.affect("headingBuffer",dir);
+	}
+	
 	//	Character actions
 	//	=================
 	
@@ -460,7 +474,7 @@ var Character = function (params){
 		w = this.waypoints[0];
 		if (!w.disableHeading && !this.inCombat) {
 			var heading = Math.angleXY([this.x, this.y],[w.x,w.y])*(180/Math.PI);
-			this.affect("heading",heading);
+			this.affectHeading(heading);
 		}
 		this.aPC();
 	}

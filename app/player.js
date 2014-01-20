@@ -213,7 +213,7 @@ Player.movementLoop = function(){
 			var other = Player.getTargetedCombatant();
 			//	Make the player face the enemy
 			var heading = Math.angleXY([Player.entity.x, Player.entity.y],[other.x,other.y])*(180/Math.PI);
-			Player.entity.affect("heading",heading);
+			Player.entity.affectHeading(heading);
 		}
 		
 	}
@@ -722,7 +722,7 @@ Player.goToCursor = function(){
 		approachTarget = [Player.entity.cursor.x,Player.entity.cursor.y];
 		approachRange = Player.entity.cursor.range;
 		var heading = Math.angleXY([Player.entity.x, Player.entity.y],approachTarget)*(180/Math.PI);
-		Player.entity.affect("heading",heading);
+		Player.entity.affectHeading(heading);
 	}
 	
 	Player.entity.approach(approachTarget[0], approachTarget[1], approachRange, speedOverride);

@@ -160,7 +160,7 @@ AI.CombatBehavior = function(me){
 			attackStrategies.standard();
 			
 			var heading = Math.angleXY([me.x, me.y],[stats.enemy.x,stats.enemy.y])*(180/Math.PI);
-			me.affect("heading",heading);
+			me.affectHeading(heading);
 		
 		}
 		//	If the character is out of combat, reset all of this behavior's stats
@@ -219,6 +219,7 @@ AI.PathfindingBehavior = function(me){
 			//	Only check collisions every 0.2 seconds
 			//	Otherwise this will be recalculating too much
 			if (!collisionTimer.get()){
+				console.log("Collision");
 				//	Reset collisionTimer
 				collisionTimer.maxOut();
 				//	Try to correct the path for 4 iterations
@@ -248,6 +249,7 @@ AI.PathfindingBehavior = function(me){
 			}
 			else {
 				//	Otherwise, clear the character's waypoints in an attempt to unstick them
+				console.log("Stuck "+pos);
 				me.waypoints = [];
 			}
 		}

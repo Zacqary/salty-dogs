@@ -210,16 +210,21 @@ AI.PathfindingBehavior = function(me){
 				return;
 			}
 		}
-		else if (distanceToPoint > 400){
-			console.log(distanceToPoint);
-			if (!me.waypoints[0].pathfinding && me.pathfindingGrid) {
-				var path = pathTo(me.aiGoals.movement);
-				if (path) {
-					pushPath(path);
+		else {
+			if (!me.aiData.disablePathfindingGrid) {
+				//	If the character has no line of sight to the next waypoint
+				if (me.manager.rayCastTestXY(me, me.getWaypoint(),distanceToPoint)) {
+					//	Use the pathfinding grid, if this character has one
+					if (me.pathfindingGrid) {
+						var path = pathTo(me.getWaypoint());
+						if (path) {
+							pushPath(path);
+						}
+					}
 				}
 			}
 		}
-		
+
 		/*
 		// If there's an obstacle blocking the character's waypoint, path around it
 		if(me.manager.hitboxProjectionTest(me, me.getWaypoint())){
@@ -301,10 +306,8 @@ AI.PathfindingBehavior = function(me){
 	*/
 	var pushPath = function(path){
 		me.waypoints = [];
-		Debug.pathToDraw = [];
 		for (var i in path){
 			me.addWaypoint({x: path[i][0], y: path[i][1], pathfinding: true});
-			Debug.pathToDraw.push(path[i]);
 		}
 	}
 	
@@ -549,16 +552,30 @@ AI.ChaseBehavior = function(me){
 		if(!me.aiGoals.movement || !updateTimer.get()){
 			//	If the target has moved since the last check
 			if (me.aiGoals.movement != [me.aiGoals.follow.x, me.aiGoals.follow.y]) {
+				//	Check if the character has line of sight to the target
+				var distance = Math.distanceXY(me.getPosition(),me.aiGoals.follow.getPosition());
+				var noLineOfSight = me.manager.rayCastTestXY(me, me.aiGoals.follow.getPosition(),distance);
+				if (noLineOfSight){
+					if (noLineOfSight.shape == me.aiGoals.follow.hitbox.shapes[0]){
+						noLineOfSight = false;
+						me.aiData.disablePathfindingGrid = true;
+					}
+					else me.aiData.disablePathfindingGrid = false;
+				}
+				else {
+					me.aiData.disablePathfindingGrid = true;
+				}
 				//	Clear this character's waypoints, unless they're pathfinding around an object
-				if ( (me.waypoints.length < 2) || (!me.waypoints[1].pathfinding) ){
+				//	Override pathfinding if the character has line of sight to the target
+				if ( !noLineOfSight || me.waypoints.length < 2 || !me.waypoints[1].pathfinding ){
 					//	Don't clear the waypoints until the update phase, otherwise the character
 					//	will be without waypoints for a frame and "flicker" to the default direction
 					me.addUpdateFunction(function() { 
-						me.waypoints = []; 
+						me.waypoints = [];
+						//	Set the movement goal to the target's position
+						me.setMovementAIGoal(me.aiGoals.follow.x, me.aiGoals.follow.y);
 					});
 				}
-				//	Set the movement goal to the target's position
-				me.setMovementAIGoal(me.aiGoals.follow.x, me.aiGoals.follow.y);
 			}
 			//	Reset the updateTimer
 			updateTimer.maxOut();

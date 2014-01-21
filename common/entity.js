@@ -685,8 +685,8 @@ var EntityManager = function(){
 						var normal = Math.vNeg(me.getNormal());
 
 
-						me.bodyA.entity.affect("collision", me.getNormal());
-						me.bodyB.entity.affect("collision", Math.vNeg(me.getNormal()));
+						me.bodyA.entity.affect("collision", {normal: me.getNormal(), body: me.bodyB});
+						me.bodyB.entity.affect("collision", {normal: Math.vNeg(me.getNormal()), body: me.bodyA});
 					}
 				}
 			}

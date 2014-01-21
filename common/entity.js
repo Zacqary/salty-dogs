@@ -494,7 +494,7 @@ Entity.prototype.makePathfindingGrid = function(x1, y1, x2, y2){
 			var x = ( (tileSize/2)+(tileSize*j) ) + gridOrigin[0];
 			//	Project this character's hitbox onto the x and y coordinates to see
 			//	if it would fit in the space. If not, mark the cell as obstructed.
-			if (this.manager.hitboxProjectionTest(this,[x,y],true)) {
+			if (this.manager.hitboxProjectionTest(this,[x,y],12,true)) {
 				row.push(1);
 			}
 			else row.push(0);
@@ -762,9 +762,10 @@ var EntityManager = function(){
 		return result;
 	}
 	
-	this.hitboxProjectionTest = function(a, point, staticOnly){
+	this.hitboxProjectionTest = function(a, point, berth, staticOnly){
+		berth = berth || 0;
 		var store = [];
-		var rectangle = [point[0] - (a.hitbox.width/2), point[1] - (a.hitbox.height/2), point[0] + (a.hitbox.width/2), point[1] + (a.hitbox.height/2)];
+		var rectangle = [point[0] - (a.hitbox.width/2) - berth, point[1] - (a.hitbox.height/2) - berth, point[0] + (a.hitbox.width/2) + berth, point[1] + (a.hitbox.height/2) + berth];
 		if (world.bodyRectangleQuery(rectangle,store)) {
 			for (var i in store){
 				if (store[i] == a.hitbox) store.splice(i,1);

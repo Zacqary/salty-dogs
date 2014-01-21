@@ -433,7 +433,7 @@ AI.PathfindingBehavior = function(me){
 				var x = ( (tileSize/2)+(tileSize*j) ) + gridOrigin[0];
 				//	Project this character's hitbox onto the x and y coordinates to see
 				//	if it would fit in the space. If not, mark the cell as obstructed.
-				if (me.manager.hitboxProjectionTest(me,[x,y])) {
+				if (me.manager.hitboxProjectionTest(me,[x,y],12)) {
 					row.push(1);
 				}
 				else row.push(0);

@@ -456,10 +456,10 @@ var Character = function (params){
 	
 	/*	headingTimer and affectHeading
 			This system only allows the character's heading value to change
-			every 0.1 seconds. Simply using affect("heading") causes flickering
+			every 0.05 seconds. Simply using affect("heading") causes flickering
 			between directions when AI characters are following waypoints.
 	*/
-	c.headingTimer = new Countdown(0.1, function(){
+	c.headingTimer = new Countdown(0.05, function(){
 		c.heading = c.headingBuffer;
 		c.headingTimer.maxOut();
 	});

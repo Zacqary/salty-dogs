@@ -13,10 +13,10 @@ Debug.drawPath = function(path){
 	Graphics.debugDraw.begin();
 	for (var i = 0; i < path.length; i++){
 		var me = path[i];
-		Graphics.debugDraw.drawCircle(me[0],me[1],4,[1,0,0,1]);
+		Graphics.debugDraw.drawCircle(me.x,me.y,4,[1,0,0,1]);
 		if (i < path.length-1){
 			var next = path[i+1];
-			Graphics.debugDraw.drawLine(me[0],me[1],next[0],next[1],[0,0,1,1]);
+			Graphics.debugDraw.drawLine(me.x,me.y,next.x,next.y,[0,0,1,1]);
 		}	
 	}
 	Graphics.debugDraw.end();

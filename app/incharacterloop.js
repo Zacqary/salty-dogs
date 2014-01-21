@@ -54,7 +54,7 @@ var InCharacterLoop = function(){
 		this.em.drawAll(true);
 		
 		//	Pathfinding debug draw
-		if (Debug.pathToDraw) Debug.drawPath(Debug.pathToDraw);
+		this.em.debugDrawAllCharacters();
 		
 		if (this.drawExtension) this.drawExtension();
 	}

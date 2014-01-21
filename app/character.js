@@ -658,6 +658,17 @@ EntityManager.prototype.runCharacterBehaviors = function(){
 	}
 }
 
+EntityManager.prototype.debugDrawAllCharacters = function(){
+	var entities = this.getEntities();
+	for (var i in entities){
+		if (entities[i].charType && entities[i].waypoints) {
+			var path = _(entities[i].waypoints).uniq();
+			path.splice(0,0,{x: entities[i].x, y: entities[i].y});
+			Debug.drawPath(path);
+		}
+	}
+}
+
 //	====================================================================================
 
 /*	CharacterModel Class

@@ -475,7 +475,7 @@ Entity.prototype.approachCurrentWaypoint = function(){
 
 Entity.prototype.makePathfindingGrid = function(x1, y1, x2, y2){
 	var gridOrigin = [x1, y1];
-	var tileSize = 32;
+	var tileSize = 16;
 	var gridWidth = Math.round((x2-x1)/tileSize);
 	var gridHeight = Math.round((y2-y1)/tileSize);
 	

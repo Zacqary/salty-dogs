@@ -176,10 +176,6 @@ AI.CombatBehavior = function(me){
 
 AI.PathfindingBehavior = function(me){
 	
-	var collisionTimer = new Countdown(0.2);
-	var stuckTimer = new Countdown(0.2);
-	var stuckPos = null;
-	
 	this.run = function(){
 		//	Only run this behavior if the character has a movement goal
 		if (!me.aiGoals.movement) return;
@@ -249,35 +245,45 @@ AI.PathfindingBehavior = function(me){
 				}
 			}
 		}
-		
-		//	Every 0.2 seconds, check if the character is stuck
-		if (!stuckTimer.get()) {
-			//	Reset stuckTimer
-			stuckTimer.maxOut();
-			//	Convert the character's position to single pixels
-			//	Otherwise tiny movements from friction will give us a false negative on being stuck
-			var pos = me.getPosition();
-			for (var i in pos){
-				pos[i] = Math.floor(pos[i]);
+	}
+	
+	//	collisionTimer -- Check for collisions every 0.2 seconds
+	var collisionTimer = new Countdown(0.2);
+	
+	
+	//	collsionTimer -- Every 0.2 seconds, check if the character is stuck
+	var stuckTimer = new Countdown(0.2, function() {
+		//	Reset stuckTimer
+		stuckTimer.maxOut();
+		//	Convert the character's position to single pixels
+		//	Otherwise tiny movements from friction will give us a false negative on being stuck
+		var pos = me.getPosition();
+		for (var i in pos){
+			pos[i] = Math.floor(pos[i]);
+		}
+		//	Check if the character is in the same spot they were 0.2 seconds ago
+		if (!_.isEqual(pos,stuckPos)){
+			//	If not, update stuckPos
+			stuckPos = pos;
+		}
+		else {
+			//	Otherwise, attempt to unstick the character
+			//console.log("Stuck "+pos);
+			//	Clear the waypoints
+			me.waypoints = [];
+			//	Go off in a random direction
+			var dir = _.random(0,360)*(Math.PI/180);
+			var location = Math.lineFromXYAtAngle(me.getPosition(),16,dir);
+			me.addWaypoint({x: location[0], y: location[1]});
+		}
+	});
+	var stuckPos = null;
+	
 			}
-			//	Check if the character is in the same spot they were 0.2 seconds ago
-			if (!_.isEqual(pos,stuckPos)){
-				//	If not, update stuckPos
-				stuckPos = pos;
 			}
 			else {
-				//	Otherwise, attempt to unstick the character
-				//console.log("Stuck "+pos);
-				//	Clear the waypoints
-				me.waypoints = [];
-				//	Go off in a random direction
-				var dir = _.random(0,360)*(Math.PI/180);
-				var location = Math.lineFromXYAtAngle(me.getPosition(),16,dir);
-				me.addWaypoint({x: location[0], y: location[1]});
 			}
 		}
-		
-	}
 	
 	/*	correctPath
 			Attempt to correct this Character's path

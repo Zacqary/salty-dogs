@@ -49,6 +49,7 @@ var Character = function (params){
 	};
 	
 	c.aiGoals = { };
+	c.aiData = { };
 	
 	c.paperDoll = {
 		body: {

@@ -494,7 +494,7 @@ Entity.prototype.makePathfindingGrid = function(x1, y1, x2, y2){
 			var x = ( (tileSize/2)+(tileSize*j) ) + gridOrigin[0];
 			//	Project this character's hitbox onto the x and y coordinates to see
 			//	if it would fit in the space. If not, mark the cell as obstructed.
-			if (this.manager.hitboxProjectionTest(this,[x,y],12,true)) {
+			if (this.manager.hitboxProjectionTest(this,[x,y],20,true)) {
 				row.push(1);
 			}
 			else row.push(0);

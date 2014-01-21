@@ -83,13 +83,13 @@ CameraTest.initializeExtension = function(){
 	this.wall4.hitbox.setAsStatic();
 	
 	this.wall5 = this.em.createEntity({});
-	this.wall5.setPosition(400,100);
+	this.wall5.setPosition(400,130);
 	this.wall5.createHitbox(50,150,0,0);
 	this.wall5.hitbox.sleep();
 	this.wall5.hitbox.setAsStatic();
 
 	this.wall6 = this.em.createEntity({});
-	this.wall6.setPosition(400,-100);
+	this.wall6.setPosition(400,-130);
 	this.wall6.createHitbox(50,150,0,0);
 	this.wall6.hitbox.sleep();
 	this.wall6.hitbox.setAsStatic();

@@ -197,8 +197,8 @@ AI.PathfindingBehavior = function(me){
 		var distanceThreshold = new Spectrum(64);
 		distanceThreshold.set(distanceToPoint);
 		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceThreshold.get())){
-			//	Try to correct the path for 4 iterations
-			if (!correctPath(4)) {
+			//	Try to correct the path for 3 iterations
+			if (!correctPath(3)) {
 				//	If that doesn't work, the character's probably not
 				//	going to reach their goal, so get rid of it
 				me.waypoints = [];
@@ -237,8 +237,8 @@ AI.PathfindingBehavior = function(me){
 				bounces.push(me.collision);
 				//	Reset collisionTimer
 				collisionTimer.maxOut();
-				//	Try to correct the path for 4 iterations
-				if (!correctPath(4, me.collision.normal)) {
+				//	Try to correct the path for 3 iterations
+				if (!correctPath(3, me.collision.normal)) {
 					//	If that doesn't work, the character's probably not
 					//	going to reach their goal, so get rid of it
 					me.waypoints = [];
@@ -363,7 +363,19 @@ AI.PathfindingBehavior = function(me){
 			pushPath(path);
 			return true;
 		}
-		else return false;
+		else if (me.pathfindingGrid){
+			path = pathTo(me.getWaypoint());
+			if (path) {
+				pushPath(path);
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			return false;
+		}
 	}
 	
 	/*	pushPath
@@ -433,7 +445,7 @@ AI.PathfindingBehavior = function(me){
 				var x = ( (tileSize/2)+(tileSize*j) ) + gridOrigin[0];
 				//	Project this character's hitbox onto the x and y coordinates to see
 				//	if it would fit in the space. If not, mark the cell as obstructed.
-				if (me.manager.hitboxProjectionTest(me,[x,y],12)) {
+				if (me.manager.hitboxProjectionTest(me,[x,y],16)) {
 					row.push(1);
 				}
 				else row.push(0);
@@ -504,6 +516,7 @@ AI.PathfindingBehavior = function(me){
 		
 		else {
 			path.splice(0,1);
+			if (path.length == 0) return false; 
 			//	Process this path by converting it to waypoints, and eliminating redundant ones
 			var processedPath = [];
 			//	Keep track of the direction that the path is moving in

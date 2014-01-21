@@ -207,7 +207,8 @@ AI.PathfindingBehavior = function(me){
 			}
 		}
 		else {
-			if (!me.aiData.disablePathfindingGrid) {
+			//	Only do this if the pathfinding grid's enabled, unless fixing a bounce
+			if (!me.aiData.disablePathfindingGrid || bounceFlag) {
 				//	If the character has no line of sight to the next waypoint
 				if (me.manager.rayCastTestXY(me, me.getWaypoint(),distanceToPoint)) {
 					//	Use the pathfinding grid, if this character has one
@@ -233,10 +234,11 @@ AI.PathfindingBehavior = function(me){
 			//	Only check collisions every 0.2 seconds
 			//	Otherwise this will be recalculating too much
 			if (!collisionTimer.get()){
+				bounces.push(me.collision);
 				//	Reset collisionTimer
 				collisionTimer.maxOut();
 				//	Try to correct the path for 4 iterations
-				if (!correctPath(4, me.collision)) {
+				if (!correctPath(4, me.collision.normal)) {
 					//	If that doesn't work, the character's probably not
 					//	going to reach their goal, so get rid of it
 					me.waypoints = [];
@@ -279,11 +281,68 @@ AI.PathfindingBehavior = function(me){
 	});
 	var stuckPos = null;
 	
+	/*	bounceStuckTimer
+			Check if the character is stuck bouncing between two walls
+			This is done by keeping track of what a character is bouncing off
+			of to see if there are multiple bounces in a short period of time 
+	*/
+	var bounces = [];
+	var resetBounces = 0;
+	var bounceFlag = false;
+	var bounceStuckTimer = new Countdown(0.05, function(){
+		//	Only reset the timer if there are bounces to track
+		if (bounces.length) {
+			bounceStuckTimer.maxOut();
+		}
+		else {
+			me.aiData.bounceFlag = false;
+			return;
+		}
+		//	If a bounce hasn't been detected yet
+		if (!bounceFlag){
+			//	If there's more than one bounce
+			if (bounces.length > 1){
+				//	If there are two bounces
+				if (bounces.length < 3) {
+					//	If both those bounces are off of the same object
+					if (bounces[bounces.length-1].body == bounces[bounces.length-2].body) {
+						//	Flag the bounce, and reset the counter
+						bounceFlag = true;
+						resetBounces = 0;
+					}
+				}
+				else {
+					//	If the most recent bounce is off the same object as two bounces ago
+					//	(For example, bounce from wall A, to wall B, to wall A)
+					if (bounces[bounces.length-1].body == bounces[bounces.length-3].body) {
+						bounceFlag = true;
+						resetBounces = 0;
+					}
+				}
 			}
+			//	If the timer has gone on for 1.2 seconds without detecting a bounce, reset everything
+			if (resetBounces == 24) {
+				bounceFlag = false;
+				bounces = [];
+				resetBounces = 0;
 			}
 			else {
+				resetBounces++;
 			}
 		}
+		//	If a bounce has been detected, give it 0.5 seconds to resolve
+		//	through pathfinding
+		else if (resetBounces == 10){
+			bounceFlag = false;
+			bounces = [];
+			resetBounces = 0;
+		}
+		else {
+			resetBounces++;
+		}
+		//	Expose the bounceFlag to other behaviors
+		me.aiData.bounceFlag = bounceFlag;
+	});
 	
 	/*	correctPath
 			Attempt to correct this Character's path
@@ -573,7 +632,7 @@ AI.ChaseBehavior = function(me){
 				}
 				//	Clear this character's waypoints, unless they're pathfinding around an object
 				//	Override pathfinding if the character has line of sight to the target
-				if ( !noLineOfSight || me.waypoints.length < 2 || !me.waypoints[1].pathfinding ){
+				if ( (!noLineOfSight && !me.aiData.bounceFlag) || me.waypoints.length < 2 || !me.waypoints[1].pathfinding ){
 					//	Don't clear the waypoints until the update phase, otherwise the character
 					//	will be without waypoints for a frame and "flicker" to the default direction
 					me.addUpdateFunction(function() { 

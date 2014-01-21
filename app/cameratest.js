@@ -201,7 +201,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC.makePathfindingGrid(-200, -300, 1200, 300);
 			this.NPC.aiGoals.follow = Player.entity;
 			
-		/*	
+		
 			this.NPC2 = this.NPC.clone();
 			this.NPC2.sprite.setHeight(96);
 			this.NPC2.setPosition(130, 90);
@@ -210,23 +210,27 @@ CameraTest.loadingLoop = function(){
 			this.NPC2.removeMisc("patchleft");
 			this.NPC2.composeDoll();
 			this.NPC2.name = "NPC2";
-			this.NPC2.addBehavior("CombatBehavior");
-			this.em.add(this.NPC2); */
-			
-			
-			this.em.updateAll();
-			/*
+			this.NPC2.addBehavior("PathfindingBehavior");
+			this.NPC2.addBehavior("ChaseBehavior");
+			this.em.add(this.NPC2);
+			this.NPC2.makePathfindingGrid(-200, -300, 1200, 300);
+			this.NPC2.aiGoals.follow = this.NPC;
+		
 			
 			this.NPC3 = this.NPC.clone();
+			this.NPC3.sprite.setHeight(96);
 			this.NPC3.setPosition(280, 160);
 			this.NPC3.setTorso("shirt","dedefe");
 			this.NPC3.composeDoll();
 			this.NPC3.makeFriendly();
-			this.NPC3.addBehavior(AI.CombatBehavior);
 			this.NPC3.name = "NPC3";
+			this.NPC3.addBehavior("PathfindingBehavior");
+			this.NPC3.addBehavior("ChaseBehavior");
 			this.em.add(this.NPC3);
-			this.NPC3.debug = true;
+			this.NPC3.makePathfindingGrid(-200, -300, 1200, 300);
+			this.NPC3.aiGoals.follow = this.NPC2;
 			
+			/*
 			this.NPC4 = this.NPC.clone();
 			this.NPC4.setPosition(180, 160);
 			this.NPC4.setTorso("shirt","dedefe");
@@ -236,6 +240,7 @@ CameraTest.loadingLoop = function(){
 			this.em.add(this.NPC4);
 			this.NPC4.debug = true; */
 			
+			this.em.updateAll();
 	}
 }
 

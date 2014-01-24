@@ -41,28 +41,28 @@ Math.unitVector = function(a, b){
 
 Math.angleToDirection = function(angle){
 	var direction;
-	if (angle > 22 && angle < 68) {
+	if (angle >= 22 && angle < 68) {
 		direction = 1;
 	}
-	else if (angle > 68 && angle < 112) {
+	else if (angle >= 68 && angle < 112) {
 		direction = 2;
 	}
-	else if (angle > 112 && angle < 158) {
+	else if (angle >= 112 && angle < 158) {
 		direction = 3;
 	}
-	else if (angle > 158 && angle < 202) {
+	else if (angle >= 158 && angle < 202) {
 		direction = 4;
 	}
-	else if (angle > 202 && angle < 248) {
+	else if (angle >= 202 && angle < 248) {
 		direction = 5;
 	}
-	else if (angle > 248 && angle < 292) {
+	else if (angle >= 248 && angle < 292) {
 		direction = 6;
 	}
-	else if (angle > 292 && angle < 338) {
+	else if (angle >= 292 && angle < 338) {
 		direction = 7;
 	}
-	else if (angle > 338 || angle < 22) {
+	else if (angle >= 338 || angle < 22) {
 		direction = 0;
 	}
 	return direction;

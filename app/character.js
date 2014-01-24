@@ -146,13 +146,6 @@ var Character = function (params){
 			//	Update the sprite's width, scaled proportionately
 			this.sprite.setWidth(frame.width*differential);
 			//	Update texture rectangles and offsets
-			if(frame.rectangle === undefined){
-				console.log("Frame.rectangle is undefined");
-				console.log(frame);
-				console.log("Direction: "+direction);
-				console.log("Heading: "+this.heading);
-				return;
-			}
 			this.sprite.setTextureRectangle(frame.rectangle);
 			this.sprite.setOffsets(frame.offsets);
 			this.activeFrame = frame;

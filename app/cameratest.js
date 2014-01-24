@@ -198,9 +198,9 @@ CameraTest.loadingLoop = function(){
 			this.NPC.setMovementAIGoal(this.NPC.x, this.NPC.y);
 			
 			
-			this.NPC.makePathfindingGrid(-200, -300, 1200, 300);
+			this.NPC.makePathfindingGrid(-193, -290, 1200, 350);
 			this.NPC.aiGoals.follow = Player.entity;
-			
+			/*
 		
 			this.NPC2 = this.NPC.clone();
 			this.NPC2.sprite.setHeight(96);
@@ -252,6 +252,10 @@ CameraTest.runAfterPlayerMoves = function(){
 }
 
 CameraTest.drawExtension = function(){
+	
+	if (this.NPC.aiData.tempPathGrid) {
+		Debug.drawPathfindingGrid(this.NPC.aiData.tempPathGrid);
+	}
 	
 	if (CameraTest.rayCastPoints) {
 		var points = CameraTest.rayCastPoints;

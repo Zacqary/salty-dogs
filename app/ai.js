@@ -197,8 +197,8 @@ AI.PathfindingBehavior = function(me){
 		var distanceThreshold = new Spectrum(64);
 		distanceThreshold.set(distanceToPoint);
 		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceThreshold.get())){
-			//	Try to correct the path for 3 iterations
-			if (!correctPath(3)) {
+			//	Try to correct the path for 8 iterations
+			if (!correctPath(6)) {
 				//	If that doesn't work, the character's probably not
 				//	going to reach their goal, so get rid of it
 				me.waypoints = [];
@@ -237,8 +237,8 @@ AI.PathfindingBehavior = function(me){
 				bounces.push(me.collision);
 				//	Reset collisionTimer
 				collisionTimer.maxOut();
-				//	Try to correct the path for 3 iterations
-				if (!correctPath(3, me.collision.normal)) {
+				//	Try to correct the path for 6 iterations
+				if (!correctPath(6, me.collision.normal)) {
 					//	If that doesn't work, the character's probably not
 					//	going to reach their goal, so get rid of it
 					me.waypoints = [];
@@ -348,15 +348,13 @@ AI.PathfindingBehavior = function(me){
 			Attempt to correct this Character's path
 	*/
 	var correctPath = function(maxIterations, collision){
-		var iterations = 0;
 		var path = null;
 		//	Find the angle from the character to the waypoint.
 		//	Doing this inside pathAround() caused it to return NaN on second iteration.
 		var angle = Math.angleXY(me.getPosition(), me.getWaypoint());
 		
-		while (iterations < maxIterations){
-			iterations++;
-			path = pathAround(iterations, 1, angle, collision);
+		for (var i = 0; i < maxIterations; i++){
+			path = pathAround(i, 2, angle, collision);
 			if (path) break;
 		}
 		if (path) {
@@ -395,8 +393,8 @@ AI.PathfindingBehavior = function(me){
 		//	Compute the size of the grid, and the precision of its tiles in world units
 		scope = scope || 1;
 		scale = scale || 1;
-		var gridSize = 16 * (1*scope);
-		var tileSize = 16 / (1*scale);
+		var gridSize = 16 * (1 * ( 1 + (scope-1)/2 ) );
+		var tileSize = 16 / (1 * scale);
 		
 		//	Figure out the grid's origin in world coordinates
 		var gridOrigin = [me.x - (gridSize*tileSize)/2, me.y - (gridSize*tileSize)/2];
@@ -427,6 +425,10 @@ AI.PathfindingBehavior = function(me){
 			//	Then convert this point to a tile
 			var startOnGrid =  [startPoint[0] - gridOrigin[0], startPoint[1] - gridOrigin[1]];
 			var startTile = [Math.round(startOnGrid[0]/tileSize),Math.round(startOnGrid[1]/tileSize)];
+			//	Make sure the start tile is within the bounds of the grid
+			if (startTile[0] > gridSize - 1) startTile[0] = gridSize - 1;
+			if (startTile[1] > gridSize - 1) startTile[1] = gridSize - 1;
+			
 		}
 		
 		//	Create a matrix to figure out which grid tiles correspond to obstructed parts of the world
@@ -445,14 +447,13 @@ AI.PathfindingBehavior = function(me){
 				var x = ( (tileSize/2)+(tileSize*j) ) + gridOrigin[0];
 				//	Project this character's hitbox onto the x and y coordinates to see
 				//	if it would fit in the space. If not, mark the cell as obstructed.
-				if (me.manager.hitboxProjectionTest(me,[x,y],16)) {
+				if (me.manager.hitboxProjectionTest(me,[x,y],12)) {
 					row.push(1);
 				}
 				else row.push(0);
 			}
 			matrix.push(row);
 		}
-	
 		
 		//	Run the pathfinding routine on the grid that was just generated
 		var grid = new PF.Grid(gridSize,gridSize,matrix);
@@ -477,13 +478,20 @@ AI.PathfindingBehavior = function(me){
 			for (var i = 0; i < path.length; i++){
 				var point = [];
 				//	Convert the tile to world coordinates 
-				point[0] = ( (tileSize/2) + (tileSize*path[i][0]) ) + gridOrigin[0];
-				point[1] = ( (tileSize/2) + (tileSize*path[i][1]) ) + gridOrigin[1];
+				point[0] = ( (tileSize*path[i][0]) ) + gridOrigin[0];
+				point[1] = ( (tileSize*path[i][1]) ) + gridOrigin[1];
 				processedPath.push(point);
 			}
 			
 			delete grid;
 			delete finder;
+			me.aiData.tempPathGrid = {
+				origin: gridOrigin,
+				tileSize: tileSize,
+				matrix: matrix,
+				width: gridSize,
+				height: gridSize,
+			}
 			return processedPath;
 		}	
 	}
@@ -527,8 +535,8 @@ AI.PathfindingBehavior = function(me){
 			for (var i = 0; i < path.length; i++){
 				var point = [];
 				//	Convert the tile to world coordinates 
-				point[0] = ( (me.pathfindingGrid.tileSize/2) + (me.pathfindingGrid.tileSize*path[i][0]) ) + me.pathfindingGrid.origin[0];
-				point[1] = ( (me.pathfindingGrid.tileSize/2) + (me.pathfindingGrid.tileSize*path[i][1]) ) + me.pathfindingGrid.origin[1];
+				point[0] = ( (me.pathfindingGrid.tileSize*path[i][0]) ) + me.pathfindingGrid.origin[0];
+				point[1] = ( (me.pathfindingGrid.tileSize*path[i][1]) ) + me.pathfindingGrid.origin[1];
 				processedPath.push(point);
 			}
 			

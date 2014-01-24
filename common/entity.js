@@ -754,6 +754,7 @@ var EntityManager = function(){
 		args.point = point;
 		args.width = a.hitbox.width;
 		args.height = a.hitbox.height;
+		//	Only exclude this character's hitbox if dynamic objects are being tested
 		if (!params.staticOnly) args.exclude = [a.hitbox];
 		return this.rectangleProjectionTest(args);
 	}
@@ -766,14 +767,16 @@ var EntityManager = function(){
 		var height = params.height;
 		var staticOnly = params.staticOnly;
 		var rectangle = [point[0] - (width/2) - berth, point[1] - (height/2) - berth, point[0] + (width/2) + berth, point[1] + (height/2) + berth];
+
 		if (world.bodyRectangleQuery(rectangle,store)) {
 			for (var i in store){
+				//	If objects are being excluded
 				if (params.exclude){
 					for (var j in params.exclude) {
 						if (store[i] == params.exclude[j]) store.splice(i,1);
 					}
 				}
-				else if (staticOnly && store[i]){
+				if (staticOnly && store[i]){
 					if(!store[i].isStatic()) store.splice(i,1);
 				} 
 			}

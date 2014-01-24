@@ -432,40 +432,19 @@ AI.PathfindingBehavior = function(me){
 		}
 		
 		//	Create a matrix to figure out which grid tiles correspond to obstructed parts of the world
-		var matrix = [];
-		var width = me.hitbox.width;
-		var height = me.hitbox.height;
-		var blocks = 0;
-		//	For every row...
-		for (var i = 0; i < gridSize; i++){
-			var row = [];
-			//	Find the y coordinate in the world that this row corresponds to
-			var y = ( (tileSize/2)+(tileSize*i) ) + gridOrigin[1];
-			//	For every cell of this row...
-			for (var j = 0; j < gridSize; j++){
-				//	Find the x coordinate in the world that this column corresponds to
-				var x = ( (tileSize/2)+(tileSize*j) ) + gridOrigin[0];
-				//	Project this character's hitbox onto the x and y coordinates to see
-				//	if it would fit in the space. If not, mark the cell as obstructed.
-				if (me.manager.hitboxProjectionTest(me,[x,y],12)) {
-					row.push(1);
-				}
-				else row.push(0);
-			}
-			matrix.push(row);
-		}
+		var matrix = Pathing.createMatrix({
+			origin: gridOrigin,
+			precision: tileSize,
+			width: gridSize,
+			height: gridSize,
+			entity: me,
+			berth: 12,
+		})
 		
 		//	Run the pathfinding routine on the grid that was just generated
-		var grid = new PF.Grid(gridSize,gridSize,matrix);
-		if (!grid) return false;
-		var finder = new PF.BestFirstFinder({
-			allowDiagonal: true,
-			dontCrossCorners: true,
-			heuristic: PF.Heuristic.euclidean,
-		});
-		var path = finder.findPath(startTile[0],startTile[1],targetTile[0],targetTile[1], grid);
+		var path = Pathing.findPath(startTile, targetTile, matrix);
 		
-		if (path.length == 0) return false;
+		if (!path) return false;
 		else {
 			//	If the character isn't backing up to anywhere, we don't need the first tile of the path
 			if (!backAway) path.splice(0,1);
@@ -484,8 +463,6 @@ AI.PathfindingBehavior = function(me){
 				processedPath.push(point);
 			}
 			
-			delete grid;
-			delete finder;
 			me.aiData.tempPathGrid = {
 				origin: gridOrigin,
 				tileSize: tileSize,
@@ -498,7 +475,6 @@ AI.PathfindingBehavior = function(me){
 	}
 	
 	var pathTo = function(target){
-		
 		//	Convert the target point to a tile on the grid
 		var targetOnGrid = [target[0] - me.pathfindingGrid.origin[0], target[1] - me.pathfindingGrid.origin[1]];
 		var targetTile = [Math.round(targetOnGrid[0]/me.pathfindingGrid.tileSize),Math.round(targetOnGrid[1]/me.pathfindingGrid.tileSize)];
@@ -513,15 +489,8 @@ AI.PathfindingBehavior = function(me){
 		if (startTile[0] > me.pathfindingGrid.width - 1) startTile[0] = me.pathfindingGrid.width - 1;
 		if (startTile[1] > me.pathfindingGrid.height - 1) startTile[1] = me.pathfindingGrid.height - 1;
 		
-		var finder = new PF.AStarFinder({
-			allowDiagonal: true,
-			dontCrossCorners: true,
-			heuristic: PF.Heuristic.euclidean,
-		});
-		var grid = new PF.Grid(me.pathfindingGrid.width, me.pathfindingGrid.height, me.pathfindingGrid.matrix);
-		var path = finder.findPath(startTile[0],startTile[1],targetTile[0],targetTile[1], grid);
-		
-		if (path.length == 0) return false;
+		var path = Pathing.findPath(startTile, targetTile, me.pathfindingGrid.matrix);
+		if (!path) return false;
 		
 		else {
 			path.splice(0,1);
@@ -541,8 +510,6 @@ AI.PathfindingBehavior = function(me){
 				processedPath.push(point);
 			}
 			
-			delete grid;
-			delete finder;
 			return processedPath;
 		}
 	}

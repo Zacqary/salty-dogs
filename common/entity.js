@@ -479,28 +479,15 @@ Entity.prototype.makePathfindingGrid = function(x1, y1, x2, y2){
 	var gridWidth = Math.round((x2-x1)/tileSize);
 	var gridHeight = Math.round((y2-y1)/tileSize);
 	
-	var matrix = [];
-	var width = this.hitbox.width;
-	var height = this.hitbox.height;
-	var blocks = 0;
-	//	For every row...
-	for (var i = 0; i < gridHeight; i++){
-		var row = [];
-		//	Find the y coordinate in the world that this row corresponds to
-		var y = ( (tileSize/2)+(tileSize*i) ) + gridOrigin[1];
-		//	For every cell of this row...
-		for (var j = 0; j < gridWidth; j++){
-			//	Find the x coordinate in the world that this column corresponds to
-			var x = ( (tileSize/2)+(tileSize*j) ) + gridOrigin[0];
-			//	Project this character's hitbox onto the x and y coordinates to see
-			//	if it would fit in the space. If not, mark the cell as obstructed.
-			if (this.manager.hitboxProjectionTest(this,[x,y],12,true)) {
-				row.push(1);
-			}
-			else row.push(0);
-		}
-		matrix.push(row);
-	}
+	var matrix = Pathing.createMatrix({
+		origin: gridOrigin,
+		precision: tileSize,
+		width: gridWidth,
+		height: gridHeight,
+		entity: this,
+		berth: 12,
+		staticOnly: true,
+	})
 	
 	this.pathfindingGrid = { 
 		origin: gridOrigin,

@@ -21,3 +21,23 @@ Debug.drawPath = function(path){
 	}
 	Graphics.debugDraw.end();
 }
+
+Debug.drawPathfindingGrid = function(grid){
+	Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
+	Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
+	Graphics.debugDraw.begin();
+	var matrix = grid.matrix;
+	var tileSize = grid.tileSize;
+	for (var i in matrix){
+		var row = matrix[i];
+		var y = grid.origin[1] + (i*tileSize);
+		for (var j in row){
+			var x = grid.origin[0] + (j*tileSize);
+			var color = [1,0,1,1];
+			if (row[j] == 1) color = [1,1,0,1];
+			//Graphics.debugDraw.drawCircle(x,y,2,color);
+			Graphics.debugDraw.drawRectangle(x - (tileSize/2), y - (tileSize/2), x + (tileSize/2), y + (tileSize/2),color);
+		}
+	}
+	Graphics.debugDraw.end();
+}

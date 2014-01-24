@@ -28,6 +28,7 @@
 /*{{ javascript("common/input.js") }}*/
 /*{{ javascript("common/physics.js") }}*/
 /*{{ javascript("common/gamestate.js") }}*/
+/*{{ javascript("common/pathing.js") }}*/
 /*{{ javascript("common/loop.js") }}*/
 /*{{ javascript("common/entity.js") }}*/
 

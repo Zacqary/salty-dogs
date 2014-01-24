@@ -457,7 +457,8 @@ AI.PathfindingBehavior = function(me){
 		
 		//	Run the pathfinding routine on the grid that was just generated
 		var grid = new PF.Grid(gridSize,gridSize,matrix);
-		var finder = new PF.AStarFinder({
+		if (!grid) return false;
+		var finder = new PF.BestFirstFinder({
 			allowDiagonal: true,
 			dontCrossCorners: true,
 			heuristic: PF.Heuristic.euclidean,

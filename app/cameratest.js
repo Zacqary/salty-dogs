@@ -200,7 +200,7 @@ CameraTest.loadingLoop = function(){
 			
 			this.NPC.makePathfindingGrid(-193, -290, 1200, 350);
 			this.NPC.aiGoals.follow = Player.entity;
-			/*
+			
 		
 			this.NPC2 = this.NPC.clone();
 			this.NPC2.sprite.setHeight(96);

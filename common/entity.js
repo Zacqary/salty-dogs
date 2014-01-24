@@ -749,13 +749,30 @@ var EntityManager = function(){
 		return result;
 	}
 	
-	this.hitboxProjectionTest = function(a, point, berth, staticOnly){
-		berth = berth || 0;
+	this.hitboxProjectionTest = function(a, point, params){
+		var args = params;
+		args.point = point;
+		args.width = a.hitbox.width;
+		args.height = a.hitbox.height;
+		if (!params.staticOnly) args.exclude = [a.hitbox];
+		return this.rectangleProjectionTest(args);
+	}
+	
+	this.rectangleProjectionTest = function(params){
 		var store = [];
-		var rectangle = [point[0] - (a.hitbox.width/2) - berth, point[1] - (a.hitbox.height/2) - berth, point[0] + (a.hitbox.width/2) + berth, point[1] + (a.hitbox.height/2) + berth];
+		var berth = params.berth || 0;
+		var point = params.point;
+		var width = params.width;
+		var height = params.height;
+		var staticOnly = params.staticOnly;
+		var rectangle = [point[0] - (width/2) - berth, point[1] - (height/2) - berth, point[0] + (width/2) + berth, point[1] + (height/2) + berth];
 		if (world.bodyRectangleQuery(rectangle,store)) {
 			for (var i in store){
-				if (store[i] == a.hitbox) store.splice(i,1);
+				if (params.exclude){
+					for (var j in params.exclude) {
+						if (store[i] == params.exclude[j]) store.splice(i,1);
+					}
+				}
 				else if (staticOnly && store[i]){
 					if(!store[i].isStatic()) store.splice(i,1);
 				} 

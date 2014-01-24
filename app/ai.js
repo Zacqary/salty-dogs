@@ -198,7 +198,7 @@ AI.PathfindingBehavior = function(me){
 		distanceThreshold.set(distanceToPoint);
 		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceThreshold.get())){
 			//	Try to correct the path for 8 iterations
-			if (!correctPath(6)) {
+			if (!correctPath(8)) {
 				//	If that doesn't work, the character's probably not
 				//	going to reach their goal, so get rid of it
 				me.waypoints = [];
@@ -237,8 +237,8 @@ AI.PathfindingBehavior = function(me){
 				bounces.push(me.collision);
 				//	Reset collisionTimer
 				collisionTimer.maxOut();
-				//	Try to correct the path for 6 iterations
-				if (!correctPath(6, me.collision.normal)) {
+				//	Try to correct the path for 8 iterations
+				if (!correctPath(8, me.collision.normal)) {
 					//	If that doesn't work, the character's probably not
 					//	going to reach their goal, so get rid of it
 					me.waypoints = [];

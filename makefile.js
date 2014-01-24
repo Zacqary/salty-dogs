@@ -19,13 +19,14 @@
 /*{{ javascript('jslib/utilities.js') }}*/
 /*{{ javascript('jslib/vmath.js') }}*/
 
-/*{{ javascript("common/underscore.js") }}*/
+/*{{ javascript("common/dependencies/pathfinding.js") }}*/
+/*{{ javascript("common/dependencies/underscore.js") }}*/
+
 /*{{ javascript("common/protocol.js") }}*/
 /*{{ javascript("common/math.js") }}*/
 /*{{ javascript("common/graphics.js") }}*/
 /*{{ javascript("common/input.js") }}*/
 /*{{ javascript("common/physics.js") }}*/
-/*{{ javascript("common/pathfinding.js") }}*/
 /*{{ javascript("common/gamestate.js") }}*/
 /*{{ javascript("common/loop.js") }}*/
 /*{{ javascript("common/entity.js") }}*/

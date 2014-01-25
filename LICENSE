@@ -1,19 +1,12 @@
 License for Salty Dogs
 ======================
 
-           DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
-                   Version 2, December 2004
+Copyright (c) 2013-2014 Plankhead
 
-Copyright (C) 2013 Plankhead <Zacqary@plankhead.com>
+Permission is hereby granted to DO WHAT THE FUCK YOU WANT TO.
 
-Everyone is permitted to copy and distribute verbatim or modified
-copies of this license document, and changing it is allowed as long
-as the name is changed.
-
-           DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
-  TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
-
- 0. You just DO WHAT THE FUCK YOU WANT TO.
+This software is provided with NO FUCKING WARRANTY and the 
+authors are NOT LIABLE FOR SHIT.
 
 ===============================
 Includes MIT-licensed libraries
@@ -22,7 +15,11 @@ Includes MIT-licensed libraries
 Copyright (c) 2009-2013 Turbulenz Limited
 
 ** Pathfinding.js **
-© 2011-2012 Xueqiao Xu <xueqiaoxu@gmail.com>
+Copyright (c) 2011-2012 Xueqiao Xu <xueqiaoxu@gmail.com>
+
+** Underscore.js **
+Copyright (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative
+Reporters & Editors
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

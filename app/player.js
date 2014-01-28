@@ -80,6 +80,20 @@ Player.buttons.ATTACK = {
 	}
 }
 
+Player.buttons.ZOOMPAUSE = {
+	down: function(){
+		if (GameState.getCamera().zoom > 0.5) {
+			GameState.zoomCamera(0.5,0.2);
+		}
+		else if (GameState.getCamera().zoom < 1){
+			GameState.zoomCamera(1,0.2);
+		}
+	},
+	up: function(){
+		
+	},
+}
+
 //	Directional buttons
 Player.buttons.W = {
 	name: "W",
@@ -137,6 +151,7 @@ Player.loadDefaultMap = function(){
 	Player.mapMouse(Input.MOUSE_0,Player.buttons.MOVE);
 	Player.mapMouse(Input.MOUSE_1,Player.buttons.ATTACK);
 	
+	Player.mapKey(Input.keyCodes.SPACE,Player.buttons.ZOOMPAUSE);
 	Player.mapKey(Input.keyCodes.W,Player.buttons.W);
 	Player.mapKey(Input.keyCodes.A,Player.buttons.A);
 	Player.mapKey(Input.keyCodes.S,Player.buttons.S);

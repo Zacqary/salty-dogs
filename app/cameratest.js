@@ -82,7 +82,7 @@ CameraTest.initializeExtension = function(){
 	this.wall4.hitbox.sleep();
 	this.wall4.hitbox.setAsStatic();
 	
-	this.wall5 = this.em.createEntity({});
+/*	this.wall5 = this.em.createEntity({});
 	this.wall5.setPosition(400,130);
 	this.wall5.createHitbox(50,150,0,0);
 	this.wall5.hitbox.sleep();
@@ -98,7 +98,7 @@ CameraTest.initializeExtension = function(){
 	this.wall7.setPosition(100,50);
 	this.wall7.createHitbox(50,400,0,0);
 	this.wall7.hitbox.sleep();
-	this.wall7.hitbox.setAsStatic();
+	this.wall7.hitbox.setAsStatic(); */
 
 	//this.avatar.setPosition(0,120);
 	this.avatar.createStaminaBar();
@@ -109,7 +109,7 @@ CameraTest.initializeExtension = function(){
 	this.NPC.name = "NPC1";
 	this.NPC.setPosition(480,0);
 	this.NPC.makeHostile();
-	//this.NPC.createEffectRadius(80);
+	this.NPC.createEffectRadius(80);
 	this.NPC.createEffect({
 		types: [ENT_CHARACTER],
 		doThis: function(it, me){
@@ -127,7 +127,7 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createFocusBar();
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
-	//this.NPC.addBehavior("CombatBehavior");
+	this.NPC.addBehavior("CombatBehavior");
 	this.NPC.addBehavior("PathfindingBehavior");
 	this.NPC.addBehavior("ChaseBehavior");
 	this.NPC.sprite.setHeight(96);
@@ -200,7 +200,7 @@ CameraTest.loadingLoop = function(){
 			
 			this.NPC.makePathfindingGrid(-193, -290, 1200, 350);
 			this.NPC.aiGoals.follow = Player.entity;
-			
+		/*
 		
 			this.NPC2 = this.NPC.clone();
 			this.NPC2.sprite.setHeight(96);
@@ -212,10 +212,11 @@ CameraTest.loadingLoop = function(){
 			this.NPC2.name = "NPC2";
 			this.NPC2.addBehavior("PathfindingBehavior");
 			this.NPC2.addBehavior("ChaseBehavior");
+			this.NPC2.addBehavior("CombatBehavior");
 			this.em.add(this.NPC2);
 			this.NPC2.makePathfindingGrid(-200, -300, 1200, 300);
 			this.NPC2.aiGoals.follow = Player.entity;
-		
+		/*
 			
 			this.NPC3 = this.NPC.clone();
 			this.NPC3.sprite.setHeight(96);
@@ -241,20 +242,28 @@ CameraTest.loadingLoop = function(){
 			this.NPC4.debug = true; */
 			
 			this.em.updateAll();
+			
 	}
 }
 
 CameraTest.runAfterPlayerMoves = function(){
-
+	
 	CameraTest.em.updateCharacterCombatStates();
 	CameraTest.em.runCharacterBehaviors();
+	
+	if (Player.entity.inCombat) {
+		if (GameState.getCamera().zoom < 1.3)
+			GameState.zoomCamera(1.3);
+	}
+	else if (GameState.getCamera().zoom >= 1.3)
+		GameState.zoomCamera(1);
 	
 }
 
 CameraTest.drawExtension = function(){
 	
 	if (this.NPC.aiData.tempPathGrid) {
-		Debug.drawPathfindingGrid(this.NPC.aiData.tempPathGrid);
+		//Debug.drawPathfindingGrid(this.NPC.aiData.tempPathGrid);
 	}
 	
 	if (CameraTest.rayCastPoints) {

@@ -95,6 +95,7 @@ var GameState = new function() {
 		}
 	}
 	
+	
 	//	Camera
 	//	======
 	var currentCamera;
@@ -103,6 +104,29 @@ var GameState = new function() {
 	}
 	this.getCamera = function(){
 		return currentCamera;
+	}
+	var currentZoomer = null;
+	this.zoomCamera = function(value, time){
+		time = time || 0.5;
+		var diff = Math.abs(currentCamera.zoom - value);
+		var speed = diff/(60*time);
+		if (currentZoomer) this.removeCountdown(currentZoomer);
+		var zoomer = new Countdown(1/60, function(){
+			if (Math.abs(currentCamera.zoom - value) < speed) {
+				currentCamera.zoom = value;
+				zoomer.delete();
+				currentZoomer = null;
+			}
+			else {
+				if (currentCamera.zoom > value) {
+					currentCamera.zoom -= speed;
+				}
+				else {
+					currentCamera.zoom += speed;
+				}
+			}
+		});
+		currentZoomer = zoomer;
 	}
 	
 }

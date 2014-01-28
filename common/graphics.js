@@ -184,15 +184,20 @@ Graphics.Camera2D = function Camera2D() {
 	this.y = 0;
 	this.width = Graphics.device.width;
 	this.height = Graphics.device.height;
+	this.zoom = 1;
 }
 Graphics.Camera2D.create = function(){
 	return new Graphics.Camera2D();
 }
 
 Graphics.Camera2D.prototype.getViewport = function(){
-	var x =  this.x - (this.width/2);
-	var y =  this.y - (this.height/2);
-	return Math.device.v4Build(x,y,x+this.width,y+this.height);
+	var width = Math.floor(this.width / this.zoom);
+	var height = Math.floor(this.height / this.zoom);
+	
+	var x1 =  this.x - width/2;
+	var y1 =  this.y - height/2;
+	return Math.device.v4Build(x1,y1,x1+width,y1+height);
+	
 }
 
 /*	getViewCenter

@@ -598,16 +598,19 @@ AI.PathfindingBehavior = function(me){
 AI.ChaseBehavior = function(me){
 	//	Track the target once every 0.3 seconds
 	var updateTimer = new Countdown(0.3);
+	var targetPosition = null;
 	
 	this.run = function(){
 		if (!me.aiGoals.follow) return;
 		if (me.inCombat) return;
+		if (me.distanceTo(me.aiGoals.follow) < 72) return;
 		
 		//	Recalculate the target's position if it's not a movement goal, or
 		//	whenever updateTimer runs out
 		if(!me.aiGoals.movement || !updateTimer.get()){
 			//	If the target has moved since the last check
-			if (me.aiGoals.movement != [me.aiGoals.follow.x, me.aiGoals.follow.y]) {
+			if (!_.isEqual(targetPosition, [me.aiGoals.follow.x, me.aiGoals.follow.y]) ) {
+				targetPosition = [me.aiGoals.follow.x, me.aiGoals.follow.y];
 				//	Check if the character has line of sight to the target
 				var distance = Math.distanceXY(me.getPosition(),me.aiGoals.follow.getPosition());
 				var noLineOfSight = me.manager.rayCastTestXY(me, me.aiGoals.follow.getPosition(),distance);
@@ -628,8 +631,25 @@ AI.ChaseBehavior = function(me){
 					//	will be without waypoints for a frame and "flicker" to the default direction
 					me.addUpdateFunction(function() { 
 						me.waypoints = [];
-						//	Set the movement goal to the target's position
-						me.setMovementAIGoal(me.aiGoals.follow.x, me.aiGoals.follow.y);
+						
+						//	Find a walkable point near the target's position
+						//	First try calculating the angle between the target and this character
+						var angle = me.aiGoals.follow.angleTo(me);
+						var point = Math.lineFromXYAtAngle(me.aiGoals.follow.getPosition(), 48, angle);
+						
+						//	If that angle is blocked, rotate around until an unblocked point is found
+						var angleCount = 0;
+						while (Pathing.isBlocked(point,me.pathfindingGrid)) {
+							angleCount ++;
+							angle = (angle*(180/Math.PI)) + 1;
+							if (angle >= 360) angle = 0;
+							angle *= (Math.PI/180);
+							point = Math.lineFromXYAtAngle(me.aiGoals.follow.getPosition(), 48, angle);
+							if (angleCount == 360) break;
+						}
+						
+						//	Set this point as a movement goal
+						me.setMovementAIGoal(point[0],point[1]);
 					});
 				}
 			}

@@ -195,7 +195,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC.setSword("ls","aaaaaa");
 			this.NPC.addMisc("patchleft","000033",2);
 			this.NPC.composeDoll();
-			this.NPC.setMovementAIGoal(this.NPC.x, this.NPC.y);
+			//this.NPC.setMovementAIGoal(this.NPC.x, this.NPC.y);
 			
 			
 			this.NPC.makePathfindingGrid(-193, -290, 1200, 350);
@@ -214,7 +214,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC2.addBehavior("ChaseBehavior");
 			this.em.add(this.NPC2);
 			this.NPC2.makePathfindingGrid(-200, -300, 1200, 300);
-			this.NPC2.aiGoals.follow = this.NPC;
+			this.NPC2.aiGoals.follow = Player.entity;
 		
 			
 			this.NPC3 = this.NPC.clone();
@@ -228,7 +228,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC3.addBehavior("ChaseBehavior");
 			this.em.add(this.NPC3);
 			this.NPC3.makePathfindingGrid(-200, -300, 1200, 300);
-			this.NPC3.aiGoals.follow = this.NPC2;
+			this.NPC3.aiGoals.follow = Player.entity;
 			
 			/*
 			this.NPC4 = this.NPC.clone();

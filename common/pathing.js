@@ -92,3 +92,16 @@ Pathing.createMatrix = function(params){
 	
 	return matrix;
 }
+
+Pathing.isBlocked = function(target, grid){
+	//	Convert the target point to a tile on the grid
+	var targetOnGrid = [target[0] - grid.origin[0], target[1] - grid.origin[1]];
+	var targetTile = [Math.round(targetOnGrid[0]/grid.tileSize),Math.round(targetOnGrid[1]/grid.tileSize)];
+	//	Make sure the target tile is within the bounds of the grid
+	if (targetTile[0] > grid.width - 1) targetTile[0] = grid.width - 1;
+	if (targetTile[1] > grid.height - 1) targetTile[1] = grid.height - 1;
+		
+	var x = targetTile[0];
+	var y = targetTile[1];
+	return(grid.matrix[y][x]);
+}

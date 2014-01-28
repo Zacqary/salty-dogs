@@ -253,10 +253,12 @@ AI.PathfindingBehavior = function(me){
 	var collisionTimer = new Countdown(0.2);
 	
 	
-	//	collsionTimer -- Every 0.2 seconds, check if the character is stuck
+	//	stuckTimer -- Every 0.2 seconds, check if the character is stuck
 	var stuckTimer = new Countdown(0.2, function() {
 		//	Reset stuckTimer
 		stuckTimer.maxOut();
+		if (!me.aiGoals.movement) return; // Only unstick the character if they're trying to move
+		
 		//	Convert the character's position to single pixels
 		//	Otherwise tiny movements from friction will give us a false negative on being stuck
 		var pos = me.getPosition();

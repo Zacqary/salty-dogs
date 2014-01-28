@@ -395,7 +395,7 @@ AI.PathfindingBehavior = function(me){
 		//	Compute the size of the grid, and the precision of its tiles in world units
 		scope = scope || 1;
 		scale = scale || 1;
-		var gridSize = 16 * (1 * ( 1 + (scope-1)/2 ) );
+		var gridSize = 32 * (1 * ( 1 + (scope-1)/2 ) );
 		var tileSize = 16 / (1 * scale);
 		
 		//	Figure out the grid's origin in world coordinates

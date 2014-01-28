@@ -80,7 +80,13 @@ var GameState = new function() {
 		return currentTime - previousFrameTime;
 	}
 	this.addCountdown = function(countdown){
-		countdowns.push(countdown);
+		countdowns[countdown.guid] = countdown;
+	}
+	this.removeCountdown = function(countdown){
+		if (typeof countdown == "object")
+			delete countdowns[countdown.guid];
+		else if (typeof countdown == "string")
+			delete countdowns[countdown];
 	}
 	var tickCountdowns = function(){
 		for (var i in countdowns){
@@ -117,6 +123,8 @@ var Countdown = function Countdown(current, a, b, onZero){
 	var c = new Spectrum(current, a, b);
 	var frozen = false;
 	
+	c.guid = _.uniqueId("countdown");
+	
 	c.onZero = function(){
 		if (onZero) onZero();
 	}
@@ -132,6 +140,10 @@ var Countdown = function Countdown(current, a, b, onZero){
 	}
 	c.unfreeze = function(){
 		frozen = false;
+	}
+	
+	c.delete = function(){
+		GameState.removeCountdown(c);
 	}
 	
 	GameState.addCountdown(c);

@@ -725,7 +725,7 @@ Player.goToCursor = function(){
 			Player.entity.pushingForward = false;
 		}
 		if (Player.entity.retreating) {
-			approachTarget = Math.lineFromXYAtAngle([other.x,other.y],90,currentAngle*(Math.PI/180));
+			approachTarget = Math.lineFromXYAtAngle([other.x,other.y],80,currentAngle*(Math.PI/180));
 		}
 		CameraTest.drawCircle = approachTarget;
 		speedOverride = Player.entity.turnSpeed;

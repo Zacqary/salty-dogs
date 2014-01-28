@@ -115,7 +115,7 @@ CameraTest.initializeExtension = function(){
 		doThis: function(it, me){
 			if (it.charType != me.charType || it.charType == CHAR_NEUTRAL) {
 				it.affect("speedMult",0.1);
-				if (it.cursor) it.cursor.affect("range",72);
+				if (it.cursor) it.cursor.affect("range",48);
 				if (it == Player.entity) it.affect("inCombat",true);
 				me.affect("inCombat",true);
 				me.affect("speedMult",0.1);
@@ -144,7 +144,7 @@ CameraTest.initializeExtension = function(){
 		textureRectangle: [0,0,64,48],
 		color: [0,0,1,1]
 	});
-	this.cursor.createHitbox(8,24,0,0);
+	this.cursor.createHitbox(36,36,0,0);
 	this.cursor.useHitboxAsEffectRadius();
 	this.cursor.createEffect({
 		types: [ENT_CHARACTER],

@@ -36,7 +36,7 @@ var Character = function (params){
 	c.damageInterval = 0.25;
 	
 	c.focus = new Spectrum(30);
-	c.focusRegenRate = 1/90;
+	c.focusRegenRate = 1/180;
 	
 	c.stamina = new Spectrum(4);
 	c.staminaRegenRate = 1/45;
@@ -395,7 +395,9 @@ var Character = function (params){
 			this.stamina.plus(this.staminaRegenRate);
 		}
 		if ( this.focus.get() < this.focus.getMax() ){
-			this.focus.plus(this.focusRegenRate);
+			var rate = this.focusRegenRate;
+			if (!this.inCombat) rate *= 6;
+			this.focus.plus(rate);
 		}
 	}
 	

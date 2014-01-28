@@ -597,7 +597,15 @@ var Character = function (params){
 		//	Deal focus damage
 		var damageMult = 1;
 		damageMult += this.combat.hits * this.damageInterval;
-		if (this.pushingForward) damageMult /= 2;
+		//	If the character is pushing forward or retreating, halve damage
+		if (this.pushingForward || this.retreating) damageMult /= 2;
+		//	If the character is attacking too fast, reduce damage significantly
+		if (this.timers.hit.get() > this.timers.hit.getMax() * HIT_CLOCK_GREEN_ZONE){
+			var maxDiff = this.timers.hit.getMax() - (this.timers.hit.getMax() * HIT_CLOCK_GREEN_ZONE);
+			var currentDiff = this.timers.hit.get() - (this.timers.hit.getMax() * HIT_CLOCK_GREEN_ZONE);
+			var percentDiff = currentDiff / maxDiff;
+			damageMult /= 2.5 + percentDiff;
+		}
 		
 		var damage = this.damage * damageMult;
 		other.takeDamage(damage, this);
@@ -606,7 +614,7 @@ var Character = function (params){
 		this.combat.hits ++;
 		// If the character is attacking too fast, reduce the benefits of a consecutive hit
 		if (this.timers.hit.get() > this.timers.hit.getMax() * HIT_CLOCK_GREEN_ZONE){
-			this.combat.hits -= 0.5;
+			this.combat.hits -= 1.5;
 		}
 		
 		//	Set the hit chain timer

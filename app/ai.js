@@ -635,7 +635,7 @@ AI.ChaseBehavior = function(me){
 						//	Find a walkable point near the target's position
 						//	First try calculating the angle between the target and this character
 						var angle = me.aiGoals.follow.angleTo(me);
-						var point = Math.lineFromXYAtAngle(me.aiGoals.follow.getPosition(), 48, angle);
+						var point = Math.lineFromXYAtAngle(me.aiGoals.follow.getPosition(), 96, angle);
 						
 						//	If that angle is blocked, rotate around until an unblocked point is found
 						var angleCount = 0;
@@ -644,7 +644,7 @@ AI.ChaseBehavior = function(me){
 							angle = (angle*(180/Math.PI)) + 1;
 							if (angle >= 360) angle = 0;
 							angle *= (Math.PI/180);
-							point = Math.lineFromXYAtAngle(me.aiGoals.follow.getPosition(), 48, angle);
+							point = Math.lineFromXYAtAngle(me.aiGoals.follow.getPosition(), 96, angle);
 							if (angleCount == 360) break;
 						}
 						

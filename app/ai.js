@@ -165,6 +165,7 @@ AI.CombatBehavior = function(me){
 		}
 		//	If the character is out of combat, reset all of this behavior's stats
 		else {
+			if (stats) { if(stats.delay) stats.delay.delete(); }
 			stats = null;
 			strategy = null;
 			me.strafing = false;
@@ -590,6 +591,11 @@ AI.PathfindingBehavior = function(me){
 		return p;
 	}
 	
+	this.onDelete = function(){
+		stuckTimer.delete();
+		collisionTimer.delete();
+		bounceStuckTimer.delete();
+	}
 }
 
 /*	ChaseBehavior
@@ -656,6 +662,10 @@ AI.ChaseBehavior = function(me){
 			//	Reset the updateTimer
 			updateTimer.maxOut();
 		}
+	}
+	
+	this.onDelete = function(){
+		updateTimer.delete();
 	}
 	
 }

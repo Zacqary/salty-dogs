@@ -413,6 +413,14 @@ var Character = function (params){
 		}
 		this.createHitbox(0,0);
 		this.charType = CHAR_NEUTRAL;
+		
+		this.waypoints = [];
+		
+		for (var i in behaviors){
+			if (behaviors[i].onDelete) behaviors[i].onDelete();
+			delete behaviors[i];
+		}
+		
 	}
 	
 	c.updateCombatState = function(){
@@ -616,6 +624,7 @@ var Character = function (params){
 		behaviors[name] = new behavior(this);
 	}
 	c.removeBehavior = function(behavior){
+		if (behaviors[behavior.name].onDelete) behaviors[behavior.name].onDelete();
 		delete behaviors[behavior.name];
 	}
 	
@@ -646,7 +655,7 @@ EntityManager.prototype.updateCharacterCombatStates = function(){
 EntityManager.prototype.runCharacterBehaviors = function(){
 	var entities = this.getEntities();
 	for (var i in entities){
-		if (entities[i].charType) {
+		if (entities[i].charType && entities[i].alive) {
 			entities[i].runMyBehaviors();
 		}
 	}

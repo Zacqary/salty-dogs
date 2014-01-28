@@ -131,7 +131,7 @@ CameraTest.initializeExtension = function(){
 	this.NPC.addBehavior("PathfindingBehavior");
 	this.NPC.addBehavior("ChaseBehavior");
 	this.NPC.sprite.setHeight(96);
-	this.NPC.focus.setMax(5);
+	//this.NPC.focus.setMax(5);
 	this.em.add(this.NPC);
 	
 	

@@ -119,7 +119,7 @@ CameraTest.initializeExtension = function(){
 				if (it == Player.entity) it.affect("inCombat",true);
 				me.affect("inCombat",true);
 				me.affect("speedMult",0.1);
-				me.affectRadius(120);
+				me.affectRadius(140);
 			}
 		}
 

@@ -255,8 +255,8 @@ CameraTest.runAfterPlayerMoves = function(){
 		if (GameState.getCamera().zoom < 1.3)
 			GameState.zoomCamera(1.3);
 	}
-	else if (GameState.getCamera().zoom >= 1.3)
-		GameState.zoomCamera(1);
+	else if (GameState.getCamera().zoom > 1)
+		GameState.zoomCamera(1, 0.3);
 	
 }
 

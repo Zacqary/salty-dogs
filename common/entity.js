@@ -498,6 +498,24 @@ Entity.prototype.makePathfindingGrid = function(x1, y1, x2, y2){
 	}
 }
 
+Entity.prototype.distanceTo = function(x, y){
+	var point;
+	if (x.entType) point = x.getPosition();
+	else if (x.length) point = x;
+	else point = [x,y];
+	
+	return Math.distanceXY(this.getPosition(),point);
+}
+
+Entity.prototype.angleTo = function(x, y){
+	var point;
+	if (x.entType) point = x.getPosition();
+	else if (x.length) point = x;
+	else point = [x,y];
+	
+	return Math.angleXY(this.getPosition(),point);
+}
+
 //	===================
 /*	EntityManager Class
 		Manages all of the Entities in a level. Stores them in a private array called entities.

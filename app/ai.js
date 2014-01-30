@@ -19,9 +19,15 @@ var AI = { };
 AI.CombatBehavior = function(me){
 	var stats = { };
 	var strategy = { };
-	var attack = function(){
-		me.swingAtCharacter(stats.enemy);
-		var delay = randomNumber(10,50)/100;
+	if (!me.aiSkill) me.aiSkill = 20;
+	
+	var attack = function(overswing){
+		if (me.stamina.get() > 1 || overswing) me.swingAtCharacter(stats.enemy);
+		
+		var delayMin = HIT_CLOCK_GREEN_ZONE*100 - (HIT_CLOCK_GREEN_ZONE*100 - me.aiSkill);
+		var delayMax = HIT_CLOCK_GREEN_ZONE*100 + (HIT_CLOCK_GREEN_ZONE*100 - me.aiSkill)/3;
+		
+		var delay = _.random(delayMin,delayMax)/100;
 		stats.delay.set(delay);
 	}
 	var getCurrentCombatant = function(){
@@ -86,21 +92,28 @@ AI.CombatBehavior = function(me){
 				//	If this character doesn't have the stamina or opening to attack
 				else {
 					//	If the character is out of stamina, 1 in 4 chance that they'll over-swing
-					if (!stats.delay.get() && !stats.overSwing){
-						if (randomNumber(0,4) == 4) {
-							attack();
+					if (stats.delay.get() < 0.1 && !stats.overSwing){
+						var swingChance = Math.floor(me.aiSkill/5) + 1;
+						if (_.random(0,swingChance) == 0) {
+							console.log("overswing");
+							attack(true);
+							
+							//	Randomize the time the character will take to over-swing again
+							stats.delay.set(_.random(20,30)/100);
 						}
-						stats.overSwing = true;
+						else stats.overSwing = true;
+					}
+					else {
+						//	Randomize the character's reaction time
+						stats.delay.set(_.random(2,5)/60);
 					}
 					//	Recalculate the character's restartDelta for when they're able to attack again
 					if (!stats.restartDelta) {
 						var focusPercent = me.focus.get() / me.focus.getMax();
 						var maxDelta = (focusPercent * 40) + 15;
 
-						stats.restartDelta = randomNumber(5,maxDelta)/100;
+						stats.restartDelta = _.random(5,maxDelta)/100;
 					}
-					//	Randomize the character's reaction time
-					stats.delay.set(randomNumber(2,5)/60);
 				}
 			}
 		},
@@ -138,6 +151,7 @@ AI.CombatBehavior = function(me){
 		if (me.inCombat) {
 			//	Recreate the stats if character just entered combat, or if the wrong enemy is targeted
 			if (!stats || !stats.enemy.inCombat){
+				if (stats) { if(stats.delay) stats.delay.delete(); }
 				stats = { };
 				stats.restartDelta = 0; // How much more %stamina than %focus character needs to start attacking 
 				stats.delay = new Countdown(0.5);

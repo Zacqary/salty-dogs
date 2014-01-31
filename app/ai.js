@@ -192,6 +192,9 @@ AI.CombatBehavior = function(me){
 AI.PathfindingBehavior = function(me){
 	
 	this.run = function(){
+		
+		if(me.inCombat) return;
+		
 		//	Only run this behavior if the character has a movement goal
 		if (!me.aiGoals.movement) return;
 		//	If the movement goal is closer than the character's "speed" value,

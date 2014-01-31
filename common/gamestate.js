@@ -76,9 +76,16 @@ var GameState = new function() {
 	this.getTime = function(){
 		return currentTime;
 	}
-	this.getTimeDelta = function(){
+	var getTimeDelta = function(){
 		return currentTime - previousFrameTime;
 	}
+	this.getTimeDelta = getTimeDelta;
+	
+	var getFrameDelta = function(){
+		return Math.round(getTimeDelta() / (1/60) );
+	}
+	this.getFrameDelta = getFrameDelta;
+	
 	this.addCountdown = function(countdown){
 		countdowns[countdown.guid] = countdown;
 	}
@@ -108,25 +115,39 @@ var GameState = new function() {
 	var currentZoomer = null;
 	this.zoomCamera = function(value, time){
 		time = time || 0.5;
-		var diff = Math.abs(currentCamera.zoom - value);
+		//	Get the difference between the current zoom level and the target zoom level
+		var diff = Math.abs(currentCamera.getZoom() - value);
+		//	Calculate how far to zoom each frame in order to zoom to this level in the alotted time
 		var speed = diff/(60*time);
-		if (currentZoomer) this.removeCountdown(currentZoomer);
+		//	If the game is currently trying to zoom
+		if (currentZoomer) {
+			//	If the target is a different zoom level than already requested,
+			//	override the previous zoom command
+			if (currentZoomer.target != value) this.removeCountdown(currentZoomer.countdown);
+			//	Otherwise, don't produce a duplicate zoomer and let the current one to finish
+			else return;
+		}
+		//	Create a timer to zoom, which should trip every frame
 		var zoomer = new Countdown(1/60, function(){
-			if (Math.abs(currentCamera.zoom - value) < speed) {
-				currentCamera.zoom = value;
+			if (Math.abs(currentCamera.getZoom() - value) < speed) {
+				currentCamera.setZoom(value);
 				zoomer.delete();
 				currentZoomer = null;
 			}
 			else {
-				if (currentCamera.zoom > value) {
-					currentCamera.zoom -= speed;
+				if (currentCamera.getZoom() > value) {
+					currentCamera.zoom(-speed*getFrameDelta());
 				}
 				else {
-					currentCamera.zoom += speed;
+					currentCamera.zoom(speed*getFrameDelta());
 				}
 			}
 		});
-		currentZoomer = zoomer;
+		currentZoomer = {
+			countdown: zoomer,
+			target: value,
+		
+		};
 	}
 	
 }

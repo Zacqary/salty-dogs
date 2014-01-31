@@ -82,10 +82,10 @@ Player.buttons.ATTACK = {
 
 Player.buttons.ZOOMPAUSE = {
 	down: function(){
-		if (GameState.getCamera().zoom > 0.5) {
+		if (GameState.getCamera().getZoom() > 0.5) {
 			GameState.zoomCamera(0.5,0.2);
 		}
-		else if (GameState.getCamera().zoom < 1){
+		else if (GameState.getCamera().getZoom() < 1){
 			GameState.zoomCamera(1,0.2);
 		}
 	},
@@ -186,13 +186,24 @@ Player.movementLoop = function(){
 			
 			// Follow the player with the camera
 			var camera = GameState.getCamera();
-			if ( Math.abs(Player.entity.x - camera.x) > 128) {
-				if (camera.x > Player.entity.x) {
-					camera.x = Player.entity.x + 128;
+			var camPos = camera.getPos();
+			if ( Math.abs(Player.entity.x - camPos[0]) > 128) {
+				if (camPos[0] > Player.entity.x) {
+					camera.setPos(Player.entity.x + 128,null);
 				}
 				else {
-					camera.x = Player.entity.x - 128;
+					camera.setPos(Player.entity.x - 128,null);
 				}
+			
+			}
+			if ( Math.abs(Player.entity.y - camPos[1]) > 128) {
+				if (camPos[1] > Player.entity.y) {
+					camera.setPos(null,Player.entity.y + 128);
+				}
+				else {
+					camera.setPos(null,Player.entity.y - 128);
+				}
+			
 			}
 			
 		}
@@ -212,15 +223,25 @@ Player.movementLoop = function(){
 			
 			// Center the camera back on the player if it's not there
 			var camera = GameState.getCamera();
-			if ( Math.abs(Player.entity.x - camera.x) > 2) {
-				if (camera.x > Player.entity.x) {
-					camera.x -= 2;
+			var camPos = camera.getPos();
+			if ( Math.abs(Player.entity.x - camPos[0]) > 2) {
+				if (camPos[0] > Player.entity.x) {
+					camera.move(-2,0);
 				}
 				else {
-					camera.x += 2;
+					camera.move(2,0);
 				}
 			
 			}
+			if ( Math.abs(Player.entity.y - camPos[1]) > 2) {
+				if (camPos[1] > Player.entity.y) {
+					camera.move(0,-2);
+				}
+				else {
+					camera.move(0,2);
+				}
+			
+			}	
 			
 		}
 		
@@ -727,7 +748,6 @@ Player.goToCursor = function(){
 		if (Player.entity.retreating) {
 			approachTarget = Math.lineFromXYAtAngle([other.x,other.y],80,currentAngle*(Math.PI/180));
 		}
-		CameraTest.drawCircle = approachTarget;
 		speedOverride = Player.entity.turnSpeed;
 		approachRange = 32;
 	}

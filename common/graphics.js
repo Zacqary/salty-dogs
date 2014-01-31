@@ -180,24 +180,97 @@ var Graphics = {
 		determine where to place their EntitySprites based on what it can see.
 */
 Graphics.Camera2D = function Camera2D() {
-	this.x = 0;
-	this.y = 0;
-	this.width = Graphics.device.width;
-	this.height = Graphics.device.height;
-	this.zoom = 1;
+	var camX = 0;
+	var camY = 0;
+	var cWidth = Graphics.device.width;
+	var cHeight = Graphics.device.height;
+	var zoom = 1;
+	var viewBounds = Math.device.v4Build(NaN,NaN,NaN,NaN);
+	
+	var getViewport = function(){
+		var width = Math.floor(cWidth / zoom);
+		var height = Math.floor(cHeight / zoom);
+
+		var x1 =  camX - width/2;
+		var y1 =  camY - height/2;
+		return Math.device.v4Build(x1,y1,x1+width,y1+height);
+
+	}
+	this.getViewport = getViewport;
+	
+	var validatePosition = function(){
+		if (zoom >= 1) {
+			var viewport = getViewport();
+			var width = viewport[2] - viewport[0];
+			var height = viewport[3] - viewport[1];
+		
+			if ( (viewBounds[0] !== NaN) && (viewport[0] < viewBounds[0]) ){
+				camX = viewBounds[0] + width/2;
+			}
+			if ( (viewBounds[1] !== NaN) && (viewport[1] < viewBounds[1]) ){
+				camY = viewBounds[1] + height/2;
+			}
+			if ( (viewBounds[2] !== NaN) && (viewport[2] > viewBounds[2]) ){
+				camX = viewBounds[2] - width/2;
+			}
+			if ( (viewBounds[3] !== NaN) && (viewport[3] > viewBounds[3]) ){
+				camY = viewBounds[3] - height/2;
+			}
+		}
+	}
+	
+	//	Positioning functions
+	this.move = function(x, y){
+		camX += x;
+		camY += y;
+		validatePosition();
+	}
+	
+	this.setPos = function(x, y){
+		if (x !== null) camX = x;
+		if (y !== null) camY = y;
+		validatePosition();
+	}
+	
+	this.getPos = function(){
+		return Math.device.v2Build(camX, camY);
+	}
+	
+	this.getZoom = function(){
+		return zoom;
+	}
+	
+	this.setZoom = function(value){
+		zoom = value;
+	}
+	
+	this.zoom = function(change){
+		zoom += change;
+	}
+	
+	this.getWidth = function(){
+		return cWidth;
+	}
+	this.getHeight = function(){
+		return cHeight;
+	}
+	
+	this.getViewBounds = function(){
+		return viewBounds;
+	}
+	
+	this.setViewBounds = function(x1, y1, x2, y2){
+		if (x1 === undefined) x1 = NaN;
+		if (y1 === undefined) y1 = NaN;
+		if (x2 === undefined) x2 = NaN;
+		if (y2 === undefined) y2 = NaN;
+		viewBounds = Math.device.v4Build(x1, y1, x2, y2);
+		validatePosition();
+	}
+		
 }
 Graphics.Camera2D.create = function(){
 	return new Graphics.Camera2D();
-}
-
-Graphics.Camera2D.prototype.getViewport = function(){
-	var width = Math.floor(this.width / this.zoom);
-	var height = Math.floor(this.height / this.zoom);
-	
-	var x1 =  this.x - width/2;
-	var y1 =  this.y - height/2;
-	return Math.device.v4Build(x1,y1,x1+width,y1+height);
-	
 }
 
 /*	getViewCenter
@@ -205,8 +278,9 @@ Graphics.Camera2D.prototype.getViewport = function(){
 		then offsetting it by the camera's position in the world.
 */
 Graphics.Camera2D.prototype.getViewCenter = function(){
-	var x = (this.width/2) - this.x;
-	var y = (this.height/2) - this.y;
+	var pos = this.getPos();
+	var x = (this.getWidth()/2) - pos[0];
+	var y = (this.getHeight()/2) - pos[1];
 	return Math.device.v2Build(x,y);
 }
 /*	xyViewToWorld

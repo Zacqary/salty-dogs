@@ -167,6 +167,63 @@ Player.loadDefaultMap = function(){
 */
 Player.movementLoop = function(){
 	
+	var followWithCamera = function(entity, followDistance, offset){
+		// Follow the player with the camera
+		var camera = GameState.getCamera();
+		var camPos = camera.getPos();
+		offset = offset || [0,0];
+		followDistance = followDistance || 0;
+		followDistance = followDistance / camera.getZoom();
+		
+		var pos = _.clone(camPos);
+		
+		if ( Math.abs(entity.x - camPos[0]) > followDistance) {
+			if (camPos[0] > entity.x) {
+				pos[0] = entity.x + followDistance;
+			}
+			else {
+				pos[0] = entity.x - followDistance;
+			}
+		}
+		if ( Math.abs(entity.y - camPos[1]) > followDistance) {
+			if (camPos[1] > entity.y) {
+				pos[1] = entity.y + followDistance;
+			}
+			else {
+				pos[1] = entity.x - followDistance;
+			}
+		}
+		
+		if (!_.isEqual(pos,camPos)) repositionCamera([entity.x + offset[0],entity.y + offset[1]]);
+	}
+	
+	var repositionCamera = function(pos){
+		var camera = GameState.getCamera();
+		var camPos = camera.getPos();
+		
+		var xSpeed = Math.round(Math.abs(pos[0] - camPos[0])/32) + 1;
+		var ySpeed = Math.round(Math.abs(pos[1] - camPos[1])/32) + 1;
+		
+		if ( xSpeed > 1) {
+			if (camPos[0] > pos[0]) {
+				camera.move(-xSpeed,0);
+			}
+			else {
+				camera.move(xSpeed,0);
+			}
+		}
+		else camera.setPos(pos[0],null);
+		if ( ySpeed > 1) {
+			if (camPos[1] > pos[1]) {
+				camera.move(0,-ySpeed);
+			}
+			else {
+				camera.move(0,ySpeed);
+			}
+		}
+		//else camera.setPos(null,pos[1]);
+	}
+	
 	if (Player.entity) {
 		if (!Player.entity.inCombat){
 			Player.combatStats = null;
@@ -184,27 +241,7 @@ Player.movementLoop = function(){
 		if (Player.moveButtonDown || Player.keyboardMovement || Player.keyboardReleaseTimer.get()) {
 			Player.goToCursor();
 			
-			// Follow the player with the camera
-			var camera = GameState.getCamera();
-			var camPos = camera.getPos();
-			if ( Math.abs(Player.entity.x - camPos[0]) > 128) {
-				if (camPos[0] > Player.entity.x) {
-					camera.setPos(Player.entity.x + 128,null);
-				}
-				else {
-					camera.setPos(Player.entity.x - 128,null);
-				}
-			
-			}
-			if ( Math.abs(Player.entity.y - camPos[1]) > 128) {
-				if (camPos[1] > Player.entity.y) {
-					camera.setPos(null,Player.entity.y + 128);
-				}
-				else {
-					camera.setPos(null,Player.entity.y - 128);
-				}
-			
-			}
+			if (!Player.entity.inCombat) followWithCamera(Player.entity, 128);
 			
 		}
 		else {
@@ -219,34 +256,36 @@ Player.movementLoop = function(){
 					var approachTarget = Math.lineFromXYAtAngle([other.x,other.y],64,-currentAngle);
 					Player.entity.approach(approachTarget[0], approachTarget[1], 32);
 				}
+
 			}
 			
-			// Center the camera back on the player if it's not there
-			var camera = GameState.getCamera();
-			var camPos = camera.getPos();
-			if ( Math.abs(Player.entity.x - camPos[0]) > 2) {
-				if (camPos[0] > Player.entity.x) {
-					camera.move(-2,0);
-				}
-				else {
-					camera.move(2,0);
-				}
-			
-			}
-			if ( Math.abs(Player.entity.y - camPos[1]) > 2) {
-				if (camPos[1] > Player.entity.y) {
-					camera.move(0,-2);
-				}
-				else {
-					camera.move(0,2);
-				}
-			
-			}	
+			else followWithCamera(Player.entity, 128);	
 			
 		}
 		
 		if (Player.entity.inCombat){
-			var other = Player.getTargetedCombatant();
+			var other = Player.getCurrentCombatant();
+			var angle = Math.angleXY(Player.entity.getPosition(), other.getPosition());
+			angle = Math.angleToUnitVector(angle);
+			if (Player.entity.combat){
+				var offset = [0,0];
+				if (Player.entity.pushingForward) {
+					offset = [angle[0]*64,angle[1]*64];
+				}
+				else if (Player.entity.retreating) {
+					offset = [-angle[0]*64,-angle[1]*64];
+				}
+				if (Player.entity.combat.attacker) {
+					followWithCamera(other, 48, offset);
+				}
+				else {
+					followWithCamera(other, 48, offset);
+				}
+		
+			}
+			else followWithCamera(Player.entity, 128);
+			
+			other = Player.getTargetedCombatant();
 			//	Make the player face the enemy
 			var heading = Math.angleXY([Player.entity.x, Player.entity.y],[other.x,other.y])*(180/Math.PI);
 			Player.entity.affectHeading(heading);

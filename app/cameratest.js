@@ -127,15 +127,15 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createFocusBar();
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
-//	this.NPC.addBehavior("CombatBehavior");
-//	this.NPC.addBehavior("PathfindingBehavior");
-//	this.NPC.addBehavior("ChaseBehavior");
+	this.NPC.addBehavior("CombatBehavior");
+	this.NPC.addBehavior("PathfindingBehavior");
+	this.NPC.addBehavior("ChaseBehavior");
 	this.NPC.sprite.setHeight(96);
 	//this.NPC.focus.setMax(5);
 	this.em.add(this.NPC);
 	
 	
-	GameState.getCamera().setViewBounds(-400,-400, 1280, 400);
+	GameState.getCamera().setViewBounds(-300,-380, 1280, 400);
 	
 	this.cursor = this.em.createEntity({permeable: true});
 	this.cursor.range = 48;
@@ -254,8 +254,8 @@ CameraTest.runAfterPlayerMoves = function(){
 	CameraTest.em.runCharacterBehaviors();
 	
 	if (Player.entity.inCombat) {
-		if (GameState.getCamera().getZoom() < 1.3)
-			GameState.zoomCamera(1.3);
+		if (GameState.getCamera().getZoom() < 1.2)
+			GameState.zoomCamera(1.2);
 	}
 	else if (GameState.getCamera().getZoom() > 1)
 		GameState.zoomCamera(1);

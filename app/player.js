@@ -190,7 +190,7 @@ Player.movementLoop = function(){
 				pos[1] = entity.y + followDistance;
 			}
 			else {
-				pos[1] = entity.x - followDistance;
+				pos[1] = entity.y - followDistance;
 			}
 		}
 		
@@ -212,7 +212,6 @@ Player.movementLoop = function(){
 				camera.move(xSpeed,0);
 			}
 		}
-		else camera.setPos(pos[0],null);
 		if ( ySpeed > 1) {
 			if (camPos[1] > pos[1]) {
 				camera.move(0,-ySpeed);
@@ -221,7 +220,6 @@ Player.movementLoop = function(){
 				camera.move(0,ySpeed);
 			}
 		}
-		//else camera.setPos(null,pos[1]);
 	}
 	
 	if (Player.entity) {

@@ -82,7 +82,7 @@ CameraTest.initializeExtension = function(){
 	this.wall4.hitbox.sleep();
 	this.wall4.hitbox.setAsStatic();
 	
-/*	this.wall5 = this.em.createEntity({});
+	this.wall5 = this.em.createEntity({});
 	this.wall5.setPosition(400,130);
 	this.wall5.createHitbox(50,150,0,0);
 	this.wall5.hitbox.sleep();
@@ -95,10 +95,10 @@ CameraTest.initializeExtension = function(){
 	this.wall6.hitbox.setAsStatic();
 	
 	this.wall7 = this.em.createEntity({});
-	this.wall7.setPosition(100,50);
+	this.wall7.setPosition(100,30);
 	this.wall7.createHitbox(50,400,0,0);
 	this.wall7.hitbox.sleep();
-	this.wall7.hitbox.setAsStatic(); */
+	this.wall7.hitbox.setAsStatic(); 
 
 	//this.avatar.setPosition(0,120);
 	this.avatar.createStaminaBar();
@@ -115,7 +115,7 @@ CameraTest.initializeExtension = function(){
 		doThis: function(it, me){
 			if (it.charType != me.charType || it.charType == CHAR_NEUTRAL) {
 				it.affect("speedMult",0.1);
-				if (it.cursor) it.cursor.affect("range",48);
+				if (it.cursor) it.cursor.affect("range",64);
 				if (it == Player.entity) it.affect("inCombat",true);
 				me.affect("inCombat",true);
 				me.affect("speedMult",0.1);

@@ -473,6 +473,10 @@ Entity.prototype.approachCurrentWaypoint = function(){
 	}
 }
 
+/*	makePathfindingGrid
+		Scans the level and creates a pathfinding grid for this Entity to use
+*/
+
 Entity.prototype.makePathfindingGrid = function(x1, y1, x2, y2){
 	var gridOrigin = [x1, y1];
 	var tileSize = 16;
@@ -514,6 +518,15 @@ Entity.prototype.angleTo = function(x, y){
 	else point = [x,y];
 	
 	return Math.angleXY(this.getPosition(),point);
+}
+
+Entity.prototype.angleFrom = function(x, y){
+	var point;
+	if (x.entType) point = x.getPosition();
+	else if (x.length) point = x;
+	else point = [x,y];
+	
+	return Math.angleXY(point,this.getPosition());
 }
 
 //	===================
@@ -768,6 +781,7 @@ var EntityManager = function(){
 	}
 	
 	this.hitboxProjectionTest = function(a, point, params){
+		params = params || {};
 		var args = params;
 		args.point = point;
 		args.width = a.hitbox.width;

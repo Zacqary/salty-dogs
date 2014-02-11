@@ -93,6 +93,29 @@ Pathing.createMatrix = function(params){
 	return matrix;
 }
 
+Pathing.createGrid = function(params){
+	var origin = params.origin;
+	if (params.centerOrigin) {
+		origin = [params.origin[0] - (params.width*params.precision)/2, params.origin[1] - (params.height*params.precision)/2];
+	}
+	var matrix = Pathing.createMatrix({
+		origin: origin,
+		precision: params.precision,
+		width: params.width,
+		height: params.height,
+		entity: params.entity,
+		berth: params.berth,
+		staticOnly: params.staticOnly,
+	});
+	return {
+		origin: origin,
+		width: params.width,
+		height: params.height,
+		matrix: matrix,
+		tileSize: params.precision,
+	}
+}
+
 Pathing.isBlocked = function(target, grid){
 	//	Convert the target point to a tile on the grid
 	var targetOnGrid = [target[0] - grid.origin[0], target[1] - grid.origin[1]];

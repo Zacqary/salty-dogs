@@ -127,10 +127,10 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createFocusBar();
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
-	this.NPC.addBehavior("CombatBehavior");
-	this.NPC.addBehavior("PathfindingBehavior");
-	this.NPC.addBehavior("ChaseBehavior");
-	this.NPC.addBehavior("RallyBehavior");
+	this.NPC.addBehavior("Combat");
+	this.NPC.addBehavior("Pathfinding");
+	this.NPC.addBehavior("Chase");
+	this.NPC.addBehavior("Rally");
 	this.NPC.sprite.setHeight(96);
 	//this.NPC.focus.setMax(5);
 	this.em.add(this.NPC);
@@ -203,7 +203,7 @@ CameraTest.loadingLoop = function(){
 			
 			this.NPC.makePathfindingGrid(-193, -290, 1200, 350);
 			this.NPC.aiGoals.follow = Player.entity;
-	
+	/*
 		
 			this.NPC2 = this.NPC.clone();
 			this.NPC2.makeFriendly();
@@ -214,10 +214,10 @@ CameraTest.loadingLoop = function(){
 			this.NPC2.removeMisc("patchleft");
 			this.NPC2.composeDoll();
 			this.NPC2.name = "NPC2";
-			this.NPC2.addBehavior("PathfindingBehavior");
-			this.NPC2.addBehavior("ChaseBehavior");
-			this.NPC2.addBehavior("CombatBehavior");
-			this.NPC2.addBehavior("RallyBehavior");
+			this.NPC2.addBehavior("Pathfinding");
+			this.NPC2.addBehavior("Chase");
+			this.NPC2.addBehavior("Combat");
+			this.NPC2.addBehavior("Rally");
 			this.em.add(this.NPC2);
 			this.NPC2.makePathfindingGrid(-200, -300, 1200, 300);
 			this.NPC2.aiGoals.follow = Player.entity;
@@ -230,9 +230,9 @@ CameraTest.loadingLoop = function(){
 			this.NPC3.composeDoll();
 			this.NPC3.makeFriendly();
 			this.NPC3.name = "NPC3";
-			this.NPC3.addBehavior("PathfindingBehavior");
-			this.NPC3.addBehavior("ChaseBehavior");
-			this.NPC3.addBehavior("RallyBehavior");
+			this.NPC3.addBehavior("Pathfinding");
+			this.NPC3.addBehavior("Chase");
+			this.NPC3.addBehavior("Rally");
 			this.em.add(this.NPC3);
 			this.NPC3.makePathfindingGrid(-200, -300, 1200, 300);
 			this.NPC3.aiGoals.follow = Player.entity;

@@ -5,7 +5,8 @@
 	
 	Includes:
 	- AI
-	- AI.CombatBehavior
+	- AI.GOAL_TIER
+	- AI.Behaviors
 	
 */
 /*	AI Interface
@@ -13,10 +14,65 @@
 */
 var AI = { };
 
-/*	CombatBehavior
+//	AI_GOAL_TIERS
+AI.GOAL_TIERS = {
+	0: ["movement"],
+	1: ["rally"],
+	2: ["follow"],
+};
+
+
+AI.groups = [];
+
+AI.clearGroups = function(characters){
+	AI.groups = [];
+	for (var i in characters){
+		characters[i].aiGroups = { }
+	}
+}
+
+AI.assignGroups = function(characters){
+	
+	var addToGroup = function(character, goal, type){
+		var added = false;
+		for (var i in AI.groups){
+			if (AI.groups[i].value) {
+				if (_.isEqual(goal, AI.groups[i].value)) {
+					AI.groups[i].members.push(character);
+					character.aiGroups[type] = AI.groups[i];
+					added = true;
+					break;
+				}
+			}
+		}
+		if (!added){
+			var group = {
+				value: goal,
+				members: [character],
+				type: type,
+			}
+			AI.groups.push(group);
+			character.aiGroups[type] = group;
+		}
+	}
+	
+	for (var i in AI.GOAL_TIERS){
+		for (var j in AI.GOAL_TIERS[i]){
+			var goal = AI.GOAL_TIERS[i][j];
+			for (var k in characters){
+				if (characters[k].aiGoals[goal]){
+					addToGroup(characters[k], characters[k].aiGoals[goal], goal);
+				}
+			}
+		}
+	}
+}
+
+AI.Behaviors = { };
+/*	Behaviors.Combat
 		AI routine for when a character is in combat
 */
-AI.CombatBehavior = function(me){
+AI.Behaviors.Combat = function(me){
 	var stats = { };
 	var strategy = { };
 	if (!me.aiSkill) me.aiSkill = 20;
@@ -189,7 +245,7 @@ AI.CombatBehavior = function(me){
 	
 } 
 
-AI.PathfindingBehavior = function(me){
+AI.Behaviors.Pathfinding = function(me){
 	
 	this.run = function(){
 		
@@ -615,10 +671,10 @@ AI.PathfindingBehavior = function(me){
 	}
 }
 
-/*	ChaseBehavior
+/*	Behaviors.Chase
 		Have the character chase a moving target
 */
-AI.ChaseBehavior = function(me){
+AI.Behaviors.Chase = function(me){
 	//	Track the target once every 0.3 seconds
 	var updateTimer = new Countdown(0.3);
 	var targetPosition = null;
@@ -647,7 +703,7 @@ AI.ChaseBehavior = function(me){
 	
 }
 
-AI.RallyBehavior = function(me){
+AI.Behaviors.Rally = function(me){
 	
 	var lastRallyPosition = null;
 	var myRallyPosition = null;
@@ -720,9 +776,8 @@ AI.RallyBehavior = function(me){
 				//	Set this point as a movement goal
 				me.setMovementAIGoal(point[0],point[1]);
 			});
-		}
-		
-		
+		}	
 	}
-	
+		
 }
+

@@ -50,6 +50,7 @@ var Character = function (params){
 	
 	c.aiGoals = { };
 	c.aiData = { };
+	c.aiGroups = { };
 	
 	c.paperDoll = {
 		body: {
@@ -630,7 +631,7 @@ var Character = function (params){
 		}
 	}
 	c.addBehavior = function(name){
-		var behavior = AI[name];
+		var behavior = AI.Behaviors[name];
 		behaviors[name] = new behavior(this);
 	}
 	c.removeBehavior = function(behavior){
@@ -664,11 +665,18 @@ EntityManager.prototype.updateCharacterCombatStates = function(){
 }
 EntityManager.prototype.runCharacterBehaviors = function(){
 	var entities = this.getEntities();
+	var characters = [];
+	
 	for (var i in entities){
 		if (entities[i].charType && entities[i].alive) {
-			entities[i].runMyBehaviors();
+			characters.push(entities[i]);
 		}
 	}
+	AI.assignGroups(characters);
+	for (var i in characters){
+		characters[i].runMyBehaviors();
+	}
+	AI.clearGroups();
 }
 
 EntityManager.prototype.debugDrawAllCharacters = function(){

@@ -483,23 +483,16 @@ Entity.prototype.makePathfindingGrid = function(x1, y1, x2, y2){
 	var gridWidth = Math.round((x2-x1)/tileSize);
 	var gridHeight = Math.round((y2-y1)/tileSize);
 	
-	var matrix = Pathing.createMatrix({
-		origin: gridOrigin,
-		precision: tileSize,
-		width: gridWidth,
-		height: gridHeight,
+	this.pathfindingGrid = Pathing.createGrid({
+		origin: [x1, y1],
+		precision: 16,
+		width: Math.round((x2-x1)/16),
+		height: Math.round((y2-y1)/16),
 		entity: this,
 		berth: 12,
 		staticOnly: true,
-	})
+	});
 	
-	this.pathfindingGrid = { 
-		origin: gridOrigin,
-		width: gridWidth,
-		height: gridHeight,
-		tileSize: tileSize,
-		matrix: matrix,
-	}
 }
 
 Entity.prototype.distanceTo = function(x, y){
@@ -780,14 +773,27 @@ var EntityManager = function(){
 		return result;
 	}
 	
+	var tests = 0;
 	this.hitboxProjectionTest = function(a, point, params){
 		params = params || {};
-		var args = params;
+		var args = _.uniq(params);
 		args.point = point;
 		args.width = a.hitbox.width;
 		args.height = a.hitbox.height;
 		//	Only exclude this character's hitbox if dynamic objects are being tested
-		if (!params.staticOnly) args.exclude = [a.hitbox];
+		if (!params.staticOnly) {
+			if (!args.exclude) args.exclude = [a.hitbox];
+			else {
+				var exclude = _.clone(args.exclude);
+				exclude.push(a.hitbox);
+				for (var i in exclude){
+					console.log(exclude[i].entity.name);
+				}
+				console.log(exclude.length);
+				args.exclude = exclude;
+			}
+		}
+		
 		return this.rectangleProjectionTest(args);
 	}
 	
@@ -815,6 +821,20 @@ var EntityManager = function(){
 			return store.length;
 		}
 		else return false;
+	}
+	
+	var ghosts = [];
+	this.addGhost = function(body){
+		world.addRigidBody(body);
+		ghosts.push(body);
+	}
+	
+	this.clearGhosts = function(){
+		for (var i in ghosts){
+			world.removeRigidBody(ghosts[i]);
+			delete ghosts[i];
+		}
+		ghosts = [];
 	}
 	
 	this.getWorld = function(){

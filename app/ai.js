@@ -66,6 +66,7 @@ AI.assignGroups = function(characters){
 			}
 		}
 	}
+
 }
 
 AI.Behaviors = { };
@@ -716,6 +717,15 @@ AI.Behaviors.Rally = function(me){
 			if (!m) return;
 		}
 		
+		if (me.distanceTo(me.aiGoals.rally) <= 65) {
+			me.addUpdateFunction(function() {
+				me.waypoints = [];
+				me.aiGoals.movement = null;
+				me.aiData.rallyPosition = null;
+			})
+			return;
+		}
+		
 		lastRallyPosition = me.aiGoals.rally;
 		
 		//	Check if the character has line of sight to the target
@@ -734,49 +744,78 @@ AI.Behaviors.Rally = function(me){
 		else {
 			me.aiData.disablePathfindingGrid = true;
 		}
-		//	Clear this character's waypoints, unless they're pathfinding around an object
+		//	Clear this character's waypoints and move them to the rally point, unless they're pathfinding around an object
 		//	Override pathfinding if the character has line of sight to the target
 		if ( (!noLineOfSight && !me.aiData.bounceFlag) || me.waypoints.length < 2 || !me.waypoints[1].pathfinding ){
+			
+			var point = findSpotNearRallyPoint();
+			
+			myRallyPosition = point;
+			me.aiData.rallyPosition = myRallyPosition;
+			
 			//	Don't clear the waypoints until the update phase, otherwise the character
 			//	will be without waypoints for a frame and "flicker" to the default direction
 			me.addUpdateFunction(function() { 
 				me.waypoints = [];
-				var point = me.aiGoals.rally;
-				
-				var m = me.manager.hitboxProjectionTest(me, me.aiGoals.rally);
-				if (m) {
-					//	Find a walkable point near the target's position
-					//	First try calculating the angle between the target and this character
-					var angle = me.angleFrom(me.aiGoals.rally);
-					point = Math.lineFromXYAtAngle(me.aiGoals.rally, 96, angle);
-				
-					//	If that angle is blocked, rotate around until an unblocked point is found
-					var angleCount = 0;
-					var grid = Pathing.createGrid({
-						origin: me.aiGoals.rally,
-						centerOrigin: true,
-						width: 32,
-						height: 32,
-						precision: 16,
-						berth: 12,
-						entity: me,
-					})
-					
-					while (Pathing.isBlocked(point,grid)) {
-						angleCount ++;
-						angle = (angle*(180/Math.PI)) + 1;
-						if (angle >= 360) angle = 0;
-						angle *= (Math.PI/180);
-						point = Math.lineFromXYAtAngle(me.aiGoals.rally, 96, angle);
-						if (angleCount == 360) break;
-					}
-				}
-				
-				myRallyPosition = point;
 				//	Set this point as a movement goal
 				me.setMovementAIGoal(point[0],point[1]);
+				me.aiData.rallyPosition = null;
 			});
 		}	
+	}
+	
+	var findSpotNearRallyPoint = function(){
+		
+		var point = me.aiGoals.rally;
+		var ghosts = [];
+		
+		if (me.aiGroups.rally){
+			var group = me.aiGroups.rally.members;
+			for (var i in group){
+				if (group[i].aiData.rallyPosition){
+					var ghost = {
+						entity: group[i],
+						position: group[i].aiData.rallyPosition,
+					}
+					ghosts.push(ghost);
+					console.log(ghost);
+				}
+			}
+		}
+		
+		var grid = Pathing.createGrid({
+			origin: me.aiGoals.rally,
+			centerOrigin: true,
+			width: 32,
+			height: 32,
+			precision: 16,
+			berth: 12,
+			entity: me,
+			ghosts: ghosts,
+		})
+		me.aiData.tempRallyGrid = grid;
+		
+		if (Pathing.isBlocked(me.aiGoals.rally,grid)) {
+			//	Find a walkable point near the target's position
+			//	First try calculating the angle between the target and this character
+			var angle = me.angleFrom(me.aiGoals.rally);
+			point = Math.lineFromXYAtAngle(me.aiGoals.rally, 64, angle);
+		
+			//	If that angle is blocked, rotate around until an unblocked point is found
+			var angleCount = 0;
+			
+			while (Pathing.isBlocked(point,grid)) {
+				angleCount ++;
+				angle = (angle*(180/Math.PI)) + 1;
+				if (angle >= 360) angle = 0;
+				angle *= (Math.PI/180);
+				point = Math.lineFromXYAtAngle(me.aiGoals.rally, 64, angle);
+				if (angleCount == 360) break;
+			}
+		}
+		
+		return point;
+		
 	}
 		
 }

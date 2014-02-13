@@ -49,6 +49,7 @@ Pathing.createMatrix = function(params){
 	var projectionArgs = {
 		staticOnly: params.staticOnly,
 		berth: params.berth,
+		exclude: [],
 	};
 	if (!params.entity) {
 		projectionArgs.width = params.projectionWidth || tileSize;
@@ -56,6 +57,21 @@ Pathing.createMatrix = function(params){
 	}
 	else {
 		var entity = params.entity;
+	}
+	if (params.ghosts){
+		if (params.ghosts.length) {
+			var em = params.ghosts[0].entity.manager;
+			for (var i in params.ghosts){
+				var me = params.ghosts[i].entity;
+				var width = me.hitbox.width;
+				var height = me.hitbox.height;
+				var body = Entity.createHitbox(width, height);
+				body.setPosition(params.ghosts[i].position);
+				em.addGhost(body);
+				projectionArgs.exclude.push(me);
+			}
+			console.log(projectionArgs.exclude);
+		}
 	}
 	
 	var matrix = [];
@@ -90,6 +106,10 @@ Pathing.createMatrix = function(params){
 		matrix.push(row);
 	}
 	
+	if (params.ghosts && params.ghosts.length){
+		params.ghosts[0].entity.manager.clearGhosts();
+	}
+	
 	return matrix;
 }
 
@@ -106,6 +126,7 @@ Pathing.createGrid = function(params){
 		entity: params.entity,
 		berth: params.berth,
 		staticOnly: params.staticOnly,
+		ghosts: params.ghosts,
 	});
 	return {
 		origin: origin,

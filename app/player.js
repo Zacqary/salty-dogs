@@ -4,8 +4,6 @@ var Player = {
 	keyboardReleaseTimer: new Countdown(0,0.25),
 	keyData: [],
 	
-	moveButtonDown: false,
-	
 	entity: null,
 	
 	keyMap: [],
@@ -64,10 +62,10 @@ Player.buttons = {};
 //	Move button
 Player.buttons.MOVE = {
 	down: function(){
-		Player.moveButtonDown = true;
+		Player.keyData["move"] = true;
 	},
 	up: function(){
-		Player.moveButtonDown = false;
+		Player.keyData["move"] = false;
 	}
 };
 //	Attack button
@@ -236,7 +234,7 @@ Player.movementLoop = function(){
 		}
 		
 		// If the move button is down, or keys have been down less than 1 second ago
-		if (Player.moveButtonDown || Player.keyboardMovement || Player.keyboardReleaseTimer.get()) {
+		if (Player.keyData["move"] || Player.keyboardMovement || Player.keyboardReleaseTimer.get()) {
 			Player.goToCursor();
 			
 			if (!Player.entity.inCombat) followWithCamera(Player.entity, 128);

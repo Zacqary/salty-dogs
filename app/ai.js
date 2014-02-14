@@ -69,6 +69,15 @@ AI.assignGroups = function(characters){
 
 }
 
+AI.groupedTogether = function(a, b){
+	if (!a.aiGroups) return false;
+	if (!b.aiGroups) return false;
+	for (var i in a.aiGroups){
+		if (a.aiGroups[i] == b.aiGroups[i]) return true; 
+	}
+	return false;
+}
+
 AI.Behaviors = { };
 /*	Behaviors.Combat
 		AI routine for when a character is in combat
@@ -254,6 +263,7 @@ AI.Behaviors.Pathfinding = function(me){
 		
 		//	Only run this behavior if the character has a movement goal
 		if (!me.aiGoals.movement) return;
+		if (stallTimer.get()) return;
 		//	If the movement goal is closer than the character's "speed" value,
 		//	consider the goal achieved
 		if (Math.distanceXY(me.getPosition(),me.aiGoals.movement) < me.speed){
@@ -274,10 +284,11 @@ AI.Behaviors.Pathfinding = function(me){
 		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceThreshold.get())){
 			//	Try to correct the path for 4 iterations
 			if (!correctPath(4)) {
-				//	If that doesn't work, the character's probably not
-				//	going to reach their goal, so get rid of it
+				//	If that doesn't work, stall the character
+				//	to see if the situation clears up
 				me.waypoints = [];
-				me.aiGoals.movement = null;
+				stallTimer.maxOut();
+				//me.aiGoals.movement = null;
 				return;
 			}
 		}
@@ -306,27 +317,32 @@ AI.Behaviors.Pathfinding = function(me){
 		}
 		*/
 		if(me.collision) {
-			//	Only check collisions every 0.2 seconds
-			//	Otherwise this will be recalculating too much
-			if (!collisionTimer.get()){
-				bounces.push(me.collision);
-				//	Reset collisionTimer
-				collisionTimer.maxOut();
-				//	Try to correct the path for 4 iterations
-				if (!correctPath(4, me.collision.normal)) {
-					//	If that doesn't work, the character's probably not
-					//	going to reach their goal, so get rid of it
-					me.waypoints = [];
-					me.aiGoals.movement = null;
-					return;
+			//	Ignore collisions with members of the same AI group
+			//if (!AI.groupedTogether(me, me.collision.body.entity)){
+				//	Only check collisions every 0.2 seconds
+				//	Otherwise this will be recalculating too much
+				if (!collisionTimer.get()){
+					bounces.push(me.collision);
+					//	Reset collisionTimer
+					collisionTimer.maxOut();
+					//	Try to correct the path for 4 iterations
+					if (!correctPath(4, me.collision.normal)) {
+						//	If that doesn't work, stall the character
+						//	to see if the situation clears up
+						me.waypoints = [];
+						stallTimer.maxOut();
+						return;
+					}
 				}
-			}
+			//}
 		}
 	}
 	
 	//	collisionTimer -- Check for collisions every 0.2 seconds
 	var collisionTimer = new Countdown(0.2);
 	
+	//	stallTimer -- Activate this to stall a character for half a second if their path is blocked
+	var stallTimer = new Countdown(0,0,0.5);
 	
 	//	stuckTimer -- Every 0.2 seconds, check if the character is stuck
 	var stuckTimer = new Countdown(0.2, function() {
@@ -471,7 +487,7 @@ AI.Behaviors.Pathfinding = function(me){
 		scope = scope || 1;
 		scale = scale || 1;
 		var gridSize = 32 * (1 * ( 1 + (scope-1)/2 ) );
-		var tileSize = 16 / (1 * scale);
+		var tileSize = 8 / (1 * scale);
 		
 		//	Figure out the grid's origin in world coordinates
 		var gridOrigin = [me.x - (gridSize*tileSize)/2, me.y - (gridSize*tileSize)/2];
@@ -484,6 +500,8 @@ AI.Behaviors.Pathfinding = function(me){
 		//	Make sure the target tile is within the bounds of the grid
 		if (targetTile[0] > gridSize - 1) targetTile[0] = gridSize - 1;
 		if (targetTile[1] > gridSize - 1) targetTile[1] = gridSize - 1;
+		if (targetTile[0] < 0) targetTile[0] = 0;
+		if (targetTile[1] < 0) targetTile[1] = 0;
 		
 		//	Now figure out the starting tile...
 		//	Normally, this is the center of the grid, where the character is standing
@@ -505,6 +523,8 @@ AI.Behaviors.Pathfinding = function(me){
 			//	Make sure the start tile is within the bounds of the grid
 			if (startTile[0] > gridSize - 1) startTile[0] = gridSize - 1;
 			if (startTile[1] > gridSize - 1) startTile[1] = gridSize - 1;
+			if (startTile[0] < 0) startTile[0] = 0;
+			if (startTile[1] < 0) startTile[1] = 0;
 			
 		}
 		
@@ -558,6 +578,8 @@ AI.Behaviors.Pathfinding = function(me){
 		//	Make sure the target tile is within the bounds of the grid
 		if (targetTile[0] > me.pathfindingGrid.width - 1) targetTile[0] = me.pathfindingGrid.width - 1;
 		if (targetTile[1] > me.pathfindingGrid.height - 1) targetTile[1] = me.pathfindingGrid.height - 1;
+		if (targetTile[0] < 0) targetTile[0] = 0;
+		if (targetTile[1] < 0) targetTile[1] = 0;
 		
 		//	Convert the character's position to a tile on the grid
 		var startOnGrid = [me.x - me.pathfindingGrid.origin[0], me.y - me.pathfindingGrid.origin[1]];
@@ -565,6 +587,8 @@ AI.Behaviors.Pathfinding = function(me){
 		//	Make sure the start tile is within the bounds of the grid
 		if (startTile[0] > me.pathfindingGrid.width - 1) startTile[0] = me.pathfindingGrid.width - 1;
 		if (startTile[1] > me.pathfindingGrid.height - 1) startTile[1] = me.pathfindingGrid.height - 1;
+		if (startTile[0] < 0) startTile[0] = 0;
+		if (startTile[1] < 0) startTile[1] = 0;
 		
 		var path = Pathing.findPath(startTile, targetTile, me.pathfindingGrid.matrix);
 		if (!path) return false;
@@ -668,6 +692,7 @@ AI.Behaviors.Pathfinding = function(me){
 	this.onDelete = function(){
 		stuckTimer.delete();
 		collisionTimer.delete();
+		stallTimer.delete();
 		bounceStuckTimer.delete();
 	}
 }
@@ -778,7 +803,6 @@ AI.Behaviors.Rally = function(me){
 						position: group[i].aiData.rallyPosition,
 					}
 					ghosts.push(ghost);
-					console.log(ghost);
 				}
 			}
 		}
@@ -789,7 +813,7 @@ AI.Behaviors.Rally = function(me){
 			width: 32,
 			height: 32,
 			precision: 16,
-			berth: 12,
+			berth: 24,
 			entity: me,
 			ghosts: ghosts,
 		})

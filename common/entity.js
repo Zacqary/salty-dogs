@@ -773,10 +773,12 @@ var EntityManager = function(){
 		return result;
 	}
 	
-	var tests = 0;
 	this.hitboxProjectionTest = function(a, point, params){
 		params = params || {};
-		var args = _.uniq(params);
+		var args =  {}
+		args.staticOnly = params.staticOnly;
+		args.berth = params.berth;
+		args.exclude = _.uniq(params.exclude) || null;
 		args.point = point;
 		args.width = a.hitbox.width;
 		args.height = a.hitbox.height;
@@ -784,16 +786,9 @@ var EntityManager = function(){
 		if (!params.staticOnly) {
 			if (!args.exclude) args.exclude = [a.hitbox];
 			else {
-				var exclude = _.clone(args.exclude);
-				exclude.push(a.hitbox);
-				for (var i in exclude){
-					console.log(exclude[i].entity.name);
-				}
-				console.log(exclude.length);
-				args.exclude = exclude;
+				args.exclude.push(a.hitbox);
 			}
 		}
-		
 		return this.rectangleProjectionTest(args);
 	}
 	
@@ -805,7 +800,6 @@ var EntityManager = function(){
 		var height = params.height;
 		var staticOnly = params.staticOnly;
 		var rectangle = [point[0] - (width/2) - berth, point[1] - (height/2) - berth, point[0] + (width/2) + berth, point[1] + (height/2) + berth];
-
 		if (world.bodyRectangleQuery(rectangle,store)) {
 			for (var i in store){
 				//	If objects are being excluded

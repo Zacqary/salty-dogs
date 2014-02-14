@@ -70,7 +70,6 @@ Pathing.createMatrix = function(params){
 				em.addGhost(body);
 				projectionArgs.exclude.push(me);
 			}
-			console.log(projectionArgs.exclude);
 		}
 	}
 	

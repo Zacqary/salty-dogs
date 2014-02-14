@@ -251,6 +251,8 @@ CameraTest.loadingLoop = function(){
 			this.em.add(this.NPC4);
 			this.NPC4.debug = true; */
 			
+			this.debugNPC = 0;
+			
 			this.em.updateAll();
 			
 	}
@@ -271,9 +273,26 @@ CameraTest.runAfterPlayerMoves = function(){
 }
 
 CameraTest.drawExtension = function(){
+	var debugNPCs = [null, this.NPC, this.NPC2, this.NPC3];
 	
-	if (this.NPC3.aiData.tempRallyGrid) {
-		Debug.drawPathfindingGrid(this.NPC3.aiData.tempRallyGrid);
+	if (Player.keyData["debug"]) {
+		this.debugNPC++;
+		console.log(this.debugNPC);
+		delete Player.keyData["debug"];
+		if (this.debugNPC > debugNPCs.length-1) this.debugNPC = 0;
+	}
+	
+	if (this.debugNPC > 0) {
+		Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
+		Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
+		Graphics.debugDraw.begin();
+		Graphics.debugDraw.drawCircle(debugNPCs[this.debugNPC].x,debugNPCs[this.debugNPC].y,24,[1,0,0,1]);
+		Graphics.debugDraw.drawCircle(debugNPCs[this.debugNPC].x,debugNPCs[this.debugNPC].y,23,[1,0,0,1]);
+		Graphics.debugDraw.drawCircle(debugNPCs[this.debugNPC].x,debugNPCs[this.debugNPC].y,22,[1,0,0,1]);
+		Graphics.debugDraw.end();
+		if (debugNPCs[this.debugNPC].aiData.tempPathGrid)  {
+			Debug.drawPathfindingGrid(debugNPCs[this.debugNPC].aiData.tempPathGrid);
+		}
 	}
 	
 	//Debug.drawPathfindingGrid(this.NPC.pathfindingGrid);

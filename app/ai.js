@@ -738,8 +738,11 @@ AI.Behaviors.Rally = function(me){
 		if (!me.aiGoals.rally) return;
 		if (myRallyPosition == null) myRallyPosition = me.aiGoals.rally;
 		if (_.isEqual(me.aiGoals.rally, lastRallyPosition)) {
-			var m = me.manager.hitboxProjectionTest(me, myRallyPosition);
-			if (!m) return;
+			var grid = makeRallyPointGrid();
+			me.aiData.tempRallyGrid = grid;
+			if (!Pathing.isBlocked(myRallyPosition, grid)) return;
+		/*	var m = (me.manager.hitboxProjectionTest(me, myRallyPosition));
+			if (!m) return; */
 		}
 		
 		if (me.distanceTo(me.aiGoals.rally) <= 65) {
@@ -771,7 +774,7 @@ AI.Behaviors.Rally = function(me){
 		}
 		//	Clear this character's waypoints and move them to the rally point, unless they're pathfinding around an object
 		//	Override pathfinding if the character has line of sight to the target
-		if ( (!noLineOfSight && !me.aiData.bounceFlag) || me.waypoints.length < 2 || !me.waypoints[1].pathfinding ){
+		if ( (!noLineOfSight && !me.aiData.bounceFlag) || me.waypoints.length < 2 || !me.waypoints[1].pathfinding){
 			
 			var point = findSpotNearRallyPoint();
 			
@@ -784,20 +787,18 @@ AI.Behaviors.Rally = function(me){
 				me.waypoints = [];
 				//	Set this point as a movement goal
 				me.setMovementAIGoal(point[0],point[1]);
-				me.aiData.rallyPosition = null;
+				//me.aiData.rallyPosition = null;
 			});
 		}	
 	}
 	
-	var findSpotNearRallyPoint = function(){
-		
-		var point = me.aiGoals.rally;
+	var findAIGroupGhosts = function(){
 		var ghosts = [];
 		
 		if (me.aiGroups.rally){
 			var group = me.aiGroups.rally.members;
 			for (var i in group){
-				if (group[i].aiData.rallyPosition){
+				if (group[i].aiData.rallyPosition && group[i] != me){
 					var ghost = {
 						entity: group[i],
 						position: group[i].aiData.rallyPosition,
@@ -807,16 +808,29 @@ AI.Behaviors.Rally = function(me){
 			}
 		}
 		
+		return ghosts;
+	}
+	
+	var makeRallyPointGrid = function(){
+		var ghosts = findAIGroupGhosts();
 		var grid = Pathing.createGrid({
 			origin: me.aiGoals.rally,
 			centerOrigin: true,
 			width: 32,
 			height: 32,
 			precision: 16,
-			berth: 24,
+			berth: 12,
 			entity: me,
 			ghosts: ghosts,
-		})
+		});
+		return grid;
+	}
+	
+	var findSpotNearRallyPoint = function(){
+		
+		var point = me.aiGoals.rally;
+		
+		var grid = makeRallyPointGrid();
 		me.aiData.tempRallyGrid = grid;
 		
 		if (Pathing.isBlocked(me.aiGoals.rally,grid)) {

@@ -68,7 +68,7 @@ Pathing.createMatrix = function(params){
 				var body = Entity.createHitbox(width, height);
 				body.setPosition(params.ghosts[i].position);
 				em.addGhost(body);
-				projectionArgs.exclude.push(me);
+				projectionArgs.exclude.push(me.hitbox);
 			}
 		}
 	}
@@ -143,6 +143,8 @@ Pathing.isBlocked = function(target, grid){
 	//	Make sure the target tile is within the bounds of the grid
 	if (targetTile[0] > grid.width - 1) targetTile[0] = grid.width - 1;
 	if (targetTile[1] > grid.height - 1) targetTile[1] = grid.height - 1;
+	if (targetTile[0] < 0) targetTile[0] = 0;
+	if (targetTile[1] < 0) targetTile[1] = 0;
 		
 	var x = targetTile[0];
 	var y = targetTile[1];

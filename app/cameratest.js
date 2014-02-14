@@ -96,7 +96,7 @@ CameraTest.initializeExtension = function(){
 	
 	this.wall7 = this.em.createEntity({});
 	this.wall7.setPosition(100,30);
-	this.wall7.createHitbox(50,400,0,0);
+	this.wall7.createHitbox(50,300,0,0);
 	this.wall7.hitbox.sleep();
 	this.wall7.hitbox.setAsStatic(); 
 
@@ -251,7 +251,7 @@ CameraTest.loadingLoop = function(){
 			this.em.add(this.NPC4);
 			this.NPC4.debug = true; */
 			
-			this.debugNPC = 0;
+			this.debugNPC = 1;
 			
 			this.em.updateAll();
 			
@@ -290,8 +290,8 @@ CameraTest.drawExtension = function(){
 		Graphics.debugDraw.drawCircle(debugNPCs[this.debugNPC].x,debugNPCs[this.debugNPC].y,23,[1,0,0,1]);
 		Graphics.debugDraw.drawCircle(debugNPCs[this.debugNPC].x,debugNPCs[this.debugNPC].y,22,[1,0,0,1]);
 		Graphics.debugDraw.end();
-		if (debugNPCs[this.debugNPC].aiData.tempPathGrid)  {
-			Debug.drawPathfindingGrid(debugNPCs[this.debugNPC].aiData.tempPathGrid);
+		if (debugNPCs[this.debugNPC].aiData.tempRallyGrid)  {
+			Debug.drawPathfindingGrid(debugNPCs[this.debugNPC].aiData.tempRallyGrid);
 		}
 	}
 	

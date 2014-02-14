@@ -80,11 +80,13 @@ Player.buttons.ATTACK = {
 
 Player.buttons.ZOOMPAUSE = {
 	down: function(){
-		if (GameState.getCamera().getZoom() > 0.5) {
+		if (!GameState.isPaused()) {
 			GameState.zoomCamera(0.5,0.2);
+			GameState.pause();
 		}
-		else if (GameState.getCamera().getZoom() < 1){
+		else {
 			GameState.zoomCamera(1,0.2);
+			GameState.unpause();
 		}
 	},
 	up: function(){
@@ -625,7 +627,7 @@ Player.parseWASD = function(){
 				Player.keyData["W"] = {
 					key: "W",
 					currentAngle: currentAngle,
-					time: GameState.getTime(),
+					time: TurbulenzEngine.time,
 				}
 			}
 		}
@@ -635,7 +637,7 @@ Player.parseWASD = function(){
 				Player.keyData["A"] = {
 					key: "A",
 					currentAngle: currentAngle,
-					time: GameState.getTime(),
+					time: TurbulenzEngine.time,
 				}
 			}
 		}
@@ -645,7 +647,7 @@ Player.parseWASD = function(){
 				Player.keyData["D"] = {
 					key: "D",
 					currentAngle: currentAngle,
-					time: GameState.getTime(),
+					time: TurbulenzEngine.time,
 				}
 			}
 		}
@@ -654,7 +656,7 @@ Player.parseWASD = function(){
 				Player.keyData["S"] = {
 					key: "S",
 					currentAngle: currentAngle,
-					time: GameState.getTime(),
+					time: TurbulenzEngine.time,
 				}
 			}
 		}

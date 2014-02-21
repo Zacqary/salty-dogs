@@ -108,7 +108,6 @@ CameraTest.initializeExtension = function(){
 	this.NPC = Character.create({});
 	this.NPC.name = "NPC1";
 	this.NPC.setPosition(480,0);
-	this.NPC.makeHostile();
 	//this.NPC.createEffectRadius(80);
 	this.NPC.createEffect({
 		types: [ENT_CHARACTER],
@@ -192,6 +191,7 @@ CameraTest.loadingLoop = function(){
 			this.avatar.addMisc("patch","000033",2);
 			this.avatar.composeDoll();
 			this.avatar.name = "Player";
+			this.avatar.makePlayer();
 
 			this.NPC.setBody("body","909099");
 			this.NPC.setTorso("tank","cccc99");
@@ -200,10 +200,12 @@ CameraTest.loadingLoop = function(){
 			this.NPC.addMisc("patchleft","000033",2);
 			this.NPC.composeDoll();
 			//this.NPC.setMovementAIGoal(this.NPC.x, this.NPC.y);
+			this.NPC.makeFriendly();
 			
 			
 			this.NPC.makePathfindingGrid(-200, -300, 1200, 300);
-			//this.NPC.aiGoals.follow = Player.entity;
+			this.NPC.aiGoals.follow = Player.entity;
+			
 		
 			this.NPC2 = this.NPC.clone();
 			this.NPC2.makeFriendly();
@@ -220,7 +222,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC2.addBehavior("Rally");
 			this.em.add(this.NPC2);
 			this.NPC2.makePathfindingGrid(-200, -300, 1200, 300);
-			//this.NPC2.aiGoals.follow = Player.entity;
+			this.NPC2.aiGoals.follow = Player.entity;
 		
 
 			this.NPC3 = this.NPC.clone();
@@ -235,7 +237,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC3.addBehavior("Rally");
 			this.em.add(this.NPC3);
 			this.NPC3.makePathfindingGrid(-200, -300, 1200, 300);
-			//this.NPC3.aiGoals.follow = Player.entity;
+			this.NPC3.aiGoals.follow = this.NPC2;
 			
 			
 			
@@ -250,10 +252,6 @@ CameraTest.loadingLoop = function(){
 			this.NPC4.debug = true; */
 			
 			this.debugNPC = 0;
-			
-			this.avatar.hitbox.shapes[0].setGroup(6);
-			this.avatar.hitbox.shapes[0].setMask(~6);
-			this.NPC2.hitbox.shapes[0].setMask(~6);
 			
 			this.em.updateAll();
 			

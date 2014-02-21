@@ -37,7 +37,7 @@ AI.assignGroups = function(characters){
 		var added = false;
 		for (var i in AI.groups){
 			if (AI.groups[i].value) {
-				if (_.isEqual(goal, AI.groups[i].value)) {
+				if (_.isEqual(goal, AI.groups[i].value) && character.charType == AI.groups[i].faction) {
 					AI.groups[i].members[character.name] = character;
 					character.aiGroups[type] = AI.groups[i];
 					added = true;
@@ -48,10 +48,12 @@ AI.assignGroups = function(characters){
 		if (!added){
 			var group = {
 				value: goal,
+				faction: character.charType,
 				members: [],
 				type: type,
 			}
 			group.members[character.name] = character;
+			group.index = AI.groups.length;
 			AI.groups.push(group);
 			character.aiGroups[type] = group;
 		}
@@ -288,9 +290,17 @@ AI.Behaviors.Pathfinding = function(me){
 		var distanceToPoint = Math.distanceXY(me.getPosition(),me.getWaypoint());
 		var distanceThreshold = new Spectrum(64);
 		distanceThreshold.set(distanceToPoint);
-		if (me.aiGroups.rally) var excludes = me.aiGroups.rally.members;
-		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceThreshold.get(),false, excludes)){
-			console.log("rayCast");
+		
+		var excludes = [];
+		if (me.aiGroups.follow) {
+			excludes = me.aiGroups.follow.members;
+			excludes.push(me.aiGoals.follow);
+		}
+		else if (me.aiGroups.rally) excludes = me.aiGroups.rally.members;
+		
+		var test = me.manager.rayCastTestXY(me, me.getWaypoint(), distanceThreshold.get(),false, excludes);
+		if (test){
+			
 			//	Try to correct the path for 4 iterations
 			if (!correctPath(4)) {
 				//	If that doesn't work, stall the character
@@ -307,8 +317,7 @@ AI.Behaviors.Pathfinding = function(me){
 				//	If the character has no line of sight to the next waypoint
 				var test = me.manager.rayCastTestXY(me, me.getWaypoint(),distanceToPoint,true,excludes);
 				if (test) {
-					console.log(me.name+" noLineOfSight");
-					console.log(test);
+
 					//	Use the pathfinding grid, if this character has one
 					if (me.pathfindingGrid) {
 						var path = pathTo(me.getWaypoint());
@@ -329,25 +338,22 @@ AI.Behaviors.Pathfinding = function(me){
 		}
 		*/
 		if(me.collision) {
-			console.log(me.name + " collision");
-			console.log(me.collision);
 			//	Ignore collisions with members of the same AI group
 			if (!AI.groupedTogether(me, me.collision.body.entity)){
-				me.collision.body.setMass(0.2);
-			}
-			//	Only check collisions every 0.2 seconds
-			//	Otherwise this will be recalculating too much
-			if (!collisionTimer.get()){
-				bounces.push(me.collision);
-				//	Reset collisionTimer
-				collisionTimer.maxOut();
-				//	Try to correct the path for 4 iterations
-				if (!correctPath(4, me.collision.normal)) {
-					//	If that doesn't work, stall the character
-					//	to see if the situation clears up
-					me.waypoints = [];
-					stallTimer.maxOut();
-					return;
+				//	Only check collisions every 0.2 seconds
+				//	Otherwise this will be recalculating too much
+				if (!collisionTimer.get()){
+					bounces.push(me.collision);
+					//	Reset collisionTimer
+					collisionTimer.maxOut();
+					//	Try to correct the path for 4 iterations
+					if (!correctPath(4, me.collision.normal)) {
+						//	If that doesn't work, stall the character
+						//	to see if the situation clears up
+						me.waypoints = [];
+						stallTimer.maxOut();
+						return;
+					}
 				}
 			}
 		}
@@ -719,14 +725,14 @@ AI.Behaviors.Pathfinding = function(me){
 		Have the character chase a moving target
 */
 AI.Behaviors.Chase = function(me){
-	//	Track the target once every 0.3 seconds
-	var updateTimer = new Countdown(0.3);
+	//	Track the target once every 0.1 seconds
+	var updateTimer = new Countdown(0.1);
 	var targetPosition = null;
 	
 	this.run = function(){
 		if (!me.aiGoals.follow) return;
 		if (me.inCombat) return;
-		if (me.distanceTo(me.aiGoals.follow) < 72) return;
+		if (me.distanceTo(me.aiGoals.follow) < 64) return;
 		
 		//	Recalculate the target's position if it's not a movement goal, or
 		//	whenever updateTimer runs out
@@ -834,11 +840,12 @@ AI.Behaviors.Rally = function(me){
 		for (var i in distSortedGroup){
 			var character = distSortedGroup[i].character;
 			
-			if ( (character.waypoints.length < 1 || !character.waypoints[0].programmedPath) && character.distanceTo(me.aiGoals.rally) > 120){
-				console.log(character.name + " groupRun");
+	
+			
+			if ( (character.waypoints.length < 1 || !character.waypoints[0].programmedPath) && character.distanceTo(me.aiGoals.rally) > 96){
 				var point = findSpotNearRallyPoint();
 				character.aiData.rallyPosition = point;
-				character.aiGoals.movement = point;
+				character.aiGoals.movement = _.each(point, Math.round);
 				var newPath = true;
 			
 				if (paths.length) {
@@ -871,10 +878,11 @@ AI.Behaviors.Rally = function(me){
 					var path = Pathing.findPathUsingGrid(character.getPosition(), point, character.pathfindingGrid);
 					if (path) {
 						character.waypoints = [];
+						path.splice(-1, 1);
 						for (var i in path){
 							character.addWaypoint({x: path[i][0], y: path[i][1], programmedPath: true});
 						}
-						path.splice(-2, 2);
+						path.splice(-1, 1);
 						paths.push(path);
 					}
 				}
@@ -884,7 +892,7 @@ AI.Behaviors.Rally = function(me){
 		me.aiGroups.rally.run = true;
 	}
 	
-	var findAIGroupGhosts = function(){
+	var findAIGroupGhosts = function(extraGhost){
 		var ghosts = [];
 		
 		if (me.aiGroups.rally){
@@ -900,11 +908,13 @@ AI.Behaviors.Rally = function(me){
 			}
 		}
 		
+		if (extraGhost) ghosts.push(extraGhost);
+		
 		return ghosts;
 	}
 	
-	var makeRallyPointGrid = function(){
-		var ghosts = findAIGroupGhosts();
+	var makeRallyPointGrid = function(extraGhost){
+		var ghosts = findAIGroupGhosts(extraGhost);
 		var grid = Pathing.createGrid({
 			origin: me.aiGoals.rally,
 			centerOrigin: true,
@@ -918,11 +928,11 @@ AI.Behaviors.Rally = function(me){
 		return grid;
 	}
 	
-	var findSpotNearRallyPoint = function(){
+	var findSpotNearRallyPoint = function(extraGhost){
 		
 		var point = me.aiGoals.rally;
 		
-		var grid = makeRallyPointGrid();
+		var grid = makeRallyPointGrid(extraGhost);
 		me.aiData.tempRallyGrid = grid;
 		
 		if (Pathing.isBlocked(me.aiGoals.rally,grid)) {

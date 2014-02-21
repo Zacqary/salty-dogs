@@ -31,6 +31,7 @@ Entity.create = function(params){
 	e.visible = params.visible || true;
 	e.permeable = params.permeable || false; 
 	//	If permeable, this entity doesn't trigger collision detection
+	e.physicsGroup = 1;
 
 	e.hitbox = params.hitbox;
 
@@ -365,6 +366,17 @@ Entity.prototype.useHitboxAsEffectRadius = function(hitbox){
 	this.effect.radius = hitbox;
 }
 
+/*	setPhysicsGroup
+		Sets an entity's physics clipping group
+*/
+Entity.prototype.setPhysicsGroup = function(group){
+	this.hitbox.shapes[0].setGroup(group);
+	if (group < 2){
+		this.hitbox.shapes[0].setMask(0xffffffff);
+	}
+	else this.hitbox.shapes[0].setMask(~group);
+}
+
 //	Positioning
 //	===========
 	
@@ -570,11 +582,12 @@ var EntityManager = function(){
 		for (var i in entities){
 			if(entities[i].hitbox) {
 				if(entities[i].permeable) {
-					if (entities[i].hitbox.world == world) {
-						world.removeRigidBody(entities[i].hitbox);
-					}
+					entities[i].setPhysicsGroup(0);
 				}
-				else if (entities[i].hitbox.world != world) {
+				else {
+					entities[i].setPhysicsGroup(entities[i].physicsGroup);
+				}
+				if (entities[i].hitbox.world != world) {
 					world.addRigidBody(entities[i].hitbox);
 				}
 			}

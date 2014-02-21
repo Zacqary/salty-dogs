@@ -22,6 +22,11 @@ var GameState = new function() {
 	}
 	//	loop - Run the game logic for the current Loop, or load it
 	this.loop = function(){
+		if (this.isPaused && Debug.keyData.step){
+			var debugStep = true;
+			this.unpause();
+		}
+		
 		if (currentLoop.loaded)
 			currentLoop.run();
 		else currentLoop.loadingLoop();
@@ -35,6 +40,7 @@ var GameState = new function() {
 		if (!this.isPaused() && !isNaN(this.getTimeDelta()) ) {
 			gameTime += this.getTimeDelta();
 		}
+		if (debugStep) this.pause();
 	}
 	//	draw - Draw the frame for the current Loop, or its loading screen
 	this.draw = function(){
@@ -88,12 +94,10 @@ var GameState = new function() {
 	
 	this.pause = function(){
 		paused = true;
-		console.log("pause");
 	}
 	
 	this.unpause = function(){
 		paused = false;
-		console.log("unpause");
 	}
 	
 	this.isPaused = function(){

@@ -421,6 +421,10 @@ Entity.prototype.overwriteWaypoint = function(index, params){
 	this.waypoints.splice(index,1,params);
 }
 
+Entity.prototype.addWaypointAtBeginning = function(params){
+	this.waypoints.splice(0,0,params);
+}
+
 Entity.prototype.nextWaypoint = function(){
 	this.waypoints.splice(0,1);
 }
@@ -477,12 +481,7 @@ Entity.prototype.approachCurrentWaypoint = function(){
 		Scans the level and creates a pathfinding grid for this Entity to use
 */
 
-Entity.prototype.makePathfindingGrid = function(x1, y1, x2, y2){
-	var gridOrigin = [x1, y1];
-	var tileSize = 16;
-	var gridWidth = Math.round((x2-x1)/tileSize);
-	var gridHeight = Math.round((y2-y1)/tileSize);
-	
+Entity.prototype.makePathfindingGrid = function(x1, y1, x2, y2){	
 	this.pathfindingGrid = Pathing.createGrid({
 		origin: [x1, y1],
 		precision: 16,
@@ -497,6 +496,7 @@ Entity.prototype.makePathfindingGrid = function(x1, y1, x2, y2){
 
 Entity.prototype.distanceTo = function(x, y){
 	var point;
+	if (_.isUndefined(x)) return false;
 	if (x.entType) point = x.getPosition();
 	else if (x.length) point = x;
 	else point = [x,y];
@@ -603,22 +603,10 @@ var EntityManager = function(){
 		
 		//	Layer the Entities on top of each other based on their y value.
 		//	Things further down the screen get drawn on top of things further up.
-		orderedEnts.sort(function(a,b){
-			if (a.y + a.sprite.yOffset < b.y + b.sprite.yOffset)
-				return -1;
-			else if (a.y + a.sprite.yOffset > b.y + b.sprite.yOffset)
-				return 1;
-			else return 0;
-		});
+		orderedEnts = _.sortBy(orderedEnts, 'y');
 		
 		//	Now sort them by zIndex
-		orderedEnts.sort(function(a,b){
-			if (a.zIndex < b.zIndex)
-				return -1;
-			else if (a.zIndex > b.zIndex)
-				return 1;
-			else return 0;
-		});
+		orderedEnts = _.sortBy(orderedEnts, 'zIndex');
 		
 		//	Make sure we're not drawing anything
 		Graphics.draw2D.end();
@@ -756,7 +744,7 @@ var EntityManager = function(){
 	/*	rayCastTestXY
 			Determines if an Entity has an unobstructed line to a point
 	*/
-	this.rayCastTestXY = function(a, point, maxFactor){
+	this.rayCastTestXY = function(a, point, maxFactor, excludeStatic, excludes){
 		var ray = {
 			origin: [a.x,a.y],
 			direction: Math.unitVector(a.getPosition(), point),
@@ -766,6 +754,18 @@ var EntityManager = function(){
 		var result = world.rayCast(ray, true, function(ray, tempResult){
 			if (tempResult.shape === a.hitbox.shapes[0]){
 				return false;
+			}
+			if (excludeStatic) {
+				if (tempResult.shape.body.isStatic()){
+					return false;
+				}
+			}
+			if (excludes){
+				for (var i in excludes){
+					if (tempResult.shape === excludes[i].hitbox.shapes[0]){
+						return false;
+					}
+				}
 			}
 			return true;
 		});

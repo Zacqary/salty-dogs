@@ -19,7 +19,7 @@ AI.GOAL_TIERS = {
 	0: ["movement"],
 	1: ["rally"],
 	2: ["follow"],
-};
+}
 
 
 AI.groups = [];
@@ -38,7 +38,7 @@ AI.assignGroups = function(characters){
 		for (var i in AI.groups){
 			if (AI.groups[i].value) {
 				if (_.isEqual(goal, AI.groups[i].value)) {
-					AI.groups[i].members.push(character);
+					AI.groups[i].members[character.name] = character;
 					character.aiGroups[type] = AI.groups[i];
 					added = true;
 					break;
@@ -48,14 +48,16 @@ AI.assignGroups = function(characters){
 		if (!added){
 			var group = {
 				value: goal,
-				members: [character],
+				members: [],
 				type: type,
 			}
+			group.members[character.name] = character;
 			AI.groups.push(group);
 			character.aiGroups[type] = group;
 		}
 	}
 	
+
 	for (var i in AI.GOAL_TIERS){
 		for (var j in AI.GOAL_TIERS[i]){
 			var goal = AI.GOAL_TIERS[i][j];
@@ -66,6 +68,7 @@ AI.assignGroups = function(characters){
 			}
 		}
 	}
+	
 
 }
 
@@ -262,7 +265,11 @@ AI.Behaviors.Pathfinding = function(me){
 		if(me.inCombat) return;
 		
 		//	Only run this behavior if the character has a movement goal
-		if (!me.aiGoals.movement) return;
+		if (!me.aiGoals.movement) {
+			//if(me.waypoints[0] && me.waypoints[0].programmedPath) me.aiGoals.movement = [me.waypoints[0].x, me.waypoints[0].y];
+			//else return;
+			return;
+		}
 		if (stallTimer.get()) return;
 		//	If the movement goal is closer than the character's "speed" value,
 		//	consider the goal achieved
@@ -281,7 +288,9 @@ AI.Behaviors.Pathfinding = function(me){
 		var distanceToPoint = Math.distanceXY(me.getPosition(),me.getWaypoint());
 		var distanceThreshold = new Spectrum(64);
 		distanceThreshold.set(distanceToPoint);
-		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceThreshold.get())){
+		if (me.aiGroups.rally) var excludes = me.aiGroups.rally.members;
+		if(me.manager.rayCastTestXY(me, me.getWaypoint(), distanceThreshold.get(),false, excludes)){
+			console.log("rayCast");
 			//	Try to correct the path for 4 iterations
 			if (!correctPath(4)) {
 				//	If that doesn't work, stall the character
@@ -296,7 +305,10 @@ AI.Behaviors.Pathfinding = function(me){
 			//	Only do this if the pathfinding grid's enabled, unless fixing a bounce
 			if (!me.aiData.disablePathfindingGrid || bounceFlag) {
 				//	If the character has no line of sight to the next waypoint
-				if (me.manager.rayCastTestXY(me, me.getWaypoint(),distanceToPoint)) {
+				var test = me.manager.rayCastTestXY(me, me.getWaypoint(),distanceToPoint,true,excludes);
+				if (test) {
+					console.log(me.name+" noLineOfSight");
+					console.log(test);
 					//	Use the pathfinding grid, if this character has one
 					if (me.pathfindingGrid) {
 						var path = pathTo(me.getWaypoint());
@@ -317,24 +329,27 @@ AI.Behaviors.Pathfinding = function(me){
 		}
 		*/
 		if(me.collision) {
+			console.log(me.name + " collision");
+			console.log(me.collision);
 			//	Ignore collisions with members of the same AI group
-			//if (!AI.groupedTogether(me, me.collision.body.entity)){
-				//	Only check collisions every 0.2 seconds
-				//	Otherwise this will be recalculating too much
-				if (!collisionTimer.get()){
-					bounces.push(me.collision);
-					//	Reset collisionTimer
-					collisionTimer.maxOut();
-					//	Try to correct the path for 4 iterations
-					if (!correctPath(4, me.collision.normal)) {
-						//	If that doesn't work, stall the character
-						//	to see if the situation clears up
-						me.waypoints = [];
-						stallTimer.maxOut();
-						return;
-					}
+			if (!AI.groupedTogether(me, me.collision.body.entity)){
+				me.collision.body.setMass(0.2);
+			}
+			//	Only check collisions every 0.2 seconds
+			//	Otherwise this will be recalculating too much
+			if (!collisionTimer.get()){
+				bounces.push(me.collision);
+				//	Reset collisionTimer
+				collisionTimer.maxOut();
+				//	Try to correct the path for 4 iterations
+				if (!correctPath(4, me.collision.normal)) {
+					//	If that doesn't work, stall the character
+					//	to see if the situation clears up
+					me.waypoints = [];
+					stallTimer.maxOut();
+					return;
 				}
-			//}
+			}
 		}
 	}
 	
@@ -487,16 +502,16 @@ AI.Behaviors.Pathfinding = function(me){
 		scope = scope || 1;
 		scale = scale || 1;
 		var gridSize = 32 * (1 * ( 1 + (scope-1)/2 ) );
-		var tileSize = 8 / (1 * scale);
+		var precision = 8 / (1 * scale);
 		
 		//	Figure out the grid's origin in world coordinates
-		var gridOrigin = [me.x - (gridSize*tileSize)/2, me.y - (gridSize*tileSize)/2];
+		var gridOrigin = [me.x - (gridSize*precision)/2, me.y - (gridSize*precision)/2];
 		
 		//	Find a point in the world that's probably behind the obstruction
-		var targetPoint = Math.lineFromXYAtAngle(me.getPosition(),(gridSize*tileSize)/2,angle);
+		var targetPoint = Math.lineFromXYAtAngle(me.getPosition(),(gridSize*precision)/2,angle);
 		//	Now, convert the target point to a tile on the grid
 		var targetOnGrid = [targetPoint[0] - gridOrigin[0], targetPoint[1] - gridOrigin[1]];
-		var targetTile = [Math.round(targetOnGrid[0]/tileSize),Math.round(targetOnGrid[1]/tileSize)];
+		var targetTile = [Math.round(targetOnGrid[0]/precision),Math.round(targetOnGrid[1]/precision)];
 		//	Make sure the target tile is within the bounds of the grid
 		if (targetTile[0] > gridSize - 1) targetTile[0] = gridSize - 1;
 		if (targetTile[1] > gridSize - 1) targetTile[1] = gridSize - 1;
@@ -519,7 +534,7 @@ AI.Behaviors.Pathfinding = function(me){
 			var startPoint = Math.lineFromXYAtAngle(me.getPosition(),64, negAngle);
 			//	Then convert this point to a tile
 			var startOnGrid =  [startPoint[0] - gridOrigin[0], startPoint[1] - gridOrigin[1]];
-			var startTile = [Math.round(startOnGrid[0]/tileSize),Math.round(startOnGrid[1]/tileSize)];
+			var startTile = [Math.round(startOnGrid[0]/precision),Math.round(startOnGrid[1]/precision)];
 			//	Make sure the start tile is within the bounds of the grid
 			if (startTile[0] > gridSize - 1) startTile[0] = gridSize - 1;
 			if (startTile[1] > gridSize - 1) startTile[1] = gridSize - 1;
@@ -531,7 +546,7 @@ AI.Behaviors.Pathfinding = function(me){
 		//	Create a matrix to figure out which grid tiles correspond to obstructed parts of the world
 		var matrix = Pathing.createMatrix({
 			origin: gridOrigin,
-			precision: tileSize,
+			precision: precision,
 			width: gridSize,
 			height: gridSize,
 			entity: me,
@@ -555,14 +570,14 @@ AI.Behaviors.Pathfinding = function(me){
 			for (var i = 0; i < path.length; i++){
 				var point = [];
 				//	Convert the tile to world coordinates 
-				point[0] = ( (tileSize*path[i][0]) ) + gridOrigin[0];
-				point[1] = ( (tileSize*path[i][1]) ) + gridOrigin[1];
+				point[0] = ( (precision*path[i][0]) ) + gridOrigin[0];
+				point[1] = ( (precision*path[i][1]) ) + gridOrigin[1];
 				processedPath.push(point);
 			}
 			
 			me.aiData.tempPathGrid = {
 				origin: gridOrigin,
-				tileSize: tileSize,
+				precision: precision,
 				matrix: matrix,
 				width: gridSize,
 				height: gridSize,
@@ -574,7 +589,7 @@ AI.Behaviors.Pathfinding = function(me){
 	var pathTo = function(target){
 		//	Convert the target point to a tile on the grid
 		var targetOnGrid = [target[0] - me.pathfindingGrid.origin[0], target[1] - me.pathfindingGrid.origin[1]];
-		var targetTile = [Math.round(targetOnGrid[0]/me.pathfindingGrid.tileSize),Math.round(targetOnGrid[1]/me.pathfindingGrid.tileSize)];
+		var targetTile = [Math.round(targetOnGrid[0]/me.pathfindingGrid.precision),Math.round(targetOnGrid[1]/me.pathfindingGrid.precision)];
 		//	Make sure the target tile is within the bounds of the grid
 		if (targetTile[0] > me.pathfindingGrid.width - 1) targetTile[0] = me.pathfindingGrid.width - 1;
 		if (targetTile[1] > me.pathfindingGrid.height - 1) targetTile[1] = me.pathfindingGrid.height - 1;
@@ -583,16 +598,19 @@ AI.Behaviors.Pathfinding = function(me){
 		
 		//	Convert the character's position to a tile on the grid
 		var startOnGrid = [me.x - me.pathfindingGrid.origin[0], me.y - me.pathfindingGrid.origin[1]];
-		var startTile = [Math.round(startOnGrid[0]/me.pathfindingGrid.tileSize),Math.round(startOnGrid[1]/me.pathfindingGrid.tileSize)];
+		var startTile = [Math.round(startOnGrid[0]/me.pathfindingGrid.precision),Math.round(startOnGrid[1]/me.pathfindingGrid.precision)];
 		//	Make sure the start tile is within the bounds of the grid
 		if (startTile[0] > me.pathfindingGrid.width - 1) startTile[0] = me.pathfindingGrid.width - 1;
 		if (startTile[1] > me.pathfindingGrid.height - 1) startTile[1] = me.pathfindingGrid.height - 1;
 		if (startTile[0] < 0) startTile[0] = 0;
 		if (startTile[1] < 0) startTile[1] = 0;
 		
-		var path = Pathing.findPath(startTile, targetTile, me.pathfindingGrid.matrix);
-		if (!path) return false;
+		var path = Pathing.findPathUsingGrid(me.getPosition(), target, me.pathfindingGrid, function(path){ path.splice(0,1) });
 		
+	//	var path = Pathing.findPath(startTile, targetTile, me.pathfindingGrid.matrix);
+		if (!path) return false;
+		else return path;
+	/*	
 		else {
 			path.splice(0,1);
 			if (path.length == 0) return false; 
@@ -606,13 +624,13 @@ AI.Behaviors.Pathfinding = function(me){
 			for (var i = 0; i < path.length; i++){
 				var point = [];
 				//	Convert the tile to world coordinates 
-				point[0] = ( (me.pathfindingGrid.tileSize*path[i][0]) ) + me.pathfindingGrid.origin[0];
-				point[1] = ( (me.pathfindingGrid.tileSize*path[i][1]) ) + me.pathfindingGrid.origin[1];
+				point[0] = ( (me.pathfindingGrid.precision*path[i][0]) ) + me.pathfindingGrid.origin[0];
+				point[1] = ( (me.pathfindingGrid.precision*path[i][1]) ) + me.pathfindingGrid.origin[1];
 				processedPath.push(point);
 			}
 			
 			return processedPath;
-		}
+		} */
 	}
 	
 	var optimizePath = function(path, iteration){
@@ -736,14 +754,8 @@ AI.Behaviors.Rally = function(me){
 	
 	this.run = function(){
 		if (!me.aiGoals.rally) return;
+		if (!me.aiGroups.rally) return;
 		if (myRallyPosition == null) myRallyPosition = me.aiGoals.rally;
-		if (_.isEqual(me.aiGoals.rally, lastRallyPosition)) {
-			var grid = makeRallyPointGrid();
-			me.aiData.tempRallyGrid = grid;
-			if (!Pathing.isBlocked(myRallyPosition, grid)) return;
-		/*	var m = (me.manager.hitboxProjectionTest(me, myRallyPosition));
-			if (!m) return; */
-		}
 		
 		if (me.distanceTo(me.aiGoals.rally) <= 65) {
 			me.addUpdateFunction(function() {
@@ -753,8 +765,16 @@ AI.Behaviors.Rally = function(me){
 			})
 			return;
 		}
-		
+
 		lastRallyPosition = me.aiGoals.rally;
+		
+		if (!me.aiGroups.rally.run) runMyGroup();
+		/*
+		else if (_.isEqual(me.aiGoals.rally, lastRallyPosition)) {
+			var grid = makeRallyPointGrid();
+			me.aiData.tempRallyGrid = grid;
+			if (!Pathing.isBlocked(myRallyPosition, grid)) return;
+		}
 		
 		//	Check if the character has line of sight to the target
 		var distance = Math.distanceXY(me.getPosition(),me.aiGoals.rally);
@@ -789,7 +809,79 @@ AI.Behaviors.Rally = function(me){
 				me.setMovementAIGoal(point[0],point[1]);
 				//me.aiData.rallyPosition = null;
 			});
-		}	
+		}
+		*/
+	
+	}
+	
+	var runMyGroup = function(){
+		var group = me.aiGroups.rally.members;
+		var goal = me.aiGroups.rally.value;
+		if (!goal) return;
+	
+		var distSortedGroup = [];
+		for (var i in group){
+			var entry = {
+				character: group[i],
+			}
+			entry.distance = entry.character.distanceTo(goal);
+			distSortedGroup.push(entry);
+		}
+		distSortedGroup = _.sortBy(distSortedGroup, 'distance');
+		
+		var paths = [];
+		
+		for (var i in distSortedGroup){
+			var character = distSortedGroup[i].character;
+			
+			if ( (character.waypoints.length < 1 || !character.waypoints[0].programmedPath) && character.distanceTo(me.aiGoals.rally) > 120){
+				console.log(character.name + " groupRun");
+				var point = findSpotNearRallyPoint();
+				character.aiData.rallyPosition = point;
+				character.aiGoals.movement = point;
+				var newPath = true;
+			
+				if (paths.length) {
+					var pathDistances = [];
+					for (var i in paths){
+						var entry = {path: paths[i]};
+						entry.distance = character.distanceTo(paths[i][0]);
+						pathDistances.push(entry);
+					}
+					pathDistances = _.sortBy(pathDistances, 'distance');
+					
+					if (pathDistances[0].distance <= character.distanceTo(point)) {
+						newPath = false;
+						character.waypoints = [];
+						var path = pathDistances[0].path;
+						for (var i in path){
+							character.addWaypoint({x: path[i][0], y: path[i][1], programmedPath: true});
+						}
+						var grid = makeRallyPointGrid();
+						var splitPath = Pathing.findPathUsingGrid(path[path.length-1], point, grid, function(){path.splice(0,1)});
+						character.aiData.tempRallyGrid = grid;
+						for (var i in splitPath){
+							character.addWaypoint({x: splitPath[i][0], y: splitPath[i][1], programmedPath: true});
+						}
+					}
+				}
+			
+				if (newPath) {
+				
+					var path = Pathing.findPathUsingGrid(character.getPosition(), point, character.pathfindingGrid);
+					if (path) {
+						character.waypoints = [];
+						for (var i in path){
+							character.addWaypoint({x: path[i][0], y: path[i][1], programmedPath: true});
+						}
+						path.splice(-2, 2);
+						paths.push(path);
+					}
+				}
+			}
+		}
+		
+		me.aiGroups.rally.run = true;
 	}
 	
 	var findAIGroupGhosts = function(){

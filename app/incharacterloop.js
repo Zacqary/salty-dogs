@@ -4,6 +4,7 @@
 var InCharacterLoop = function(){
 	var l = new Loop();
 	l.initialize = function(){
+		Debug.initialize();
 		Player.loadDefaultMap();
 		this.em = EntityManager.create();
 		this.camera2D = Graphics.Camera2D.create();

@@ -282,7 +282,9 @@ AI.Behaviors.Pathfinding = function(me){
 		
 		//	If this character's movement goal is not a waypoint, add it
 		if (!me.hasWaypoint(me.aiGoals.movement)){
-			me.addWaypoint({x: me.aiGoals.movement[0], y: me.aiGoals.movement[1], range: 64});
+			var index = me.waypoints.length - 1;
+			if (index < 0) index = 0;
+			me.overwriteWaypoint(index, {x: me.aiGoals.movement[0], y: me.aiGoals.movement[1], range: 64});
 		}
 		
 		//	Check for obstacles between the character and their waypoint
@@ -734,17 +736,50 @@ AI.Behaviors.Chase = function(me){
 		if (me.inCombat) return;
 		if (me.distanceTo(me.aiGoals.follow) < 64) return;
 		
+		
+		//	Check if the character has line of sight to the target
+		var distance = Math.distanceXY(me.getPosition(),me.aiGoals.follow.getPosition());
+		var noLineOfSight = me.manager.rayCastTestXY(me, me.aiGoals.follow.getPosition(),distance, false, [me.aiGoals.follow]);
+		
 		//	Recalculate the target's position if it's not a movement goal, or
 		//	whenever updateTimer runs out
-		if(!me.aiGoals.rally || !updateTimer.get()){
-			//	If the target has moved since the last check
-			if (!_.isEqual(targetPosition, [me.aiGoals.follow.x, me.aiGoals.follow.y]) ) {
-				targetPosition = [me.aiGoals.follow.x, me.aiGoals.follow.y];
-				me.aiGoals.rally = targetPosition;
+		if(!updateTimer.get()){
+			if (noLineOfSight){
+				//	If the target has moved since the last check
+				if (!_.isEqual(targetPosition, [me.aiGoals.follow.x, me.aiGoals.follow.y]) ) {
+					targetPosition = [me.aiGoals.follow.x, me.aiGoals.follow.y];
+					me.aiGoals.rally = targetPosition;
+				}
+				//	Reset the updateTimer
+				updateTimer.maxOut();
 			}
-			//	Reset the updateTimer
-			updateTimer.maxOut();
+			else {
+				
+				var angle = me.angleFrom(me.aiGoals.follow);
+				var followPoint = Math.lineFromXYAtAngle(me.aiGoals.follow.getPosition(), 64, angle);
+				if (me.aiGroups.follow && me.aiGroups.follow.members.length > 1){
+					var group = me.aiGroups.follow.members;
+					for (var i in group){
+						if (group[i] != me && group[i].aiData.followPoint && Math.distanceXY(group[i].aiData.followPoint, followPoint) < 36){
+						angle = ( (angle*180/Math.PI) + 45) * 180/Math.PI;
+						followPoint = Math.lineFromXYAtAngle(me.aiGoals.follow.getPosition(), 64, angle);
+						}
+					}
+				}
+				me.aiData.followPoint = followPoint;
+				
+				me.addUpdateFunction(function() {
+					if (me.waypoints[0] && !me.waypoints[0].pathfinding) {
+						me.waypoints = [];
+					}
+					me.aiGoals.movement = followPoint;
+					me.aiGoals.rally = null;
+					me.aiData.followPoint = null;
+				})
+				
+			}
 		}
+	
 	}
 	
 	this.onDelete = function(){
@@ -840,12 +875,12 @@ AI.Behaviors.Rally = function(me){
 		for (var i in distSortedGroup){
 			var character = distSortedGroup[i].character;
 			
-	
-			
-			if ( (character.waypoints.length < 1 || !character.waypoints[0].programmedPath) && character.distanceTo(me.aiGoals.rally) > 96){
-				var point = findSpotNearRallyPoint();
+			if ( (character.waypoints.length < 1 || !character.waypoints[0].programmedPath) && character.distanceTo(goal) > 96){
+				var point = findSpotNearRallyPoint(character);
 				character.aiData.rallyPosition = point;
-				character.aiGoals.movement = _.each(point, Math.round);
+				character.addUpdateFunction(function() {
+					character.aiGoals.movement = _.each(point, Math.round);
+				});
 				var newPath = true;
 			
 				if (paths.length) {
@@ -859,14 +894,14 @@ AI.Behaviors.Rally = function(me){
 					
 					if (pathDistances[0].distance <= character.distanceTo(point)) {
 						newPath = false;
-						character.waypoints = [];
 						var path = pathDistances[0].path;
+						var grid = makeRallyPointGrid(character);
+						var splitPath = Pathing.findPathUsingGrid(path[path.length-1], point, grid, function(){path.splice(0,1)});
+						character.aiData.tempRallyGrid = grid;
+						character.waypoints = [];
 						for (var i in path){
 							character.addWaypoint({x: path[i][0], y: path[i][1], programmedPath: true});
 						}
-						var grid = makeRallyPointGrid();
-						var splitPath = Pathing.findPathUsingGrid(path[path.length-1], point, grid, function(){path.splice(0,1)});
-						character.aiData.tempRallyGrid = grid;
 						for (var i in splitPath){
 							character.addWaypoint({x: splitPath[i][0], y: splitPath[i][1], programmedPath: true});
 						}
@@ -877,22 +912,24 @@ AI.Behaviors.Rally = function(me){
 				
 					var path = Pathing.findPathUsingGrid(character.getPosition(), point, character.pathfindingGrid);
 					if (path) {
-						character.waypoints = [];
 						path.splice(-1, 1);
-						for (var i in path){
-							character.addWaypoint({x: path[i][0], y: path[i][1], programmedPath: true});
-						}
+						var updatePath = _.uniq(path);
 						path.splice(-1, 1);
 						paths.push(path);
+						character.waypoints = [];
+						for (var i in updatePath){
+							character.addWaypoint({x: updatePath[i][0], y: updatePath[i][1], programmedPath: true});
+						}
 					}
 				}
+				
 			}
 		}
 		
 		me.aiGroups.rally.run = true;
 	}
 	
-	var findAIGroupGhosts = function(extraGhost){
+	var findAIGroupGhosts = function(me){
 		var ghosts = [];
 		
 		if (me.aiGroups.rally){
@@ -908,13 +945,11 @@ AI.Behaviors.Rally = function(me){
 			}
 		}
 		
-		if (extraGhost) ghosts.push(extraGhost);
-		
 		return ghosts;
 	}
 	
-	var makeRallyPointGrid = function(extraGhost){
-		var ghosts = findAIGroupGhosts(extraGhost);
+	var makeRallyPointGrid = function(me){
+		var ghosts = findAIGroupGhosts(me);
 		var grid = Pathing.createGrid({
 			origin: me.aiGoals.rally,
 			centerOrigin: true,
@@ -928,11 +963,10 @@ AI.Behaviors.Rally = function(me){
 		return grid;
 	}
 	
-	var findSpotNearRallyPoint = function(extraGhost){
+	var findSpotNearRallyPoint = function(me){
 		
 		var point = me.aiGoals.rally;
-		
-		var grid = makeRallyPointGrid(extraGhost);
+		var grid = makeRallyPointGrid(me);
 		me.aiData.tempRallyGrid = grid;
 		
 		if (Pathing.isBlocked(me.aiGoals.rally,grid)) {
@@ -944,7 +978,21 @@ AI.Behaviors.Rally = function(me){
 			//	If that angle is blocked, rotate around until an unblocked point is found
 			var angleCount = 0;
 			
-			while (Pathing.isBlocked(point,grid)) {
+			var pointIsBlocked = function(point){
+				var blocked = Pathing.isBlocked(point,grid);
+				if (!blocked) {
+					var group = me.aiGroups.rally.members;
+					for (var i in group){
+						if (group[i] != me && group[i].aiData.rallyPosition && Math.distanceXY(group[i].aiData.rallyPosition, point) <= 18) {
+							blocked = true;
+							break;
+						}
+					}
+				}
+				return blocked;
+			}
+			
+			while (pointIsBlocked(point)) {
 				angleCount ++;
 				angle = (angle*(180/Math.PI)) + 1;
 				if (angle >= 360) angle = 0;

@@ -734,6 +734,7 @@ AI.Behaviors.Chase = function(me){
 		if (!me.aiGoals.follow) return;
 		if (!me.aiGroups.follow) return;
 		if (me.distanceTo(me.aiGoals.follow) < 64) return;
+		if (me.aiData.followTarget && me.distanceTo(me.aiData.followTarget) < 64) return;
 	
 		if (!me.aiGroups.follow.run) runMyGroup();
 		var target = me.aiData.followTarget;

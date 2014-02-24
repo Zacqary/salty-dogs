@@ -237,7 +237,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC3.addBehavior("Rally");
 			this.em.add(this.NPC3);
 			this.NPC3.makePathfindingGrid(-200, -300, 1200, 300);
-			this.NPC3.aiGoals.follow = this.NPC2;
+			this.NPC3.aiGoals.follow = Player.entity;
 			
 			
 			

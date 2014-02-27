@@ -269,9 +269,7 @@ AI.Behaviors.Pathfinding = function(me){
 		//	Only run this behavior if the character has a movement goal
 		if (!me.aiGoals.movement) {
 			if(me.waypoints[0] && me.waypoints[0].pathfinding) me.aiGoals.movement = [me.waypoints[0].x, me.waypoints[0].y];
-			else {
-				return;
-			}
+			else return;
 		}
 		if (stallTimer.get()) return;
 		//	If the movement goal is closer than the character's "speed" value,
@@ -734,9 +732,14 @@ AI.Behaviors.Chase = function(me){
 		if (me.inCombat) return;
 		if (!me.aiGoals.follow) return;
 		if (!me.aiGroups.follow) return;
-		if (me.distanceTo(me.aiGoals.follow) < 64) return;
-		if (me.aiData.followTarget && me.distanceTo(me.aiData.followTarget) < 64) return;
-
+		if (me.distanceTo(me.aiGoals.follow) < 64) {
+			me.aiGoals.movement = null;
+			me.waypoints = [];
+			return;
+		}
+		if (me.aiData.followTarget && me.distanceTo(me.aiData.followTarget) < 64) {
+			return;
+		}
 	
 		if (!me.aiGroups.follow.run) runMyGroup();
 		var target = me.aiData.followTarget;
@@ -758,18 +761,18 @@ AI.Behaviors.Chase = function(me){
 			}
 		}
 		else {
-			
 			var angle = me.angleFrom(target);
 			var followPoint = Math.lineFromXYAtAngle(target.getPosition(), 64, angle);
 			if (me.aiGroups.follow && me.aiGroups.follow.members.length > 1){
 				var group = me.aiGroups.follow.members;
 				for (var i in group){
 					if (group[i] != me && group[i].aiData.followPoint && Math.distanceXY(group[i].aiData.followPoint, followPoint) < 36){
-					angle = ( (angle*180/Math.PI) + 45) * 180/Math.PI;
+					angle = ( (angle*Math.PI/180) + 45) * 180/Math.PI;
 					followPoint = Math.lineFromXYAtAngle(target.getPosition(), 64, angle);
 					}
 				}
 			}
+			
 			me.aiData.followPoint = followPoint;
 			
 			
@@ -825,6 +828,9 @@ AI.Behaviors.Chase = function(me){
 			}
 
 		}
+		
+		me.aiGroups.follow.angle = me.angleFrom(goal);
+		me.aiGroups.follow.distSortedGroup = distSortedGroup;
 		
 		me.aiGroups.follow.run = true;
 	}
@@ -998,7 +1004,7 @@ AI.Behaviors.Rally = function(me){
 	var makeRallyPointGrid = function(me){
 		var ghosts = findAIGroupGhosts(me);
 		var grid = Pathing.createGrid({
-			origin: me.aiGoals.rally,
+			origin: me.aiGroups.rally.value, // Always pull from the group; if aiGoals.rally is null, this will crash
 			centerOrigin: true,
 			width: 32,
 			height: 32,
@@ -1016,11 +1022,11 @@ AI.Behaviors.Rally = function(me){
 		var grid = makeRallyPointGrid(me);
 		me.aiData.tempRallyGrid = grid;
 		
-		if (Pathing.isBlocked(me.aiGoals.rally,grid)) {
+		if (Pathing.isBlocked(me.aiGroups.rally.value,grid)) {
 			//	Find a walkable point near the target's position
 			//	First try calculating the angle between the target and this character
-			var angle = me.angleFrom(me.aiGoals.rally);
-			point = Math.lineFromXYAtAngle(me.aiGoals.rally, 64, angle);
+			var angle = me.angleFrom(me.aiGroups.rally.value);
+			point = Math.lineFromXYAtAngle(me.aiGroups.rally.value, 64, angle);
 		
 			//	If that angle is blocked, rotate around until an unblocked point is found
 			var angleCount = 0;
@@ -1044,7 +1050,7 @@ AI.Behaviors.Rally = function(me){
 				angle = (angle*(180/Math.PI)) + 1;
 				if (angle >= 360) angle = 0;
 				angle *= (Math.PI/180);
-				point = Math.lineFromXYAtAngle(me.aiGoals.rally, 64, angle);
+				point = Math.lineFromXYAtAngle(me.aiGroups.rally.value, 64, angle);
 				if (angleCount == 360) break;
 			}
 		}

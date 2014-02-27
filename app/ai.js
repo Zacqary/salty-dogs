@@ -268,9 +268,10 @@ AI.Behaviors.Pathfinding = function(me){
 		
 		//	Only run this behavior if the character has a movement goal
 		if (!me.aiGoals.movement) {
-			//if(me.waypoints[0] && me.waypoints[0].programmedPath) me.aiGoals.movement = [me.waypoints[0].x, me.waypoints[0].y];
-			//else return;
-			return;
+			if(me.waypoints[0] && me.waypoints[0].pathfinding) me.aiGoals.movement = [me.waypoints[0].x, me.waypoints[0].y];
+			else {
+				return;
+			}
 		}
 		if (stallTimer.get()) return;
 		//	If the movement goal is closer than the character's "speed" value,
@@ -735,14 +736,19 @@ AI.Behaviors.Chase = function(me){
 		if (!me.aiGroups.follow) return;
 		if (me.distanceTo(me.aiGoals.follow) < 64) return;
 		if (me.aiData.followTarget && me.distanceTo(me.aiData.followTarget) < 64) return;
+
 	
 		if (!me.aiGroups.follow.run) runMyGroup();
 		var target = me.aiData.followTarget;
+		if (!target) return;
 		var goal = me.aiGoals.follow;
 		
 		//	Check if the character has line of sight to the target
 		var distance = Math.distanceXY(me.getPosition(),goal.getPosition());
-		var noLineOfSight = me.manager.rayCastTestXY(me, goal.getPosition(),distance, false, [goal]);
+		var excludes = _.uniq(me.aiGroups.follow.members);
+		excludes.push(goal);
+		
+		var noLineOfSight = me.manager.rayCastTestXY(me, goal.getPosition(),distance, false, excludes);
 
 		if (noLineOfSight){
 			//	If the target has moved since the last check
@@ -765,6 +771,7 @@ AI.Behaviors.Chase = function(me){
 				}
 			}
 			me.aiData.followPoint = followPoint;
+			
 			
 			me.addUpdateFunction(function() {
 				if (me.waypoints[0] && !me.waypoints[0].pathfinding) {

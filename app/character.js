@@ -484,7 +484,7 @@ var Character = function (params){
 	c.approachCurrentWaypoint = function(){
 		w = this.waypoints[0];
 		if (!w.disableHeading && !this.inCombat) {
-			var heading = Math.angleXY([this.x, this.y],[w.x,w.y])*(180/Math.PI);
+			var heading = Math.angleXY([this.x, this.y],[w.x,w.y]);
 			this.affectHeading(heading);
 		}
 		this.aPC();

@@ -116,10 +116,10 @@ AI.Behaviors.Combat = function(me){
 	var getSituation = function(){
 		//	Get the angle between this character and the enemy
 		var combatAngle = Math.angleXY(me.getPosition(), stats.enemy.getPosition());
-		var endPoint = Math.lineFromXYAtAngle(me.getPosition(), 144, combatAngle - Math.PI);
+		var endPoint = Math.lineFromXYAtAngle(me.getPosition(), 144, combatAngle.getRadians() - Math.PI);
 		stats.backToWall = me.manager.rayCastTestXY(me, endPoint);
 		if (stats.backToWall){
-			strategy.angle = combatAngle - (Math.PI/2);
+			strategy.angle = combatAngle.rotated(180);
 		}
 		
 	}
@@ -192,24 +192,22 @@ AI.Behaviors.Combat = function(me){
 	};
 	
 	var strafeOpponent = function(targetAngle){
-		var angle = null;
-		targetAngle *= 180/Math.PI;
-		var currentAngle = Math.angleXY([stats.enemy.x, stats.enemy.y],[me.x, me.y])*(180/Math.PI);
-		var diff = (targetAngle - currentAngle);
+		var angle = new Angle();
+		var currentAngle = Math.angleXY([stats.enemy.x, stats.enemy.y],[me.x, me.y]);
+		var diff = (targetAngle.get() - currentAngle.get());
 		if (!me.combat.attacker) me.affect("turnSpeed",me.turnSpeed/6);
 		if (Math.abs(diff) < 120){
 			if (diff < 0) {
-				angle = currentAngle - 10;
+				angle.set(currentAngle.get() - 10);
 			}
-			else angle = currentAngle + 10;
+			else angle.set(currentAngle.get() + 10);
 		}
 		else {
 			if (diff < 0) {
-				angle = currentAngle + 10;
+				angle.set(currentAngle.get() + 10);
 			}
-			else angle = currentAngle - 10;
+			else angle.set(currentAngle.get() - 10);
 		}
-		angle *= Math.PI/180;
 		approachTarget = Math.lineFromXYAtAngle([stats.enemy.x,stats.enemy.y],64,angle);
 		me.approach(approachTarget[0], approachTarget[1], 32, me.turnSpeed);
 		CameraTest.rayCastPoints = [me.getPosition(), approachTarget];
@@ -240,11 +238,11 @@ AI.Behaviors.Combat = function(me){
 			
 			if (strategy.angle) {
 				var newAngle = strafeOpponent(strategy.angle);
-				if (Math.abs(newAngle - strategy.angle) < 1) strategy.angle = null;
+				if (Math.abs(newAngle.get() - strategy.angle.get()) < 1) strategy.angle = null;
 			}
 			attackStrategies.standard();
 			
-			var heading = Math.angleXY([me.x, me.y],[stats.enemy.x,stats.enemy.y])*(180/Math.PI);
+			var heading = Math.angleXY([me.x, me.y],[stats.enemy.x,stats.enemy.y]);
 			me.affectHeading(heading);
 		
 		}
@@ -389,7 +387,7 @@ AI.Behaviors.Pathfinding = function(me){
 			//	Clear the waypoints
 			me.waypoints = [];
 			//	Go off in a random direction
-			var dir = _.random(0,360)*(Math.PI/180);
+			var dir = new Angle(_.random(0,360));
 			var location = Math.lineFromXYAtAngle(me.getPosition(),16,dir);
 			me.addWaypoint({x: location[0], y: location[1]});
 		}
@@ -535,7 +533,7 @@ AI.Behaviors.Pathfinding = function(me){
 			//	If the collision was horizontal, resolve the angle manually
 			if (Math.abs(Math.round(backAway[0])) == 1){
 				negAngle = Math.unitVectorToAngle([-backAway[1],-backAway[0]]);
-				negAngle -= Math.PI/2;
+				negAngle.rotate(180);
 			}
 			//	Find the point to back up to
 			var startPoint = Math.lineFromXYAtAngle(me.getPosition(),64, negAngle);
@@ -767,7 +765,7 @@ AI.Behaviors.Chase = function(me){
 				var group = me.aiGroups.follow.members;
 				for (var i in group){
 					if (group[i] != me && group[i].aiData.followPoint && Math.distanceXY(group[i].aiData.followPoint, followPoint) < 36){
-					angle = ( (angle*Math.PI/180) + 45) * 180/Math.PI;
+					angle.rotate(45);
 					followPoint = Math.lineFromXYAtAngle(target.getPosition(), 64, angle);
 					}
 				}
@@ -828,9 +826,6 @@ AI.Behaviors.Chase = function(me){
 			}
 
 		}
-		
-		me.aiGroups.follow.angle = me.angleFrom(goal);
-		me.aiGroups.follow.distSortedGroup = distSortedGroup;
 		
 		me.aiGroups.follow.run = true;
 	}
@@ -1047,9 +1042,7 @@ AI.Behaviors.Rally = function(me){
 			
 			while (pointIsBlocked(point)) {
 				angleCount ++;
-				angle = (angle*(180/Math.PI)) + 1;
-				if (angle >= 360) angle = 0;
-				angle *= (Math.PI/180);
+				angle.rotate(1);
 				point = Math.lineFromXYAtAngle(me.aiGroups.rally.value, 64, angle);
 				if (angleCount == 360) break;
 			}

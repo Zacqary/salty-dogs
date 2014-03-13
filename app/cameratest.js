@@ -192,7 +192,7 @@ CameraTest.loadingLoop = function(){
 			this.avatar.composeDoll();
 			this.avatar.name = "Player";
 			this.avatar.makePlayer();
-
+			
 			this.NPC.setBody("body","909099");
 			this.NPC.setTorso("tank","cccc99");
 			this.NPC.setLegs("pants","aa5555");
@@ -206,7 +206,7 @@ CameraTest.loadingLoop = function(){
 			this.NPC.makePathfindingGrid(-200, -300, 1200, 300);
 			this.NPC.aiGoals.follow = Player.entity;
 			
-		
+		/*
 			this.NPC2 = this.NPC.clone();
 			this.NPC2.makeFriendly();
 			this.NPC2.sprite.setHeight(96);
@@ -296,7 +296,7 @@ CameraTest.loadingLoop = function(){
 			this.em.add(this.NPC7);
 			this.NPC7.makePathfindingGrid(-200, -300, 1200, 300);
 			this.NPC7.aiGoals.follow = Player.entity; 
-			
+			*/
 			this.debugNPC = 0;
 			
 			this.em.updateAll();
@@ -347,6 +347,31 @@ CameraTest.drawExtension = function(){
 		}
 		
 	}
+	
+	Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
+	Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
+	Graphics.debugDraw.begin();
+
+	var angle; 
+	if (!Player.entity.heading) angle = new Angle(270);
+	else angle = new Angle(Player.entity.heading.get());
+	angle.rotate(113);
+	
+	var makeOrigin = function(angle) { return Math.lineFromXYAtAngle(Player.entity.getPosition(), 96, angle); }
+	var origin = makeOrigin(angle);
+	Graphics.debugDraw.drawCircle(origin[0],origin[1], 4, [0,0,0,1]);
+	angle.rotate(45);
+	origin = makeOrigin(angle);
+	Graphics.debugDraw.drawCircle(origin[0],origin[1], 4, [0,0,0,1]);
+	angle.rotate(45);
+	origin = makeOrigin(angle);
+	Graphics.debugDraw.drawCircle(origin[0],origin[1], 4, [0,0,0,1]);
+	angle.rotate(45);
+	origin = makeOrigin(angle);
+	Graphics.debugDraw.drawCircle(origin[0],origin[1], 4, [0,0,0,1]);
+	
+
+	Graphics.debugDraw.end();
 	
 	//Debug.drawPathfindingGrid(this.NPC.pathfindingGrid);
 	

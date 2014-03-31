@@ -22,15 +22,25 @@ var GameState = new function() {
 	}
 	//	loop - Run the game logic for the current Loop, or load it
 	this.loop = function(){
+		if (this.isPaused && Debug.keyData.step){
+			var debugStep = true;
+			this.unpause();
+		}
+		
 		if (currentLoop.loaded)
 			currentLoop.run();
 		else currentLoop.loadingLoop();
 		
-		tickCountdowns();
+		if (!this.isPaused()) tickCountdowns();
+		tickFreeTimers();
 		
 		this.updateMouseWorldPosition();
 		previousFrameTime = currentTime;
 		currentTime = TurbulenzEngine.time;
+		if (!this.isPaused() && !isNaN(this.getTimeDelta()) ) {
+			gameTime += this.getTimeDelta();
+		}
+		if (debugStep) this.pause();
 	}
 	//	draw - Draw the frame for the current Loop, or its loading screen
 	this.draw = function(){
@@ -71,10 +81,31 @@ var GameState = new function() {
 	//	======
 	var previousFrameTime;
 	var currentTime = TurbulenzEngine.time;
+	var gameTime = 0;
 	var countdowns = [];
+	var freeTimers = [];
+	
+	paused = false;
+	
+	this.togglePause = function(){
+		if (!paused) this.pause();
+		else this.unpause();
+	}
+	
+	this.pause = function(){
+		paused = true;
+	}
+	
+	this.unpause = function(){
+		paused = false;
+	}
+	
+	this.isPaused = function(){
+		return paused;
+	}
 	
 	this.getTime = function(){
-		return currentTime;
+		return gameTime;
 	}
 	var getTimeDelta = function(){
 		return currentTime - previousFrameTime;
@@ -99,6 +130,21 @@ var GameState = new function() {
 		for (var i in countdowns){
 			countdowns[i].tick();
 			if (!countdowns[i].get()) countdowns[i].onZero();
+		}
+	}
+	this.addFreeTimer = function(timer){
+		freeTimers[timer.guid] = timer;
+	}
+	this.removeFreeTimer = function(timer){
+		if (typeof timer == "object")
+			delete freeTimers[timer.guid];
+		else if (typeof timer == "string")
+			delete freeTimers[timer];
+	}
+	var tickFreeTimers = function(){
+		for (var i in freeTimers){
+			freeTimers[i].tick();
+			if (!freeTimers[i].get()) freeTimers[i].onZero();
 		}
 	}
 	
@@ -128,7 +174,7 @@ var GameState = new function() {
 			else return;
 		}
 		//	Create a timer to zoom, which should trip every frame
-		var zoomer = new Countdown(1/60, function(){
+		var zoomer = new FreeTimer(1/60, function(){
 			if (Math.abs(currentCamera.getZoom() - value) < speed) {
 				currentCamera.setZoom(value);
 				zoomer.delete();
@@ -152,10 +198,11 @@ var GameState = new function() {
 	
 }
 
-/*	Countdown - extends Spectrum
-		A Spectrum specialized for countdown timers, automatically ticked each frame by GameState
+/*	TimerPrototype - extends Spectrum
+		A Spectrum specialized for countdown timers. Added to the GameState depending on
+		which type of construction is used.
 */
-var Countdown = function Countdown(current, a, b, onZero){
+var TimerPrototype = function TimerPrototype(current, a, b, onZero){
 	if (_.isFunction(a)){
 		onZero = a;
 		a = undefined;
@@ -167,8 +214,6 @@ var Countdown = function Countdown(current, a, b, onZero){
 	
 	var c = new Spectrum(current, a, b);
 	var frozen = false;
-	
-	c.guid = _.uniqueId("countdown");
 	
 	c.onZero = function(){
 		if (onZero) onZero();
@@ -187,6 +232,16 @@ var Countdown = function Countdown(current, a, b, onZero){
 		frozen = false;
 	}
 	
+	return c;
+};
+/*	Countdown - extends TimerPrototype
+		Ticked automatically by the GameState when unpaused. Use for gameplay-related variables.
+*/
+var Countdown = function Countdown(current, a, b, onZero){
+	
+	var c = new TimerPrototype(current, a, b, onZero);
+	
+	c.guid = _.uniqueId("countdown");
 	c.delete = function(){
 		GameState.removeCountdown(c);
 	}
@@ -194,4 +249,19 @@ var Countdown = function Countdown(current, a, b, onZero){
 	GameState.addCountdown(c);
 	
 	return c;
-};
+}
+/*	FreeTimer - extends TimerPrototype
+		Ticked automatically by the GameState regardless of pause state.
+*/
+var FreeTimer = function FreeTimer(current, a, b, onZero){
+	var c = new TimerPrototype(current, a, b, onZero);
+	
+	c.guid = _.uniqueId("free-timer");
+	c.delete = function(){
+		GameState.removeFreeTimer(c);
+	}
+	
+	GameState.addFreeTimer(c);
+	
+	return c;
+}

@@ -96,7 +96,7 @@ CameraTest.initializeExtension = function(){
 	
 	this.wall7 = this.em.createEntity({});
 	this.wall7.setPosition(100,30);
-	this.wall7.createHitbox(50,400,0,0);
+	this.wall7.createHitbox(50,300,0,0);
 	this.wall7.hitbox.sleep();
 	this.wall7.hitbox.setAsStatic(); 
 
@@ -108,7 +108,6 @@ CameraTest.initializeExtension = function(){
 	this.NPC = Character.create({});
 	this.NPC.name = "NPC1";
 	this.NPC.setPosition(480,0);
-	this.NPC.makeHostile();
 	//this.NPC.createEffectRadius(80);
 	this.NPC.createEffect({
 		types: [ENT_CHARACTER],
@@ -127,10 +126,10 @@ CameraTest.initializeExtension = function(){
 	this.NPC.createFocusBar();
 	this.NPC.createStaminaBar();
 	this.NPC.createHitClockBar();
-	this.NPC.addBehavior("CombatBehavior");
-	this.NPC.addBehavior("PathfindingBehavior");
-	this.NPC.addBehavior("ChaseBehavior");
-	this.NPC.addBehavior("RallyBehavior");
+	this.NPC.addBehavior("Combat");
+	this.NPC.addBehavior("Pathfinding");
+	this.NPC.addBehavior("Chase");
+	this.NPC.addBehavior("Rally");
 	this.NPC.sprite.setHeight(96);
 	//this.NPC.focus.setMax(5);
 	this.em.add(this.NPC);
@@ -191,7 +190,9 @@ CameraTest.loadingLoop = function(){
 			this.avatar.setSword("ls","aaaaaa");
 			this.avatar.addMisc("patch","000033",2);
 			this.avatar.composeDoll();
-
+			this.avatar.name = "Player";
+			this.avatar.makePlayer();
+			
 			this.NPC.setBody("body","909099");
 			this.NPC.setTorso("tank","cccc99");
 			this.NPC.setLegs("pants","aa5555");
@@ -199,12 +200,13 @@ CameraTest.loadingLoop = function(){
 			this.NPC.addMisc("patchleft","000033",2);
 			this.NPC.composeDoll();
 			//this.NPC.setMovementAIGoal(this.NPC.x, this.NPC.y);
+			this.NPC.makeFriendly();
 			
 			
-			this.NPC.makePathfindingGrid(-193, -290, 1200, 350);
+			this.NPC.makePathfindingGrid(-200, -300, 1200, 300);
 			this.NPC.aiGoals.follow = Player.entity;
-	
-		
+			
+		/*
 			this.NPC2 = this.NPC.clone();
 			this.NPC2.makeFriendly();
 			this.NPC2.sprite.setHeight(96);
@@ -214,10 +216,10 @@ CameraTest.loadingLoop = function(){
 			this.NPC2.removeMisc("patchleft");
 			this.NPC2.composeDoll();
 			this.NPC2.name = "NPC2";
-			this.NPC2.addBehavior("PathfindingBehavior");
-			this.NPC2.addBehavior("ChaseBehavior");
-			this.NPC2.addBehavior("CombatBehavior");
-			this.NPC2.addBehavior("RallyBehavior");
+			this.NPC2.addBehavior("Pathfinding");
+			this.NPC2.addBehavior("Chase");
+			this.NPC2.addBehavior("Combat");
+			this.NPC2.addBehavior("Rally");
 			this.em.add(this.NPC2);
 			this.NPC2.makePathfindingGrid(-200, -300, 1200, 300);
 			this.NPC2.aiGoals.follow = Player.entity;
@@ -230,27 +232,72 @@ CameraTest.loadingLoop = function(){
 			this.NPC3.composeDoll();
 			this.NPC3.makeFriendly();
 			this.NPC3.name = "NPC3";
-			this.NPC3.addBehavior("PathfindingBehavior");
-			this.NPC3.addBehavior("ChaseBehavior");
-			this.NPC3.addBehavior("RallyBehavior");
+			this.NPC3.addBehavior("Pathfinding");
+			this.NPC3.addBehavior("Chase");
+			this.NPC3.addBehavior("Rally");
 			this.em.add(this.NPC3);
 			this.NPC3.makePathfindingGrid(-200, -300, 1200, 300);
 			this.NPC3.aiGoals.follow = Player.entity;
-			/*
-			this.NPC.aiGoals.rally = [800,60];
-			this.NPC2.aiGoals.rally = [800,60];
-			this.NPC3.aiGoals.rally = [800,60];
-			*/
-			
-			/*
+		
+		
 			this.NPC4 = this.NPC.clone();
+			this.NPC4.sprite.setHeight(96);
 			this.NPC4.setPosition(180, 160);
 			this.NPC4.setTorso("shirt","dedefe");
+			this.NPC4.makeFriendly();
 			this.NPC4.composeDoll();
 			this.NPC4.makeFriendly();
-			this.NPC4.addBehavior(AI.CombatBehavior);
+			this.NPC4.addBehavior("Pathfinding");
+			this.NPC4.addBehavior("Chase");
+			this.NPC4.addBehavior("Rally");
 			this.em.add(this.NPC4);
-			this.NPC4.debug = true; */
+			this.NPC4.makePathfindingGrid(-200, -300, 1200, 300);
+			this.NPC4.aiGoals.follow = Player.entity; 
+			
+			this.NPC5 = this.NPC.clone();
+			this.NPC5.name = "NPC5";
+			this.NPC5.sprite.setHeight(96);
+			this.NPC5.setPosition(400, 160);
+			this.NPC5.setTorso("shirt","dedefe");
+			this.NPC5.makeFriendly();
+			this.NPC5.composeDoll();
+			this.NPC5.makeFriendly();
+			this.NPC5.addBehavior("Pathfinding");
+			this.NPC5.addBehavior("Chase");
+			this.NPC5.addBehavior("Rally");
+			this.em.add(this.NPC5);
+			this.NPC5.makePathfindingGrid(-200, -300, 1200, 300);
+			this.NPC5.aiGoals.follow = Player.entity; 
+			
+			this.NPC6 = this.NPC.clone();
+			this.NPC6.sprite.setHeight(96);
+			this.NPC6.setPosition(500, 260);
+			this.NPC6.setTorso("shirt","dedefe");
+			this.NPC6.makeFriendly();
+			this.NPC6.composeDoll();
+			this.NPC6.makeFriendly();
+			this.NPC6.addBehavior("Pathfinding");
+			this.NPC6.addBehavior("Chase");
+			this.NPC6.addBehavior("Rally");
+			this.em.add(this.NPC6);
+			this.NPC6.makePathfindingGrid(-200, -300, 1200, 300);
+			this.NPC6.aiGoals.follow = Player.entity;
+			
+			this.NPC7 = this.NPC.clone();
+			this.NPC7.sprite.setHeight(96);
+			this.NPC7.setPosition(600, 200);
+			this.NPC7.setTorso("shirt","dedefe");
+			this.NPC7.makeFriendly();
+			this.NPC7.composeDoll();
+			this.NPC7.makeFriendly();
+			this.NPC7.addBehavior("Pathfinding");
+			this.NPC7.addBehavior("Chase");
+			this.NPC7.addBehavior("Rally");
+			this.em.add(this.NPC7);
+			this.NPC7.makePathfindingGrid(-200, -300, 1200, 300);
+			this.NPC7.aiGoals.follow = Player.entity; 
+			*/
+			this.debugNPC = 0;
 			
 			this.em.updateAll();
 			
@@ -272,10 +319,61 @@ CameraTest.runAfterPlayerMoves = function(){
 }
 
 CameraTest.drawExtension = function(){
+	var debugNPCs = [null, this.NPC, this.NPC2, this.NPC3, this.NPC5];
 	
-	if (this.NPC.aiData.tempPathGrid) {
-		//Debug.drawPathfindingGrid(this.NPC.aiData.tempPathGrid);
+	if (Player.keyData["debug"]) {
+
+		this.debugNPC++;
+		console.log(this.debugNPC);
+		delete Player.keyData["debug"];
+		if (this.debugNPC > debugNPCs.length-1) this.debugNPC = 0;
+		
+		console.log(this.NPC5.aiGoals.movement);
 	}
+	
+	if (this.debugNPC > 0) {
+		
+		var NPC = debugNPCs[this.debugNPC];
+		
+		Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
+		Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
+		Graphics.debugDraw.begin();
+		Graphics.debugDraw.drawCircle(NPC.x,NPC.y,24,[1,0,0,1]);
+		Graphics.debugDraw.drawCircle(NPC.x,NPC.y,23,[1,0,0,1]);
+		Graphics.debugDraw.drawCircle(NPC.x,NPC.y,22,[1,0,0,1]);
+		Graphics.debugDraw.end();
+		if (NPC.aiData.tempRallyGrid)  {
+			Debug.drawPathfindingGrid(NPC.aiData.tempRallyGrid);
+		}
+		
+	}
+	
+	Graphics.debugDraw.setPhysics2DViewport(Graphics.draw2D.getViewport());
+	Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
+	Graphics.debugDraw.begin();
+
+	var angle; 
+	if (!Player.entity.heading) angle = new Angle(270);
+	else angle = new Angle(Player.entity.heading.get());
+	angle.rotate(113);
+	
+	var makeOrigin = function(angle) { return Math.lineFromXYAtAngle(Player.entity.getPosition(), 96, angle); }
+	var origin = makeOrigin(angle);
+	Graphics.debugDraw.drawCircle(origin[0],origin[1], 4, [0,0,0,1]);
+	angle.rotate(45);
+	origin = makeOrigin(angle);
+	Graphics.debugDraw.drawCircle(origin[0],origin[1], 4, [0,0,0,1]);
+	angle.rotate(45);
+	origin = makeOrigin(angle);
+	Graphics.debugDraw.drawCircle(origin[0],origin[1], 4, [0,0,0,1]);
+	angle.rotate(45);
+	origin = makeOrigin(angle);
+	Graphics.debugDraw.drawCircle(origin[0],origin[1], 4, [0,0,0,1]);
+	
+
+	Graphics.debugDraw.end();
+	
+	//Debug.drawPathfindingGrid(this.NPC.pathfindingGrid);
 	
 	if (CameraTest.rayCastPoints) {
 		var points = CameraTest.rayCastPoints;

@@ -4,6 +4,7 @@
 var InCharacterLoop = function(){
 	var l = new Loop();
 	l.initialize = function(){
+		Debug.initialize();
 		Player.loadDefaultMap();
 		this.em = EntityManager.create();
 		this.camera2D = Graphics.Camera2D.create();
@@ -20,15 +21,16 @@ var InCharacterLoop = function(){
 	l.run = function(){
 		this.em.resetAll();
 		Player.cursorOnNPC = false;
+		if (!GameState.isPaused()) {
+			this.em.applyAllEffects();
 		
-		this.em.applyAllEffects();
+			Player.movementLoop();
+			this.em.detectCollisions();
+			if(this.runAfterPlayerMoves) this.runAfterPlayerMoves();
 		
-		Player.movementLoop();
-		this.em.detectCollisions();
-		if(this.runAfterPlayerMoves) this.runAfterPlayerMoves();
-		
-		this.em.allToCurrentWaypoint();
-		this.em.runPhysics();
+			this.em.allToCurrentWaypoint();
+			this.em.runPhysics();
+		}
 		this.em.updateAll();
 	}
 	

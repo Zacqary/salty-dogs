@@ -63,7 +63,7 @@ var AssetManager = function(){
 		var data;
 		Protocol.requestHandler.request({
 			src: src,
-			onload: function(response, status, callContext){
+			onload: function(response){
 				pendingJSON--;
 				onLoadFn(JSON.parse(response));
 				data = response;

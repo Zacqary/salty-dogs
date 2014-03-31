@@ -31,6 +31,7 @@ Entity.create = function(params){
 	e.visible = params.visible || true;
 	e.permeable = params.permeable || false; 
 	//	If permeable, this entity doesn't trigger collision detection
+	e.physicsGroup = 1;
 
 	e.hitbox = params.hitbox;
 
@@ -365,6 +366,17 @@ Entity.prototype.useHitboxAsEffectRadius = function(hitbox){
 	this.effect.radius = hitbox;
 }
 
+/*	setPhysicsGroup
+		Sets an entity's physics clipping group
+*/
+Entity.prototype.setPhysicsGroup = function(group){
+	this.hitbox.shapes[0].setGroup(group);
+	if (group < 2){
+		this.hitbox.shapes[0].setMask(0xffffffff);
+	}
+	else this.hitbox.shapes[0].setMask(~group);
+}
+
 //	Positioning
 //	===========
 	
@@ -419,6 +431,10 @@ Entity.prototype.addWaypoint = function(params){
 
 Entity.prototype.overwriteWaypoint = function(index, params){
 	this.waypoints.splice(index,1,params);
+}
+
+Entity.prototype.addWaypointAtBeginning = function(params){
+	this.waypoints.splice(0,0,params);
 }
 
 Entity.prototype.nextWaypoint = function(){
@@ -477,33 +493,22 @@ Entity.prototype.approachCurrentWaypoint = function(){
 		Scans the level and creates a pathfinding grid for this Entity to use
 */
 
-Entity.prototype.makePathfindingGrid = function(x1, y1, x2, y2){
-	var gridOrigin = [x1, y1];
-	var tileSize = 16;
-	var gridWidth = Math.round((x2-x1)/tileSize);
-	var gridHeight = Math.round((y2-y1)/tileSize);
-	
-	var matrix = Pathing.createMatrix({
-		origin: gridOrigin,
-		precision: tileSize,
-		width: gridWidth,
-		height: gridHeight,
+Entity.prototype.makePathfindingGrid = function(x1, y1, x2, y2){	
+	this.pathfindingGrid = Pathing.createGrid({
+		origin: [x1, y1],
+		precision: 16,
+		width: Math.round((x2-x1)/16),
+		height: Math.round((y2-y1)/16),
 		entity: this,
 		berth: 12,
 		staticOnly: true,
-	})
+	});
 	
-	this.pathfindingGrid = { 
-		origin: gridOrigin,
-		width: gridWidth,
-		height: gridHeight,
-		tileSize: tileSize,
-		matrix: matrix,
-	}
 }
 
 Entity.prototype.distanceTo = function(x, y){
 	var point;
+	if (_.isUndefined(x)) return false;
 	if (x.entType) point = x.getPosition();
 	else if (x.length) point = x;
 	else point = [x,y];
@@ -577,11 +582,12 @@ var EntityManager = function(){
 		for (var i in entities){
 			if(entities[i].hitbox) {
 				if(entities[i].permeable) {
-					if (entities[i].hitbox.world == world) {
-						world.removeRigidBody(entities[i].hitbox);
-					}
+					entities[i].setPhysicsGroup(0);
 				}
-				else if (entities[i].hitbox.world != world) {
+				else {
+					entities[i].setPhysicsGroup(entities[i].physicsGroup);
+				}
+				if (entities[i].hitbox.world != world) {
 					world.addRigidBody(entities[i].hitbox);
 				}
 			}
@@ -610,22 +616,10 @@ var EntityManager = function(){
 		
 		//	Layer the Entities on top of each other based on their y value.
 		//	Things further down the screen get drawn on top of things further up.
-		orderedEnts.sort(function(a,b){
-			if (a.y + a.sprite.yOffset < b.y + b.sprite.yOffset)
-				return -1;
-			else if (a.y + a.sprite.yOffset > b.y + b.sprite.yOffset)
-				return 1;
-			else return 0;
-		});
+		orderedEnts = _.sortBy(orderedEnts, 'y');
 		
 		//	Now sort them by zIndex
-		orderedEnts.sort(function(a,b){
-			if (a.zIndex < b.zIndex)
-				return -1;
-			else if (a.zIndex > b.zIndex)
-				return 1;
-			else return 0;
-		});
+		orderedEnts = _.sortBy(orderedEnts, 'zIndex');
 		
 		//	Make sure we're not drawing anything
 		Graphics.draw2D.end();
@@ -763,7 +757,7 @@ var EntityManager = function(){
 	/*	rayCastTestXY
 			Determines if an Entity has an unobstructed line to a point
 	*/
-	this.rayCastTestXY = function(a, point, maxFactor){
+	this.rayCastTestXY = function(a, point, maxFactor, excludeStatic, excludes){
 		var ray = {
 			origin: [a.x,a.y],
 			direction: Math.unitVector(a.getPosition(), point),
@@ -774,6 +768,18 @@ var EntityManager = function(){
 			if (tempResult.shape === a.hitbox.shapes[0]){
 				return false;
 			}
+			if (excludeStatic) {
+				if (tempResult.shape.body.isStatic()){
+					return false;
+				}
+			}
+			if (excludes){
+				for (var i in excludes){
+					if (tempResult.shape === excludes[i].hitbox.shapes[0]){
+						return false;
+					}
+				}
+			}
 			return true;
 		});
 	
@@ -782,12 +788,20 @@ var EntityManager = function(){
 	
 	this.hitboxProjectionTest = function(a, point, params){
 		params = params || {};
-		var args = params;
+		var args =  {}
+		args.staticOnly = params.staticOnly;
+		args.berth = params.berth;
+		args.exclude = _.uniq(params.exclude) || null;
 		args.point = point;
 		args.width = a.hitbox.width;
 		args.height = a.hitbox.height;
 		//	Only exclude this character's hitbox if dynamic objects are being tested
-		if (!params.staticOnly) args.exclude = [a.hitbox];
+		if (!params.staticOnly) {
+			if (!args.exclude) args.exclude = [a.hitbox];
+			else {
+				args.exclude.push(a.hitbox);
+			}
+		}
 		return this.rectangleProjectionTest(args);
 	}
 	
@@ -799,7 +813,6 @@ var EntityManager = function(){
 		var height = params.height;
 		var staticOnly = params.staticOnly;
 		var rectangle = [point[0] - (width/2) - berth, point[1] - (height/2) - berth, point[0] + (width/2) + berth, point[1] + (height/2) + berth];
-
 		if (world.bodyRectangleQuery(rectangle,store)) {
 			for (var i in store){
 				//	If objects are being excluded
@@ -815,6 +828,20 @@ var EntityManager = function(){
 			return store.length;
 		}
 		else return false;
+	}
+	
+	var ghosts = [];
+	this.addGhost = function(body){
+		world.addRigidBody(body);
+		ghosts.push(body);
+	}
+	
+	this.clearGhosts = function(){
+		for (var i in ghosts){
+			world.removeRigidBody(ghosts[i]);
+			delete ghosts[i];
+		}
+		ghosts = [];
 	}
 	
 	this.getWorld = function(){

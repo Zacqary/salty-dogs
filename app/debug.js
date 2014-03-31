@@ -27,17 +27,56 @@ Debug.drawPathfindingGrid = function(grid){
 	Graphics.debugDraw.setScreenViewport(Graphics.draw2D.getScreenSpaceViewport());
 	Graphics.debugDraw.begin();
 	var matrix = grid.matrix;
-	var tileSize = grid.tileSize;
+	var precision = grid.precision;
 	for (var i in matrix){
 		var row = matrix[i];
-		var y = grid.origin[1] + (i*tileSize);
+		var y = grid.origin[1] + (i*precision);
 		for (var j in row){
-			var x = grid.origin[0] + (j*tileSize);
+			var x = grid.origin[0] + (j*precision);
 			var color = [1,0,1,1];
 			if (row[j] == 1) color = [1,1,0,1];
 			//Graphics.debugDraw.drawCircle(x,y,2,color);
-			Graphics.debugDraw.drawRectangle(x - (tileSize/2), y - (tileSize/2), x + (tileSize/2), y + (tileSize/2),color);
+			Graphics.debugDraw.drawRectangle(x - (precision/2), y - (precision/2), x + (precision/2), y + (precision/2),color);
 		}
 	}
 	Graphics.debugDraw.end();
+}
+
+EntityManager.prototype.debugDrawAllCharacters = function(){
+	var entities = this.getEntities();
+	for (var i in entities){
+		if (entities[i].charType && entities[i].waypoints) {
+			var path = _(entities[i].waypoints).uniq();
+			path.splice(0,0,{x: entities[i].x, y: entities[i].y});
+			Debug.drawPath(path);
+		}
+	}
+}
+
+Debug.keyData = [];
+Debug.buttons = {};
+
+Debug.buttons.PAUSE = {
+	down: function(){
+		if (GameState.isPaused()) GameState.unpause();
+		else GameState.pause();
+	},
+	up: function() {
+		
+	},
+}
+
+Debug.buttons.STEP = {
+	down: function(){
+		Debug.keyData["step"] = true;
+	},
+	up: function(){
+		delete Debug.keyData["step"];
+	},
+}
+
+
+Debug.initialize = function() {
+	Player.mapKey(Input.keyCodes.MINUS, Debug.buttons.PAUSE);
+	Player.mapKey(Input.keyCodes.EQUALS, Debug.buttons.STEP);
 }

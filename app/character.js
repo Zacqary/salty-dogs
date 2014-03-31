@@ -26,6 +26,7 @@ var Character = function (params){
 	var c = Entity.create(params);
 	c.entType = ENT_CHARACTER;
 	c.charType = CHAR_NEUTRAL;
+	c.physicsGroup = 2;
 	c.alive = true;
 	c.createSprite({width: 48, height: 64}, 0, -18);
 	c.speed = 6;
@@ -50,6 +51,7 @@ var Character = function (params){
 	
 	c.aiGoals = { };
 	c.aiData = { };
+	c.aiGroups = { };
 	
 	c.paperDoll = {
 		body: {
@@ -295,15 +297,19 @@ var Character = function (params){
 	c.makePlayer = function(){
 		this.charType = CHAR_FRIENDLY;
 		Player.entity = this;
+		this.physicsGroup = 4;
 	}
 	c.makeNeutral = function(){
 		this.charType = CHAR_NEUTRAL;
+		this.physicsGroup = 2;
 	}
 	c.makeHostile = function(){
 		this.charType = CHAR_HOSTILE;
+		this.physicsGroup = 8;
 	}
 	c.makeFriendly = function(){
 		this.charType = CHAR_FRIENDLY;
+		this.physicsGroup = 4;
 	}
 
 	//	Character UI functions
@@ -478,7 +484,7 @@ var Character = function (params){
 	c.approachCurrentWaypoint = function(){
 		w = this.waypoints[0];
 		if (!w.disableHeading && !this.inCombat) {
-			var heading = Math.angleXY([this.x, this.y],[w.x,w.y])*(180/Math.PI);
+			var heading = Math.angleXY([this.x, this.y],[w.x,w.y]);
 			this.affectHeading(heading);
 		}
 		this.aPC();
@@ -630,7 +636,7 @@ var Character = function (params){
 		}
 	}
 	c.addBehavior = function(name){
-		var behavior = AI[name];
+		var behavior = AI.Behaviors[name];
 		behaviors[name] = new behavior(this);
 	}
 	c.removeBehavior = function(behavior){
@@ -664,22 +670,18 @@ EntityManager.prototype.updateCharacterCombatStates = function(){
 }
 EntityManager.prototype.runCharacterBehaviors = function(){
 	var entities = this.getEntities();
+	var characters = [];
+	
 	for (var i in entities){
 		if (entities[i].charType && entities[i].alive) {
-			entities[i].runMyBehaviors();
+			characters.push(entities[i]);
 		}
 	}
-}
-
-EntityManager.prototype.debugDrawAllCharacters = function(){
-	var entities = this.getEntities();
-	for (var i in entities){
-		if (entities[i].charType && entities[i].waypoints) {
-			var path = _(entities[i].waypoints).uniq();
-			path.splice(0,0,{x: entities[i].x, y: entities[i].y});
-			Debug.drawPath(path);
-		}
+	AI.assignGroups(characters);
+	for (var i in characters){
+		characters[i].runMyBehaviors();
 	}
+	AI.clearGroups();
 }
 
 //	====================================================================================

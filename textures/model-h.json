@@ -11,10 +11,26 @@
 		[-6,-50]
 	],
 	
+	"layers": ["body", "hat", "tank", "shirt", "patch", "patchleft", "pants", "lshilt", "lsblade", "anim"],
+	
+	"animations": {
+		"walk": 5
+	},
+	
 	"blanks":
 	{
-		"patch": [1, 2, 3, 4],
-		"patchleft": [0, 1, 2, 3],
-		"lshilt": [3]
+		"patch": {
+			"Ω": [1, 2, 3, 4]
+		},
+		"patchleft": {
+			"Ω": [0, 1, 2, 3]
+		},
+		"lshilt": {
+			"Ω": [3]
+		},
+		"anim": {
+			"ø": [0, 1, 2, 3, 4, 5, 6, 7],
+			"walk": [1, 2, 3, 4, 5, 6, 7]
+		}
 	}
 }

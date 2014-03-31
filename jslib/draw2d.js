@@ -389,10 +389,10 @@ var Draw2DSprite = (function () {
         // texture (not optional)
         var texture = s._texture = params.texture || null;
         if (texture) {
-           /* if ((0 !== (texture.width & (texture.width - 1))) || (0 !== (texture.height & (texture.height - 1)))) {
+            if ((0 !== (texture.width & (texture.width - 1))) || (0 !== (texture.height & (texture.height - 1)))) {
                 debug.abort("Draw2DSprites require textures with power-of-2 " + "dimensions");
                 return null;
-            } */
+            }
         }
 
         // position (optional, default 0,0)

@@ -189,6 +189,7 @@ CameraTest.loadingLoop = function(){
 			this.avatar.setLegs("pants","77709a");
 			this.avatar.setSword("ls","aaaaaa");
 			this.avatar.addMisc("patch","000033",2);
+			this.avatar.addMisc("anim","000033",4);
 			this.avatar.composeDoll();
 			this.avatar.name = "Player";
 			this.avatar.makePlayer();
@@ -319,6 +320,8 @@ CameraTest.runAfterPlayerMoves = function(){
 }
 
 CameraTest.drawExtension = function(){
+
+	
 	var debugNPCs = [null, this.NPC, this.NPC2, this.NPC3, this.NPC5];
 	
 	if (Player.keyData["debug"]) {

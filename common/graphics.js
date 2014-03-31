@@ -121,11 +121,6 @@ var Graphics = {
 	*/
 	makeCompositeTexture: function makeCompositeTexture(layers){
 		
-		Graphics.draw2D.configure({
-			scaleMode: 'scale',
-			viewportRectangle: undefined
-		});
-		
 		//	Check if the layers specify texture data, texture path or just a texture name.
 		for (var i in layers){
 			if (!layers[i].texture){
@@ -141,9 +136,16 @@ var Graphics = {
 		var pixHeight = layers[0].texture.height;
 		
 		//	Create a render target and start drawing to it
+		Graphics.draw2D.configure({
+			scaleMode: 'scale',
+			viewportRectangle: [0,0,pixWidth,pixHeight]
+		});
+		
 		var target = Graphics.draw2D.createRenderTarget({
 			name: "newTarget",
 			backBuffer: true,
+			width: pixWidth,
+			height: pixHeight
 		});
 		Graphics.draw2D.setRenderTarget(target);
 		Graphics.draw2D.begin("alpha");
@@ -514,4 +516,85 @@ Graphics.UI.Bar.create = function(params){
 	return bar;
 };
 
+
+// Override Draw2DSprite.create to avoid NPOT error
+Draw2DSprite.create = function (params) {
+    if ((params.width === undefined || params.height === undefined) && !params.texture) {
+        return null;
+    }
+
+    // data:
+    // ---
+    // First 16 values reserved for Draw2DSpriteData.
+    //   includes colour and texture coordinates.
+    //
+    // 16    : old_rotation (for lazy evaluation)
+    // 17,18 : width/2, height/2 (changed by user via function)
+    // 19,20 : scaleX, scaleY    (changed by user via function)
+    // 21,22 : shearX, shearY    (changed by user via function)
+    // 23,24 : originX, originY  (changed by user via function)
+    // 25,26 : cx, cy // locally defined position of true center of sprite relative to origin
+    //    (dependant on scale/shear/center/dimension)
+    // 27,28 : u1, v1 // locally defined position of top-left vertex relative to center of sprite.
+    //    (dependant on scale/shear/dimension)
+    // 29,30 : u2, v2 // locally defined position of top-right vertex relative to center of sprite.
+    //    (dependant on scale/shear/dimension)
+    // 31,32 : px, py // relative defined position of true center of sprite relative to origin
+    //    (dependant on rotation and cx,cy)
+    // 33,34 : x1, y1 // relative defined position of top-left vertex relative to center of sprite.
+    //    (dependant on rotation and u1,v1)
+    // 35,36 : x2, y2 // relative defined position of top-right vertex relative to center of sprite.
+    //    (dependant on rotation and u2,v2)
+    // 37 : Squared epsilon to consider rotations equal based on dimensions.
+    var s = new Draw2DSprite();
+    var data = s.data = new Draw2D.floatArray(38);
+
+    // texture (not optional)
+    var texture = s._texture = params.texture || null;
+
+    // position (optional, default 0,0)
+    s.x = (params.x || 0.0);
+    s.y = (params.y || 0.0);
+
+    // rotation (optional, default 0)
+    s.rotation = data[16] = (params.rotation || 0.0);
+
+    // colour (optional, default [1,1,1,1])
+    var color = params.color;
+    data[8] = (color ? color[0] : 1.0);
+    data[9] = (color ? color[1] : 1.0);
+    data[10] = (color ? color[2] : 1.0);
+    data[11] = (color ? color[3] : 1.0);
+
+    // uvRect (optional, default texture rectangle)
+    var uvRect = params.textureRectangle;
+    var iwidth = (texture ? 1 / texture.width : 1);
+    var iheight = (texture ? 1 / texture.height : 1);
+    data[12] = (uvRect ? (uvRect[0] * iwidth) : 0.0);
+    data[13] = (uvRect ? (uvRect[1] * iheight) : 0.0);
+    data[14] = (uvRect ? (uvRect[2] * iwidth) : 1.0);
+    data[15] = (uvRect ? (uvRect[3] * iheight) : 1.0);
+
+    // dimensions / 2 (default texture dimensions)
+    data[17] = ((params.width !== undefined) ? params.width : texture.width) * 0.5;
+    data[18] = ((params.height !== undefined) ? params.height : texture.height) * 0.5;
+
+    // scale (default [1,1])
+    var scale = params.scale;
+    data[19] = (scale ? scale[0] : 1.0);
+    data[20] = (scale ? scale[1] : 1.0);
+
+    // shear (default [0,0])
+    var shear = params.shear;
+    data[21] = (shear ? shear[0] : 0.0);
+    data[22] = (shear ? shear[1] : 0.0);
+
+    // origin (default dimensions / 2)
+    var origin = params.origin;
+    data[23] = (origin ? origin[0] : data[17]);
+    data[24] = (origin ? origin[1] : data[18]);
+
+    s._invalidate();
+    return s;
+};
 

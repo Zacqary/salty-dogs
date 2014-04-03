@@ -104,7 +104,6 @@ var Character = function (params){
 		}
 		
 		c.setPaperDoll(this.paperDoll);
-		c.composeDoll();
 		c.charType = this.charType;
 		
 		c.stamina = new Spectrum(this.stamina.getMax());
@@ -120,6 +119,7 @@ var Character = function (params){
 		return c;
 	}
 	
+	var prevFrame;
 	c.updateExtension = function(){
 		if (this.alive) {
 			//	Handle stats
@@ -132,9 +132,7 @@ var Character = function (params){
 		for (var i in bars){
 			bars[i].update();
 		}
-	}
-	
-	c.drawExtension = function(){
+		
 		if (this.model) {
 			//	Default direction is down
 			var direction = 6;
@@ -143,18 +141,26 @@ var Character = function (params){
 				direction = Math.angleToDirection(this.heading);
 			}
 			this.setDirection(direction);
-			this.setAnimation("walk");
+			//this.setAnimation("walk");
 			var frame = this.getCurrentAnimationFrame();
-			this.advanceAnimationFrame();
+			//this.advanceAnimationFrame();
+			
+			//	Update texture
+			//if (frame != prevFrame)
+			this.composeDoll(frame);
+			prevFrame = frame;
+			
 			//	Determine whether the sprite is currently scaled up or down relative to the model
 			var differential = this.sprite.getWidth()/this.activeFrame.width;
 			//	Update the sprite's width, scaled proportionately
 			this.sprite.setWidth(frame.width*differential);
-			//	Update texture rectangles and offsets
-			this.sprite.setTextureRectangle(frame.rectangle);
-			this.sprite.setOffsets(frame.offsets);
-			this.activeFrame = frame;
+			
 		}
+		
+	}
+	
+	c.drawExtension = function(){
+		
 		for (var i in bars){
 			if (bars[i].visible) bars[i].draw();
 		}
@@ -166,9 +172,6 @@ var Character = function (params){
 	//	setModel - Sets a model and initializes it by applying it to the sprite
 	c.setModel = function(model){
 		this.model = model;
-		this.sprite.setTextureRectangle(this.model.getAnimationFrame("ø",0,6).rectangle);
-		this.sprite.setOffsets(this.model.getAnimationFrame("ø",0,6).offsets);
-		this.activeFrame = this.model.getAnimationFrame("ø",0,6);
 	}
 	
 	//	paperDoll manipulation functions
@@ -177,52 +180,72 @@ var Character = function (params){
 	/*	composeDoll
 			Parse the paperDoll objects, and convert them to layers for composeTexture
 	*/
-	c.composeDoll = function(){
+	c.composeDoll = function(frame){
 		var layers = [];
 		//	Go through all the basic paperDoll components and make them into layers
 		for(var i in paperDollZIndex){
 			var texName = paperDollZIndex[i].type;
-			if (this.model) {
-				if (paperDollZIndex[i].type !== null) {
-					//	If the current component is a sword, create two layers
-					if (paperDollZIndex[i].isSword) {
-						layers.push({texture: this.model.getLayer(texName+'hilt'), color: "c7aa09"});
-						layers.push({texture: this.model.getLayer(texName+'blade'), color: paperDollZIndex[i].color});
-					}
-					else {
-						layers.push({texture: this.model.getLayer(texName), color: paperDollZIndex[i].color});
-					}
-					//	See if there are any miscellaneous objects to layer on top of the current component
-					for (var j in this.paperDoll.misc){
-						me = this.paperDoll.misc[j];
-						if (me.zIndex == i)
-							layers.push({texture: this.model.getLayer(me.type), color: me.color});
-					}
+			if (paperDollZIndex[i].type !== null) {
+				//	If the current component is a sword, create two layers
+				if (paperDollZIndex[i].isSword) {
+					layers.push({frame: this.model.getFrameLayer(frame, texName+'hilt'), color: "c7aa09", name: texName+'hilt'});
+					layers.push({frame: this.model.getFrameLayer(frame, texName+'blade'), color: paperDollZIndex[i].color, name: texName+'blade'});
 				}
-				this.composeTexture(layers);
-			}
-			/*
-			else {
-				if (paperDollZIndex[i].type !== null) {
-					//	If the current component is a sword, create two layers
-					if (paperDollZIndex[i].isSword) {
-						layers.push({name: texName+'hilt', color: "c7aa09"});
-						layers.push({name: texName+'blade', color: paperDollZIndex[i].color});
-					}
-					else {
-						layers.push({name: texName, color: paperDollZIndex[i].color});
-					}
-					//	See if there are any miscellaneous objects to layer on top of the current component
-					for (var j in this.paperDoll.misc){
-						me = this.paperDoll.misc[j];
-						var myName = me.type;
-						if (me.zIndex == i)
-							layers.push({name: myName, color: me.color});
-					}
+				else {
+					layers.push({frame: this.model.getFrameLayer(frame, texName), color: paperDollZIndex[i].color, name: texName});
+				}
+				//	See if there are any miscellaneous objects to layer on top of the current component
+				for (var j in this.paperDoll.misc){
+					me = this.paperDoll.misc[j];
+					if (me.zIndex == i)
+						layers.push({frame: this.model.getFrameLayer(frame, me.type), color: me.color, name: me.type});
 				}
 			}
-			*/
 		}
+		
+		//	Create a render target and start drawing to it
+		Graphics.draw2D.configure({
+			scaleMode: 'scale',
+			viewportRectangle: Math.device.v4Build(0,0,frame.width,frame.height)
+		});
+		
+		var target = Graphics.draw2D.createRenderTarget({
+			name: makeid(),
+			backBuffer: true,
+			width: frame.width,
+			height: frame.height
+		});
+		Graphics.draw2D.setRenderTarget(target);
+		Graphics.draw2D.begin("alpha");
+		
+		for (var i in layers){
+			var color = layers[i].color;
+			if (typeof color == "string") color = Graphics.hexToARGB(color);
+
+			Graphics.draw2D.drawSprite(Draw2DSprite.create({
+				texture: layers[i].frame.texture,
+				textureRectangle: frame.rectangle,
+				width: frame.width,
+				height: frame.height,
+				color: color,
+				x: 0,
+				y: 0,
+				origin: Math.device.v2BuildZero(),
+			}));
+		}
+		
+		//	Stop drawing and reset the back buffer, whatever that means
+		Graphics.draw2D.end();
+		Graphics.draw2D.setBackBuffer();
+		
+		//	Grab what we just drew, and return it as hot, fresh, delicious texture data
+		var tex = Graphics.draw2D.getRenderTargetTexture(target);
+		Graphics.draw2D.getRenderTarget(target).destroy();
+		this.setTexture(tex);
+		this.sprite.setTextureRectangle(frame.rectangle);
+		this.sprite.setOffsets(frame.offsets);
+		this.activeFrame = frame;
+		
 	}
 	
 	//	Setters
@@ -757,6 +780,7 @@ var CharacterModel = function () {
 		f.direction = params.direction;
 		f.animation = params.animation;
 		f.frameNum = params.frameNum;
+		f.spriteSheet = params.spriteSheet;
 
 		frames[f.name] = f;
 		
@@ -788,13 +812,18 @@ var CharacterModel = function () {
 		return this.getFrame(directions[dir])
 	}
 	
-	this.setLayer = function(texture, name){
-		name = name || texture.name;
-		layers[name] = texture;
+	this.setLayer = function(textures, name){
+		layers[name] = textures;
 	}
 	
 	this.getLayer = function(name){
 		return layers[name];
+	}
+	
+	this.getFrameLayer = function(frame, layer){
+		var f = frame;
+		f.texture = layers[layer][frame.spriteSheet];
+		return f;
 	}
 	
 	this.setAnimationFrame = function(name, frameNum, direction, frameName){
@@ -819,13 +848,15 @@ var CharacterModel = function () {
 	
 	this.debugDrawLayer = function(name){
 		
+		var tex = layers[name][0];
+		
 		return Draw2DSprite.create({
-			texture: layers[name],
-			width: layers[name].width,
-			height: layers[name].height,
-			textureRectangle: [0,0,layers[name].width,layers[name].height],
-			x: 400,
-			y: 200,
+			texture: tex,
+			width: tex.width,
+			height: tex.height,
+			textureRectangle: [0,0,tex.width,tex.height],
+			x: 0,
+			y: 0,
 			color: [1,0,0,1],
 			scale: [0.5,0.5]
 		})
@@ -838,10 +869,9 @@ CharacterModel.create = function(archive, layers){
 	Graphics.textureManager.loadArchive(TEXTURE_ROOT+archive+".tar", true, null, function(textures){
 		//	Load the JSON data for offsets
 		Protocol.assetManager.loadJSON(TEXTURE_ROOT+archive+".json", function(params) {
-			//	Store the starting X coordinates for the bottom layer, and apply these to all the others
+			//	Store the coordinates for the bottom layer, and apply these to all the others
 			//	This ensures all the textures will line up
-			var spriteXValues = [];
-			var spriteYValues = [];
+			var spriteCoords = [];
 			
 			var animations = params.animations;
 			//	Add ø to animations object to signify a lack of animation
@@ -854,47 +884,26 @@ CharacterModel.create = function(archive, layers){
 				var sprites = [];
 				
 				var layerName = params.layers[i];
-				
-				/*
-					For each layer, the texture will be arranged as follows:
-						-	Each animation arranged vertically, as a large rectangle
-						-	Each animation frame vertically one after the other within
-							that animation box
-						-	Each direction for each animation frame arranged horizontally
-						
-						For example:
-							---  Anim 1  ---
-						Fr1	↓ → ↑ ← ↖ ↗ ↘ ↙
-						Fr2	↓ → ↑ ← ↖ ↗ ↘ ↙
-						Fr3	↓ → ↑ ← ↖ ↗ ↘ ↙
-							---  Anim 2  ---
-						Fr1	↓ → ↑ ← ↖ ↗ ↘ ↙
-						Fr2	↓ → ↑ ← ↖ ↗ ↘ ↙
-						Fr3	↓ → ↑ ← ↖ ↗ ↘ ↙
-				*/
-				
-				//	Start at the top of the texture
-				var spriteY = 0;
+			
+				var coords = { x: 0, y: 0, sheet: 0 };
+				var previousSprite;
 				
 				//	Create each animation rectangle
-				for (var k in animations){
+				for (var anim in animations){
 
-					//	If this is the first layer, set up spriteYValues for this animation
-					if (!spriteYValues[k]) spriteYValues[k] = { };
+					//	If this is the first layer, set up spriteCoords for this animation
+					if (!spriteCoords[anim]) spriteCoords[anim] = { };
 
-					for (var l = 0; l < animations[k]; l++) {
+					for (var frame = 0; frame < animations[anim]; frame++) {
 
-						//	If this isn't the first layer, spriteY should be defined already
-						if (spriteYValues[k][l]) spriteY = spriteYValues[k][l];
-						var frameHeight;
-						//Start at the left side of the texture
-						var spriteX = 0;
+						if (!spriteCoords[anim][frame]) spriteCoords[anim][frame] = {};
 						
 						//	For each direction, create a sprite for this frame
-						for (var j = 0; j < 8; j++){
+						for (var dir = 0; dir < 8; dir++){
 							
-							//	If this isn't the first layer, spriteX should be defined already
-							if (spriteXValues[j]) spriteX = spriteXValues[j];
+							//	If this isn't the first layer, coords should be defined already
+							if (spriteCoords[anim][frame][dir]) coords = spriteCoords[anim][frame][dir];
+							else spriteCoords[anim][frame][dir] = { };
 		
 							//	Check if this direction is blanked for the layer
 							//	This is done in multiple lines rather than with a simple
@@ -903,25 +912,25 @@ CharacterModel.create = function(archive, layers){
 							if (params.blanks[layerName]) {
 								//	Blanks in Ω will nullify this direction for all animations
 								if (_.isArray(params.blanks[layerName].Ω) )
-									blankIndex = params.blanks[layerName].Ω.indexOf(j);
+									blankIndex = params.blanks[layerName].Ω.indexOf(dir);
 								//	If Ω doesn't nullify the direction, check the current animation
 								if (blankIndex == -1) {
-									if (_.isArray(params.blanks[layerName][k]) )
-										blankIndex = params.blanks[layerName][k].indexOf(j);
+									if (_.isArray(params.blanks[layerName][anim]) )
+										blankIndex = params.blanks[layerName][anim].indexOf(dir);
 								}
 							}
 							//	If the direction isn't blanked, proceed
 							if (blankIndex == -1){
 								//	Generate the filename of the layer
 								var path;
-								if (k == "ø") path = layerName+"-"+j+TEXTURE_EXT;
-								else path = layerName+"-"+j+"-"+k+"-"+l+TEXTURE_EXT;
+								if (anim == "ø") path = layerName+"-"+dir+TEXTURE_EXT;
+								else path = layerName+"-"+dir+"-"+anim+"-"+frame+TEXTURE_EXT;
 					
 								//	If this texture is missing, try the un-animated texture,
 								//	or log an error if that doesn't work
 								if (Graphics.textureManager.isTextureMissing(path)) {
-									if (k !== "ø") {
-										path = layerName+"-"+j+TEXTURE_EXT;
+									if (anim !== "ø") {
+										path = layerName+"-"+dir+TEXTURE_EXT;
 										if (Graphics.textureManager.isTextureMissing(path)) {
 											console.log("ERROR: "+path+" is missing");
 										}
@@ -932,68 +941,89 @@ CharacterModel.create = function(archive, layers){
 								//	so that the debug texture will be displayed
 					
 								//	Load the texture
-								var frame = Graphics.textureManager.get(path);
-					
+								var thisFrameTex = Graphics.textureManager.get(path);
+								
+								//	If adding this texture will exceed a width of 2048, move it down
+								if (coords.x + thisFrameTex.width > 2048){
+									coords.x = 0;
+									coords.y += previousSprite.getHeight();
+								}
+								//	If adding this texture will exceed a height of 2048, start a new sprite sheet
+								if (coords.y + thisFrameTex.height > 2048){
+									coords.x = 0;
+									coords.y = 0;
+									coords.sheet += 1;
+								}
+								
+								//	Check if the current sprite sheet exists
+								if (!_.isArray(sprites[coords.sheet])) sprites[coords.sheet] = [];
+								
 								//	Create a sprite from the texture, and then push it into the list of sprites to draw
-								sprites.push(Draw2DSprite.create({
-									texture: frame,
-									textureRectangle: [0,0,frame.width,frame.height],
-									width: frame.width,
-									height: frame.height,
-									x: spriteX,
-									y: spriteY,
+								var sprite = Draw2DSprite.create({
+									texture: thisFrameTex,
+									textureRectangle: Math.device.v4Build(0,0,thisFrameTex.width,thisFrameTex.height),
+									width: thisFrameTex.width,
+									height: thisFrameTex.height,
+									x: coords.x,
+									y: coords.y,
 									color: Math.device.v4BuildOne(),
 									origin: Math.device.v2BuildZero(),
-								}));
-							}
-							//	If this is the first layer, define the bounding box for direction and spriteX
-							if (!m.getAnimationFrame(k, l, j)){
-								m.setFrame({
-									name: j+"-"+k+"-"+l,
-									rectangle: [spriteX,spriteY,spriteX+frame.width,spriteY+frame.height],
-									offsets: params.offsets[j],
-									direction: j,
-									animation: k,
-									frameNum: l,
 								});
-								//	Store this spriteX value and then move it to the right of the previous frame
-								spriteXValues[j] = spriteX;
-								spriteX += frame.width;
-								
-								frameHeight = frame.height;
+								sprites[coords.sheet].push(sprite);
+								previousSprite = sprite;
+							}
+							//	If this is the first layer, set up the frame for the model
+							if (!m.getAnimationFrame(anim, frame, dir)){
+								m.setFrame({
+									name: dir+"-"+anim+"-"+frame,
+									rectangle: [coords.x,coords.y,coords.x+thisFrameTex.width,coords.y+thisFrameTex.height],
+									offsets: params.offsets[dir],
+									spriteSheet: coords.sheet,
+									direction: dir,
+									animation: anim,
+									frameNum: frame,
+								});
+								//	Store this sprite's coordinates and then move it to the right of the previous frame
+								spriteCoords[anim][frame][dir].x = coords.x;
+								spriteCoords[anim][frame][dir].y = coords.y;
+								spriteCoords[anim][frame][dir].sheet = coords.sheet;
+								coords.x += thisFrameTex.width;
 							}
 						} // End of frame sprite creation
-						
-						//	Store this spriteY value and then move it to the bottom of the previous frame
-						spriteYValues[k][l] = spriteY;
-						spriteY += frameHeight;
 						
 					} // End of animation sprite creation
 					
 				}
-				//	Draw all the sprites into the texture
+				//	Draw all the sprites into the sprite sheets
 				Graphics.draw2D.configure({
 					scaleMode: 'scale',
-					viewportRectangle: [0, 0, spriteX, spriteY]
+					viewportRectangle: [0,0,2048,2048]
 				});
-				var target = Graphics.draw2D.createRenderTarget({
-					name: "newTarget",
-					backBuffer: true,
-					height: spriteY,
-					width: spriteX,
-				});
-				Graphics.draw2D.setRenderTarget(target);
-				Graphics.draw2D.begin("npot-alpha");
+				var sheets = [];
 				for (var i in sprites){
-					Graphics.draw2D.drawSprite(sprites[i]);
+					var target = Graphics.draw2D.createRenderTarget({
+						name: "newTarget",
+						backBuffer: true,
+						width:2048,
+						height:2048,
+					});
+					Graphics.draw2D.setRenderTarget(target);
+					Graphics.draw2D.begin("npot-alpha");
+					for (var j in sprites[i]){
+						Graphics.draw2D.drawSprite(sprites[i][j]);
+					}
+					Graphics.draw2D.end();
+					Graphics.draw2D.setBackBuffer();
+					var tex = Graphics.draw2D.getRenderTargetTexture(target);
+					Graphics.draw2D.getRenderTarget(target).destroy();
+					sheets.push(tex);
+					
+					
 				}
-				Graphics.draw2D.end();
-				Graphics.draw2D.setBackBuffer();
-				var tex = Graphics.draw2D.getRenderTargetTexture(target);
-				
-				m.setLayer(tex, layerName);
+				m.setLayer(sheets, layerName);
 			}	
 		});
 	});
+	
 	return m;
 }

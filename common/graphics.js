@@ -171,7 +171,6 @@ var Graphics = {
 		
 		//	Grab what we just drew, and return it as hot, fresh, delicious texture data
 		var tex = Graphics.draw2D.getRenderTargetTexture(target);
-		
 		return tex;
 	},
 	

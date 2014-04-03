@@ -190,7 +190,6 @@ CameraTest.loadingLoop = function(){
 			this.avatar.setSword("ls","aaaaaa");
 			this.avatar.addMisc("patch","000033",2);
 			this.avatar.addMisc("anim","000033",4);
-			this.avatar.composeDoll();
 			this.avatar.name = "Player";
 			this.avatar.makePlayer();
 			
@@ -199,7 +198,6 @@ CameraTest.loadingLoop = function(){
 			this.NPC.setLegs("pants","aa5555");
 			this.NPC.setSword("ls","aaaaaa");
 			this.NPC.addMisc("patchleft","000033",2);
-			this.NPC.composeDoll();
 			//this.NPC.setMovementAIGoal(this.NPC.x, this.NPC.y);
 			this.NPC.makeFriendly();
 			
@@ -215,7 +213,6 @@ CameraTest.loadingLoop = function(){
 			this.NPC2.setBody("body","dedefe");
 			this.NPC2.setHead("hat","992370");
 			this.NPC2.removeMisc("patchleft");
-			this.NPC2.composeDoll();
 			this.NPC2.name = "NPC2";
 			this.NPC2.addBehavior("Pathfinding");
 			this.NPC2.addBehavior("Chase");
@@ -230,7 +227,6 @@ CameraTest.loadingLoop = function(){
 			this.NPC3.sprite.setHeight(96);
 			this.NPC3.setPosition(280, 160);
 			this.NPC3.setTorso("shirt","dedefe");
-			this.NPC3.composeDoll();
 			this.NPC3.makeFriendly();
 			this.NPC3.name = "NPC3";
 			this.NPC3.addBehavior("Pathfinding");
@@ -246,7 +242,6 @@ CameraTest.loadingLoop = function(){
 			this.NPC4.setPosition(180, 160);
 			this.NPC4.setTorso("shirt","dedefe");
 			this.NPC4.makeFriendly();
-			this.NPC4.composeDoll();
 			this.NPC4.makeFriendly();
 			this.NPC4.addBehavior("Pathfinding");
 			this.NPC4.addBehavior("Chase");
@@ -261,8 +256,6 @@ CameraTest.loadingLoop = function(){
 			this.NPC5.setPosition(400, 160);
 			this.NPC5.setTorso("shirt","dedefe");
 			this.NPC5.makeFriendly();
-			this.NPC5.composeDoll();
-			this.NPC5.makeFriendly();
 			this.NPC5.addBehavior("Pathfinding");
 			this.NPC5.addBehavior("Chase");
 			this.NPC5.addBehavior("Rally");
@@ -275,8 +268,6 @@ CameraTest.loadingLoop = function(){
 			this.NPC6.setPosition(500, 260);
 			this.NPC6.setTorso("shirt","dedefe");
 			this.NPC6.makeFriendly();
-			this.NPC6.composeDoll();
-			this.NPC6.makeFriendly();
 			this.NPC6.addBehavior("Pathfinding");
 			this.NPC6.addBehavior("Chase");
 			this.NPC6.addBehavior("Rally");
@@ -288,8 +279,6 @@ CameraTest.loadingLoop = function(){
 			this.NPC7.sprite.setHeight(96);
 			this.NPC7.setPosition(600, 200);
 			this.NPC7.setTorso("shirt","dedefe");
-			this.NPC7.makeFriendly();
-			this.NPC7.composeDoll();
 			this.NPC7.makeFriendly();
 			this.NPC7.addBehavior("Pathfinding");
 			this.NPC7.addBehavior("Chase");
@@ -321,7 +310,6 @@ CameraTest.runAfterPlayerMoves = function(){
 
 CameraTest.drawExtension = function(){
 
-	
 	var debugNPCs = [null, this.NPC, this.NPC2, this.NPC3, this.NPC5];
 	
 	if (Player.keyData["debug"]) {

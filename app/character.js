@@ -204,7 +204,7 @@ var Character = function (params){
 		//	Create a render target and start drawing to it
 		Graphics.draw2D.configure({
 			scaleMode: 'none',
-			viewportRectangle: Math.device.v4Build(0,0,frame.width,frame.height)
+			viewportRectangle: Math.device.v4Build(0,0,256,256)
 		});
 		
 		var target = this.renderTarget;
@@ -239,15 +239,14 @@ var Character = function (params){
 		//	Grab what we just drew, and return it as hot, fresh, delicious texture data
 		var tex = Graphics.draw2D.getRenderTargetTexture(target);
 		
-		this.setTexture(tex);
-		this.sprite.setTextureRectangle([0,0,256,256]);
-		this.sprite.setOffsets(frame.offsets);
-		
 		//Determine whether the sprite is currently scaled up or down relative to the model
 		var differential = this.sprite.getWidth()/this.activeFrame.width;
 		//	Update the sprite's width, scaled proportionately
 		this.sprite.setWidth(frame.width*differential);
 		
+		this.setTexture(tex);
+		this.sprite.setTextureRectangle([0,0,frame.width,frame.height]);
+		this.sprite.setOffsets(frame.offsets);
 		this.activeFrame = frame;
 		
 	}

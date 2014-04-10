@@ -104,6 +104,7 @@ var Character = function (params){
 		}
 		
 		c.setPaperDoll(this.paperDoll);
+		c.renderTarget = null;
 		c.charType = this.charType;
 		
 		c.stamina = new Spectrum(this.stamina.getMax());
@@ -146,14 +147,10 @@ var Character = function (params){
 			//this.advanceAnimationFrame();
 			
 			//	Update texture
-			//if (frame != prevFrame)
-			this.composeDoll(frame);
+			if (frame != prevFrame) {
+				this.composeDoll(frame);
+			}
 			prevFrame = frame;
-			
-			//	Determine whether the sprite is currently scaled up or down relative to the model
-			var differential = this.sprite.getWidth()/this.activeFrame.width;
-			//	Update the sprite's width, scaled proportionately
-			this.sprite.setWidth(frame.width*differential);
 			
 		}
 		
@@ -172,6 +169,7 @@ var Character = function (params){
 	//	setModel - Sets a model and initializes it by applying it to the sprite
 	c.setModel = function(model){
 		this.model = model;
+		this.activeFrame = model.getAnimationFrame("ø",0,6);
 	}
 	
 	//	paperDoll manipulation functions
@@ -205,33 +203,33 @@ var Character = function (params){
 		
 		//	Create a render target and start drawing to it
 		Graphics.draw2D.configure({
-			scaleMode: 'scale',
+			scaleMode: 'none',
 			viewportRectangle: Math.device.v4Build(0,0,frame.width,frame.height)
 		});
 		
-		var target = Graphics.draw2D.createRenderTarget({
-			name: makeid(),
-			backBuffer: true,
-			width: frame.width,
-			height: frame.height
-		});
+		var target = this.renderTarget;
+		if (!target) {
+			target = this.renderTarget = Graphics.draw2D.createRenderTarget({
+				backBuffer: true,
+				width: 256,
+				height: 256
+			});
+		}
 		Graphics.draw2D.setRenderTarget(target);
+		Graphics.draw2D.clear([1.0, 1.0, 1.0, 0.0]);
 		Graphics.draw2D.begin("alpha");
 		
 		for (var i in layers){
 			var color = layers[i].color;
 			if (typeof color == "string") color = Graphics.hexToARGB(color);
 
-			Graphics.draw2D.drawSprite(Draw2DSprite.create({
+			Graphics.draw2D.draw({
 				texture: layers[i].frame.texture,
-				textureRectangle: frame.rectangle,
-				width: frame.width,
-				height: frame.height,
+				sourceRectangle: frame.rectangle,
+				destinationRectangle: Math.device.v4Build(0,0,frame.width,frame.height),
 				color: color,
-				x: 0,
-				y: 0,
 				origin: Math.device.v2BuildZero(),
-			}));
+			});
 		}
 		
 		//	Stop drawing and reset the back buffer, whatever that means
@@ -240,10 +238,16 @@ var Character = function (params){
 		
 		//	Grab what we just drew, and return it as hot, fresh, delicious texture data
 		var tex = Graphics.draw2D.getRenderTargetTexture(target);
-		Graphics.draw2D.getRenderTarget(target).destroy();
+		
 		this.setTexture(tex);
-		this.sprite.setTextureRectangle(frame.rectangle);
+		this.sprite.setTextureRectangle([0,0,256,256]);
 		this.sprite.setOffsets(frame.offsets);
+		
+		//Determine whether the sprite is currently scaled up or down relative to the model
+		var differential = this.sprite.getWidth()/this.activeFrame.width;
+		//	Update the sprite's width, scaled proportionately
+		this.sprite.setWidth(frame.width*differential);
+		
 		this.activeFrame = frame;
 		
 	}
@@ -775,6 +779,8 @@ var CharacterModel = function () {
 		var f = {};
 
 		f.name = params.name;
+		f.width = params.width;
+		f.height = params.height;
 		f.rectangle = params.rectangle;
 		f.offsets = params.offsets;
 		f.direction = params.direction;
@@ -798,8 +804,6 @@ var CharacterModel = function () {
 	this.getFrame = function (name){
 		var f = frames[name];
 		if (!f) return false;
-		f.width = f.rectangle[2] - f.rectangle[0];
-		f.height = f.rectangle[3] - f.rectangle[1];
 		return f;
 	}
 	
@@ -821,7 +825,7 @@ var CharacterModel = function () {
 	}
 	
 	this.getFrameLayer = function(frame, layer){
-		var f = frame;
+		var f = _.cloneDeep(frame);
 		f.texture = layers[layer][frame.spriteSheet];
 		return f;
 	}
@@ -939,7 +943,7 @@ CharacterModel.create = function(archive, layers){
 								}
 								//	Even if the texture is missing, still proceed as normal
 								//	so that the debug texture will be displayed
-					
+						
 								//	Load the texture
 								var thisFrameTex = Graphics.textureManager.get(path);
 								
@@ -972,11 +976,14 @@ CharacterModel.create = function(archive, layers){
 								sprites[coords.sheet].push(sprite);
 								previousSprite = sprite;
 							}
+						
 							//	If this is the first layer, set up the frame for the model
 							if (!m.getAnimationFrame(anim, frame, dir)){
 								m.setFrame({
 									name: dir+"-"+anim+"-"+frame,
 									rectangle: [coords.x,coords.y,coords.x+thisFrameTex.width,coords.y+thisFrameTex.height],
+									width: thisFrameTex.width,
+									height: thisFrameTex.height,
 									offsets: params.offsets[dir],
 									spriteSheet: coords.sheet,
 									direction: dir,
@@ -1002,7 +1009,6 @@ CharacterModel.create = function(archive, layers){
 				var sheets = [];
 				for (var i in sprites){
 					var target = Graphics.draw2D.createRenderTarget({
-						name: "newTarget",
 						backBuffer: true,
 						width:2048,
 						height:2048,

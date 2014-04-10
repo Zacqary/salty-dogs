@@ -20,7 +20,7 @@
 /*{{ javascript('jslib/vmath.js') }}*/
 
 /*{{ javascript("common/dependencies/pathfinding.js") }}*/
-/*{{ javascript("common/dependencies/underscore.js") }}*/
+/*{{ javascript("common/dependencies/lodash.js") }}*/
 
 /*{{ javascript("common/protocol.js") }}*/
 /*{{ javascript("common/math.js") }}*/
